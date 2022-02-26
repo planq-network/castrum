@@ -19,9 +19,9 @@
 ;; NOTE(oskarth): Feature flag deprecation lifecycles. We want to make sure
 ;; flags stay up to date and are removed once behavior introduced is stable.
 
-(goog-define INFURA_TOKEN "800c641949d64d768a5070a1b0511938")
+(goog-define INFURA_TOKEN "")
 
-(def mainnet-rpc-url (str "https://mainnet.infura.io/v3/" INFURA_TOKEN))
+(def mainnet-rpc-url (str "https://rpc.planq.network/" INFURA_TOKEN))
 (def testnet-rpc-url (str "https://ropsten.infura.io/v3/" INFURA_TOKEN))
 (def bootnodes-settings-enabled? (enabled? (get-config :BOOTNODES_SETTINGS_ENABLED "1")))
 (def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "1")))
@@ -59,7 +59,7 @@
 (def log-level
   (string/upper-case (get-config :LOG_LEVEL "")))
 (def fleet (get-config :FLEET "eth.staging"))
-(def apn-topic (get-config :APN_TOPIC "im.status.ethereum"))
+(def apn-topic (get-config :APN_TOPIC "im.planq.network"))
 (def default-network (get-config :DEFAULT_NETWORK))
 (def pow-target (js/parseFloat (get-config :POW_TARGET "0.0001")))
 (def pow-time (js/parseInt (get-config :POW_TIME "1")))
@@ -97,10 +97,10 @@
 
 (def mainnet-networks
   [{:id                  "mainnet_rpc",
-    :chain-explorer-link "https://etherscan.io/address/",
+    :chain-explorer-link "https://explorer.planq.network/address/",
     :name                "Mainnet with upstream RPC",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :mainnet)
-                          :DataDir        "/ethereum/mainnet_rpc"
+                          :DataDir        "/planq/mainnet_rpc"
                           :UpstreamConfig {:Enabled true
                                            :URL     mainnet-rpc-url}}}])
 

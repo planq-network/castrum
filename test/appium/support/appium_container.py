@@ -76,14 +76,14 @@ class AppiumContainer:
         stats = DeviceStats()
 
         # Find process uid
-        uid_line = self.exec_run(['adb', 'shell', 'ps', '|', 'grep', 'im.status.ethereum']).output \
+        uid_line = self.exec_run(['adb', 'shell', 'ps', '|', 'grep', 'im.planq.network']).output \
             .decode('utf-8')
         # Match first word which is the uid
         match = re.match(r'(?:^|(?:[.!?]\s))(\w+)', uid_line, re.M | re.I)
         uid = match.group(1).replace('_', '')
 
         # Battery stats
-        batterystats = self.exec_run(['adb', 'shell', 'dumpsys', 'batterystats', 'im.status.ethereum']).output \
+        batterystats = self.exec_run(['adb', 'shell', 'dumpsys', 'batterystats', 'im.planq.network']).output \
             .decode('utf-8').splitlines()
         battery_usage_line = [s for s in batterystats if "Uid %s" % uid in s][0]
         match = re.match(r'.* Uid %s: ([^\s]+)' % uid, battery_usage_line, re.M | re.I)
@@ -94,7 +94,7 @@ class AppiumContainer:
         stats.total_computed_drain_mah = float(match.group(2))
 
         # Wi-Fi stats
-        wifi_stats = self.exec_run(['adb', 'shell', 'dumpsys', 'batterystats', 'im.status.ethereum', '|', 'grep',
+        wifi_stats = self.exec_run(['adb', 'shell', 'dumpsys', 'batterystats', 'im.planq.network', '|', 'grep',
                                 'Wi-Fi\ total']).output.decode('utf-8')
         stats.wifi_received = wifi_stats.split()[3].replace(',', '')
         stats.wifi_sent = wifi_stats.split()[5]

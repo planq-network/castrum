@@ -15,7 +15,7 @@
 	</array>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)im.status.ethereum.pr</string>
+		<string>$(AppIdentifierPrefix)im.planq.network</string>
 	</array>
 </dict>
 </plist>

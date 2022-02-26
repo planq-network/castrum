@@ -154,7 +154,7 @@
 
 (defn new-network
   [random-id network-name symbol upstream-url chain-type chain-id]
-  (let [data-dir (str "/ethereum/" (name chain-type) "_rpc")
+  (let [data-dir (str "/planq/" (name chain-type) "_rpc")
         config   {:NetworkId      (or (when chain-id (int chain-id))
                                       (ethereum/chain-keyword->chain-id chain-type))
                   :DataDir        data-dir

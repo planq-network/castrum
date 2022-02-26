@@ -1,4 +1,4 @@
-package im.status.ethereum.pushnotifications;
+package im.planq.network.pushnotifications;
 
 import android.os.Build;
 import android.app.Application;
@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import java.util.Set;
 
-import static im.status.ethereum.pushnotifications.PushNotification.LOG_TAG;
+import static im.planq.network.pushnotifications.PushNotification.LOG_TAG;
 
 class PushNotificationJsDelivery {
 

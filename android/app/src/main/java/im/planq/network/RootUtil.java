@@ -1,4 +1,4 @@
-package im.status.ethereum;
+package im.planq.network;
 
 import java.io.File;
 import java.io.BufferedReader;

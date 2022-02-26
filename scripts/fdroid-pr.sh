@@ -56,7 +56,7 @@ else
 fi
 
 CLONE_DIR="${WORKING_DIR}/fdroidata"
-METADATA_FILE="${CLONE_DIR}/metadata/im.status.ethereum.yml"
+METADATA_FILE="${CLONE_DIR}/metadata/im.planq.network.yml"
 
 PREVIOUS_BRANCH=""
 if [[ -d "${CLONE_DIR}" ]]; then

@@ -1,6 +1,6 @@
-package im.status.ethereum.pushnotifications;
+package im.planq.network.pushnotifications;
 
-import im.status.ethereum.pushnotifications.PushNotification;
+import im.planq.network.pushnotifications.PushNotification;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;

@@ -1,4 +1,4 @@
-package im.status.ethereum.module;
+package im.planq.network.module;
 
 import java.util.concurrent.*;
 

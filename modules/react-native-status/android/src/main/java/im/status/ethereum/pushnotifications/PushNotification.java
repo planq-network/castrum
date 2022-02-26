@@ -1,4 +1,4 @@
-package im.status.ethereum.pushnotifications;
+package im.planq.network.pushnotifications;
 
 import android.app.Activity;
 import android.app.Application;
@@ -28,7 +28,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import android.util.Log;
 
-import im.status.ethereum.pushnotifications.PushNotificationJsDelivery;
+import im.planq.network.pushnotifications.PushNotificationJsDelivery;
 
 public class PushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "PushNotification";

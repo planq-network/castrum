@@ -120,7 +120,7 @@ end
 def build_ios_adhoc(readonly: false, pr_build: false)
   # PR builds should appear as a separate App on iOS
   scheme = pr_build ? 'StatusImPR' : 'StatusIm'
-  app_id = pr_build ? 'im.status.ethereum.pr' : 'im.status.ethereum'
+  app_id = pr_build ? 'im.planq.network' : 'im.planq.network'
 
   kc = Keychain.new('fastlane')
 
@@ -145,8 +145,8 @@ def build_ios_adhoc(readonly: false, pr_build: false)
     export_options: {
       signingStyle: 'manual',
       provisioningProfiles: {
-        "im.status.ethereum": "match AdHoc im.status.ethereum",
-        "im.status.ethereum.pr": "match AdHoc im.status.ethereum.pr"
+        "im.planq.network": "match AdHoc im.planq.network",
+        "im.planq.network": "match AdHoc im.planq.network"
       }
     }
   )
@@ -246,7 +246,7 @@ platform :ios do
       type: 'appstore',
       readonly: true,
       api_key: asc_api_key(),
-      app_identifier: 'im.status.ethereum',
+      app_identifier: 'im.planq.network',
       keychain_name: kc.name,
       keychain_password: kc.pass
     )

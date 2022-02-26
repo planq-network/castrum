@@ -110,7 +110,7 @@ class AbstractTestCase:
 
     @property
     def app_path(self):
-        app_folder = 'im.status.ethereum'
+        app_folder = 'im.planq.network'
         apk = pytest_config_global['apk']
         if findall(r'pr\d\d\d\d\d', apk) or findall(r'\d\d\d\d\d.apk', apk):
             app_folder += '.pr'

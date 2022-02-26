@@ -1,4 +1,4 @@
-package im.status.ethereum;
+package im.planq.network;
 
 import android.util.Log;
 
@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import im.status.ethereum.module.StatusPackage;
+import im.planq.network.module.StatusPackage;
 
 class StatusOkHttpClientFactory implements OkHttpClientFactory {
   public OkHttpClient createNewNetworkModuleClient() {

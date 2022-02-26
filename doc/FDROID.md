@@ -4,7 +4,7 @@ This document describes how to update Status APK builds for the [F-Droid](https:
 
 # Intro
 
-In simplest terms F-Droid requires a YAML file that defines the steps necessary to create a universal unsigned APK build. This is achieved by submitting a new app versions into the `metadata/im.status.ethereum.yml` file in the [fdroiddata](https://gitlab.com/fdroid/fdroiddata) repository.
+In simplest terms F-Droid requires a YAML file that defines the steps necessary to create a universal unsigned APK build. This is achieved by submitting a new app versions into the `metadata/im.planq.network.yml` file in the [fdroiddata](https://gitlab.com/fdroid/fdroiddata) repository.
 
 The app builds defined this way run on servers that generate the unsigned APKs using the [fdroidserver](https://gitlab.com/fdroid/fdroidserver) software. The [server setup](https://f-droid.org/en/docs/Build_Server_Setup/) is quite involved but is not necessary unless you want to run your own instance. Normally the applications defines in `fdroiddata` are built by servers maintained by [the F-Droid volunteers](https://f-droid.org/en/contribute/).
 
@@ -46,7 +46,7 @@ The script will analyze a provided APK, update the metadata file based on that i
 
 ## Manual
 
-You can find our configuration file at [`metadata/im.status.ethereum.yml`](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/im.status.ethereum.yml)
+You can find our configuration file at [`metadata/im.planq.network.yml`](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/im.planq.network.yml)
 
 The file defines all the necessary metadata like `SourceCode`, `Website`, or `License`, but the most important key is `Builds`, which looks like this:
 ```yml
@@ -55,7 +55,7 @@ Builds:
     versionCode: 2021022512
     commit: cfb825a11b61d312af8cb5d36686af540c31f481
     sudo:
-      - cd build/im.status.ethereum
+      - cd build/im.planq.network
       - make fdroid-build-env
     init: nix/scripts/setup.sh
     output: result/app-release-unsigned.apk
@@ -117,7 +117,7 @@ docker run --rm \
   -v $PWD/fdroiddata:/repo \
   -v $PWD/fdroidserver:/fdroidserver \
   statusteam/docker-executable-fdroidserver:latest \
-  build im.status.ethereum
+  build im.planq.network
 ```
 We have to create a user and specify the UID because Nix cannot run as `root` and that is the default user for the F-Droid Docker image. By adding our own user and setting the UID we also make it possible to mount folders like `fdroiddata` and `fdroidserver`.
 

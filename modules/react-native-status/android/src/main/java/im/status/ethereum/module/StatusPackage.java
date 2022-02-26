@@ -1,4 +1,4 @@
-package im.status.ethereum.module;
+package im.planq.network.module;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
