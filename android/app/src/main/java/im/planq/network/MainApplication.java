@@ -19,7 +19,7 @@ import com.facebook.react.modules.network.OkHttpClientProvider;
 
 import java.util.List;
 
-import im.planq.network.keycard.RNStatusKeycardPackage;
+import im.status.ethereum.keycard.RNStatusKeycardPackage;
 import im.planq.network.module.StatusPackage;
 import im.planq.network.pushnotifications.PushNotificationPackage;
 import im.planq.network.StatusOkHttpClientFactory;
