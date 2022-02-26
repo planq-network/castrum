@@ -1,5 +1,13 @@
 {
     "fleets": {
+        "plq.prod": {
+            "boot": {
+                "boot-01.fr-eu.plq.prod": "enode://6868833ecc430f69c4ddc48cb6a9fa41d62eaec4eb516dc30de0a85c5b56c53643e86d9e82914ed9e3ad9f4cf165e7ad1fc146f51955576748c3234a4842885c@91.134.167.139:30401"
+            },
+            "mail": {
+                "mail-01.bh-ca.plq.prod": "enode://1c386e1e329d4b2ff8732eea05146255539834de2cef9c4bd18b86361d91a30a515bedc9f23f488cce01f2f9e0606a5b6b127cff776dedd9734e6b884cec7887@15.235.45.219:30303"
+            }
+        },
         "eth.prod": {
             "boot": {
                 "boot-01.ac-cn-hongkong-c.eth.prod": "enode://6e6554fb3034b211398fcd0f0082cbb6bd13619e1a7e76ba66e1809aaa0c5f1ac53c9ae79cf2fd4a7bacb10d12010899b370c75fed19b991d9c0cdd02891abad@47.75.99.169:443",
@@ -101,14 +109,7 @@
         },
         "wakuv2.prod": {
             "waku": {
-                "node-01.ac-cn-hongkong-c.wakuv2.prod": "/ip4/8.210.222.231/tcp/30303/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD",
-                "node-01.do-ams3.wakuv2.prod": "/ip4/188.166.135.145/tcp/30303/p2p/16Uiu2HAmL5okWopX7NqZWBUKVqW8iUxCEmd5GMHLVPwCgzYzQv3e",
-                "node-01.gc-us-central1-a.wakuv2.prod": "/ip4/34.121.100.108/tcp/30303/p2p/16Uiu2HAmVkKntsECaYfefR1V2yCR79CegLATuTPE6B9TxgxBiiiA"
-            },
-            "waku-websocket": {
-                "node-01.ac-cn-hongkong-c.wakuv2.prod": "/dns4/node-01.ac-cn-hongkong-c.wakuv2.prod.statusim.net/tcp/443/wss/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD",
-                "node-01.do-ams3.wakuv2.prod": "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/443/wss/p2p/16Uiu2HAmL5okWopX7NqZWBUKVqW8iUxCEmd5GMHLVPwCgzYzQv3e",
-                "node-01.gc-us-central1-a.wakuv2.prod": "/dns4/node-01.gc-us-central1-a.wakuv2.prod.statusim.net/tcp/443/wss/p2p/16Uiu2HAmVkKntsECaYfefR1V2yCR79CegLATuTPE6B9TxgxBiiiA"
+                "node-01.bh-ca.wakuv2.prod": "/ip4/15.235.45.219/tcp/60000/p2p/16Uiu2HAmTXthrkQLfBSZHziict5JBJEpTvWcY6AYNWeq5RMYN3ct",
             }
         },
         "wakuv2.test": {
