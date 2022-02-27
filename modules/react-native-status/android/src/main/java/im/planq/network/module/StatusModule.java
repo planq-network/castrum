@@ -232,7 +232,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     private String getTestnetDataDir(final String absRootDirPath) {
-        return pathCombine(absRootDirPath, "ethereum/testnet");
+        return pathCombine(absRootDirPath, "planq/testnet");
     }
 
     private String pathCombine(final String path1, final String path2) {
