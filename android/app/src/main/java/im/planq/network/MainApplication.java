@@ -1,4 +1,4 @@
-package im.planq.network;
+package network.planq.im;
 
 import androidx.multidex.MultiDexApplication;
 import android.util.Log;
@@ -20,9 +20,9 @@ import com.facebook.react.modules.network.OkHttpClientProvider;
 import java.util.List;
 
 import im.status.ethereum.keycard.RNStatusKeycardPackage;
-import im.planq.network.module.StatusPackage;
-import im.planq.network.pushnotifications.PushNotificationPackage;
-import im.planq.network.StatusOkHttpClientFactory;
+import network.planq.im.module.StatusPackage;
+import network.planq.im.pushnotifications.PushNotificationPackage;
+import network.planq.im.StatusOkHttpClientFactory;
 
 public class MainApplication extends NavigationApplication {
 
@@ -79,7 +79,7 @@ public class MainApplication extends NavigationApplication {
                   We use reflection here to pick up the class that initializes Flipper,
                   since Flipper library is not available in release mode
                 */
-                Class<?> aClass = Class.forName("im.planq.network.ReactNativeFlipper");
+                Class<?> aClass = Class.forName("network.planq.im.ReactNativeFlipper");
                 aClass
                     .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
                     .invoke(null, context, reactInstanceManager);

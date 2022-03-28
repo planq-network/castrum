@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:554196208038:android:0af7d17e903eef5020a767",
+        "mobilesdk_app_id": "1:554196208038:android:9510cd984c63e62020a767",
         "android_client_info": {
-          "package_name": "im.planq.network"
+          "package_name": "network.planq.im"
         }
       },
       "oauth_client": [

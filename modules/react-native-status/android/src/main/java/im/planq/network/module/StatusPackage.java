@@ -1,4 +1,4 @@
-package im.planq.network.module;
+package network.planq.im.module;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;

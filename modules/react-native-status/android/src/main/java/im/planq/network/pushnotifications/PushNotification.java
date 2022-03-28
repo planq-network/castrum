@@ -1,4 +1,4 @@
-package im.planq.network.pushnotifications;
+package network.planq.im.pushnotifications;
 
 import android.app.Activity;
 import android.app.Application;
@@ -28,7 +28,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import android.util.Log;
 
-import im.planq.network.pushnotifications.PushNotificationJsDelivery;
+import network.planq.im.pushnotifications.PushNotificationJsDelivery;
 
 public class PushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "PushNotification";

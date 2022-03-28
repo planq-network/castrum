@@ -184,7 +184,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "im.planq.network"
+        applicationId "network.planq.im"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled true
@@ -265,7 +265,7 @@ android {
             debuggable          true
             versionNameSuffix   "-SNAPSHOT"
             signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "im.planq.network"
+            resValue "string", "build_config_package", "network.planq.im"
         }
         release {
             minifyEnabled enableProguardInReleaseBuilds
@@ -281,7 +281,7 @@ android {
             debuggable          false
             matchingFallbacks = ["release"]
             // necessary to make react-native-config's code generation work
-            resValue "string", "build_config_package", "im.planq.network"
+            resValue "string", "build_config_package", "network.planq.im"
         }
     }
     // applicationVariants are e.g. debug, release

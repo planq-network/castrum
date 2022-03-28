@@ -59,7 +59,7 @@
 (def log-level
   (string/upper-case (get-config :LOG_LEVEL "")))
 (def fleet (get-config :FLEET "eth.staging"))
-(def apn-topic (get-config :APN_TOPIC "im.planq.network"))
+(def apn-topic (get-config :APN_TOPIC "network.planq.im"))
 (def default-network (get-config :DEFAULT_NETWORK))
 (def pow-target (js/parseFloat (get-config :POW_TARGET "0.0001")))
 (def pow-time (js/parseInt (get-config :POW_TIME "1")))

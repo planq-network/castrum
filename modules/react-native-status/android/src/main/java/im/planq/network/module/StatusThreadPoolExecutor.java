@@ -1,4 +1,4 @@
-package im.planq.network.module;
+package network.planq.im.module;
 
 import java.util.concurrent.*;
 

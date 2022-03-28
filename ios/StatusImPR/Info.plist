@@ -26,7 +26,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>im.planq.network.applink</string>
+			<string>network.planq.im.applink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>status-im</string>
@@ -36,7 +36,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>im.planq.network.eip681</string>
+			<string>network.planq.im.eip681</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>ethereum</string>

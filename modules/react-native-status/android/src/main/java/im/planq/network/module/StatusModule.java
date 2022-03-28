@@ -1,4 +1,4 @@
-package im.planq.network.module;
+package network.planq.im.module;
 
 import android.app.Activity;
 import android.app.AlertDialog;

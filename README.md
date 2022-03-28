@@ -1,7 +1,7 @@
 # Status - a Mobile Ethereum Operating System
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=im.planq.network)
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/>](https://f-droid.org/packages/im.planq.network/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=network.planq.im)
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/>](https://f-droid.org/packages/network.planq.im/)
 [<img src="doc/github_badge.png" alt="Get it on Github" height="80"/>](https://github.com/status-im/status-react/releases)
 
 Join us in creating a browser, messenger, and gateway to a decentralized world. Status is a free (libre) open source mobile client targeting Android & iOS built entirely on [Ethereum](https://ethereum.org/) technologies. That's right, no middle men and `go-ethereum` running directly on your device.

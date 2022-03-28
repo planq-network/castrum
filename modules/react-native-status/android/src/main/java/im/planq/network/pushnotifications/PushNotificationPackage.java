@@ -1,6 +1,6 @@
-package im.planq.network.pushnotifications;
+package network.planq.im.pushnotifications;
 
-import im.planq.network.pushnotifications.PushNotification;
+import network.planq.im.pushnotifications.PushNotification;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;

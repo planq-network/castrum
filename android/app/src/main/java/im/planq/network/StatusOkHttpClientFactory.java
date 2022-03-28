@@ -1,4 +1,4 @@
-package im.planq.network;
+package network.planq.im;
 
 import android.util.Log;
 
@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import im.planq.network.module.StatusPackage;
+import network.planq.im.module.StatusPackage;
 
 class StatusOkHttpClientFactory implements OkHttpClientFactory {
   public OkHttpClient createNewNetworkModuleClient() {

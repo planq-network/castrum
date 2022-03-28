@@ -1,19 +1,19 @@
 # iOS
 
-app_identifier('im.planq.network') # The bundle identifier of your app
+app_identifier('network.planq.im') # The bundle identifier of your app
 apple_id(ENV['FASTLANE_APPLE_ID']) # Your Apple email address
 itc_team_id('118430139') # iTunes Connect Team ID
 
 for_platform :ios do
   for_lane :pr do
-    app_identifier('im.planq.network')
+    app_identifier('network.planq.im')
   end
 end
 
 # Android
 
 # json_key_file('') # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
-package_name('im.planq.network') # e.g. com.krausefx.app
+package_name('network.planq.im') # e.g. com.krausefx.app
 
 # For more information about the Appfile, see:
 #     https://docs.fastlane.tools/advanced/#appfile

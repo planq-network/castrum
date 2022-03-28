@@ -1,4 +1,4 @@
-package im.planq.network.pushnotifications;
+package network.planq.im.pushnotifications;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import android.os.Build;
-import im.planq.network.module.R;
+import network.planq.im.module.R;
 
 public class ForegroundService extends Service {
     private static final String CHANNEL_ID = "status-service";
