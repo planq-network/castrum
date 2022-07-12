@@ -7,7 +7,8 @@
             [status-im.chat.models.message-list :as message-list]
             [taoensso.timbre :as log]
             [status-im.ethereum.json-rpc :as json-rpc]
-            [status-im.chat.models.pin-message :as models.pin-message]))
+            [status-im.chat.models.pin-message :as models.pin-message]
+            [status-im.notifications-center.core :as notification-center]))
 
 (defn cursor->clock-value
   [^js cursor]
@@ -23,10 +24,10 @@
   [{:keys [db]} ^js new-chats-js]
   (let [{:keys [all-chats chats-home-list]}
         (reduce (fn [acc ^js chat-js]
-                  (let [{:keys [chat-id profile-public-key timeline? community-id] :as chat}
+                  (let [{:keys [chat-id profile-public-key timeline? community-id active] :as chat}
                         (data-store.chats/<-rpc-js chat-js)]
                     (cond-> acc
-                      (and (not profile-public-key) (not timeline?) (not community-id))
+                      (and (not profile-public-key) (not timeline?) (not community-id) active)
                       (update :chats-home-list conj chat-id)
                       :always
                       (assoc-in [:all-chats chat-id] chat))))
@@ -45,10 +46,10 @@
 
 (fx/defn load-chat
   [_ chat-id]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "chat")
+  {::json-rpc/call [{:method "wakuext_chat"
                      :params [chat-id]
                      :on-success #(re-frame/dispatch [:chats-list/load-chat-success %])
-                     :on-failure #(log/error "failed to fetch chats" 0 -1 %)}]})
+                     :on-error #(log/error "failed to fetch chats" 0 -1 %)}]})
 
 (fx/defn handle-failed-loading-messages
   {:events [::failed-loading-messages]}
@@ -66,29 +67,36 @@
 
 (fx/defn handle-mark-all-read-successful
   {:events [::mark-all-read-successful]}
-  [{:keys [db]} chat-id]
-  {:db (mark-chat-all-read db chat-id)})
+  [cofx]
+  (notification-center/get-activity-center-notifications-count cofx))
 
 (fx/defn handle-mark-all-read-in-community-successful
   {:events [::mark-all-read-in-community-successful]}
-  [{:keys [db]} chat-ids]
-  {:db (reduce mark-chat-all-read db chat-ids)})
+  [{:keys [db] :as cofx} chat-ids]
+  (fx/merge cofx
+            {:db (reduce mark-chat-all-read db chat-ids)}
+            (notification-center/get-activity-center-notifications-count)))
 
 (fx/defn handle-mark-all-read
   {:events [:chat.ui/mark-all-read-pressed :chat/mark-all-as-read]}
-  [_ chat-id]
-  {:clear-message-notifications chat-id
-   ::json-rpc/call [{:method     (json-rpc/call-ext-method "markAllRead")
+  [{db :db} chat-id]
+  {:db (mark-chat-all-read db chat-id)
+   :clear-message-notifications  [[chat-id]
+                                  (get-in db [:multiaccount :remote-push-notifications-enabled?])]
+   ::json-rpc/call [{:method     "wakuext_markAllRead"
                      :params     [chat-id]
-                     :on-success #(re-frame/dispatch [::mark-all-read-successful chat-id])}]})
+                     :on-success #(re-frame/dispatch [::mark-all-read-successful])}]})
 
 (fx/defn handle-mark-mark-all-read-in-community
   {:events [:chat.ui/mark-all-read-in-community-pressed]}
-  [_ community-id]
-  {:clear-message-notifications community-id
-   ::json-rpc/call [{:method     (json-rpc/call-ext-method "markAllReadInCommunity")
-                     :params     [community-id]
-                     :on-success #(re-frame/dispatch [::mark-all-read-in-community-successful %])}]})
+  [{db :db} community-id]
+  (let [community-chat-ids (map #(str community-id %)
+                                (keys (get-in db [:communities community-id :chats])))]
+    {:clear-message-notifications  [community-chat-ids
+                                    (get-in db [:multiaccount :remote-push-notifications-enabled?])]
+     ::json-rpc/call [{:method     "wakuext_markAllReadInCommunity"
+                       :params     [community-id]
+                       :on-success #(re-frame/dispatch [::mark-all-read-in-community-successful %])}]}))
 
 (fx/defn messages-loaded
   "Loads more messages for current chat"
@@ -148,8 +156,7 @@
         (when (or first-request cursor)
           (merge
            {:db (assoc-in db [:pagination-info chat-id :loading-messages?] true)}
-           {:utils/dispatch-later [{:ms 100 :dispatch [:load-more-reactions cursor chat-id]}
-                                   {:ms 100 :dispatch [::models.pin-message/load-pin-messages chat-id]}]}
+           {:utils/dispatch-later [{:ms 100 :dispatch [:load-more-reactions cursor chat-id]}]}
            (data-store.messages/messages-by-chat-id-rpc
             chat-id
             cursor
@@ -167,5 +174,7 @@
   (when-not (get-in db [:pagination-info chat-id :messages-initialized?])
     (fx/merge cofx
               {:db (assoc-in db [:pagination-info chat-id :messages-initialized?] now)
-               :utils/dispatch-later [{:ms 500 :dispatch [:chat.ui/mark-all-read-pressed chat-id]}]}
+               :utils/dispatch-later [{:ms 50 :dispatch [:chat.ui/mark-all-read-pressed chat-id]}
+                                      (when-not (get-in cofx [:db :chats chat-id :public?])
+                                        {:ms 100 :dispatch [::models.pin-message/load-pin-messages chat-id]})]}
               (load-more-messages chat-id true))))

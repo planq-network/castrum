@@ -136,6 +136,22 @@ class ActivityCenterChatElement(SilentButton):
         except NoSuchElementException:
             return ''
 
+    def accept_contact_request(self):
+        try:
+            accept_element = Button(self.driver, xpath=self.locator + '/*[@content-desc="accept-cr"]').find_element()
+        except NoSuchElementException:
+            return ''
+        if accept_element:
+            accept_element.click()
+
+    def decline_contact_request(self):
+        try:
+            decline_element = Button(self.driver, xpath=self.locator + '/*[@content-desc="decline-cr"]').find_element()
+        except NoSuchElementException:
+            return ''
+        if decline_element:
+            decline_element.click()
+
 
 class PushNotificationElement(SilentButton):
     def __init__(self, driver, pn_text):
@@ -231,7 +247,7 @@ class HomeView(BaseView):
             except TimeoutException:
                 break
 
-    def get_chat(self, username, community=False,wait_time=30):
+    def get_chat(self, username, community=False, wait_time=30):
         self.driver.info("Looking for chat: '%s'" % username)
         chat_element = ChatElement(self.driver, username[:25], community=community)
         if not chat_element.is_element_displayed(10):
@@ -239,7 +255,6 @@ class HomeView(BaseView):
             chat_in_ac = ActivityCenterChatElement(self.driver, username[:25])
             chat_in_ac.wait_for_element(20)
             chat_in_ac.click()
-            self.home_button.double_click()
         return chat_element
 
     def get_chat_from_home_view(self, username):
@@ -251,6 +266,17 @@ class HomeView(BaseView):
         self.driver.info("Looking for chat: '%s'" % chat_name)
         chat_element = ActivityCenterChatElement(self.driver, chat_name[:25])
         return chat_element
+
+    def handle_contact_request(self, username: str, accept=True):
+        self.notifications_unread_badge.wait_and_click()
+        chat_element = ActivityCenterChatElement(self.driver, username[:25])
+        if accept:
+            self.driver.info("Accepting contact request for %s" % username)
+            chat_element.accept_contact_request()
+            chat_element.click()
+        else:
+            self.driver.info("Rejecting contact request for %s" % username)
+            chat_element.decline_contact_request()
 
     def get_username_below_start_new_chat_button(self, username_part):
         return Text(self.driver,
@@ -280,7 +306,7 @@ class HomeView(BaseView):
         if user_names_to_add:
             for user_name in user_names_to_add:
                 if len(user_names_to_add) > 5:
-                    chat_view.search_by_keyword(user_name[:4])
+                    chat_view.search_by_keyword(user_name[:5])
                     chat_view.get_username_checkbox(user_name).click()
                     chat_view.search_input.clear()
                 else:
@@ -332,9 +358,9 @@ class HomeView(BaseView):
         dapp_view = self.dapp_tab_button.click()
         dapp_view.open_url(url)
         status_test_dapp = dapp_view.get_status_test_dapp_view()
-        status_test_dapp.allow_button.wait_for_element(20)
         if allow_all:
-            status_test_dapp.allow_button.click_until_absense_of_element(status_test_dapp.allow_button)
+            if status_test_dapp.allow_button.is_element_displayed(20):
+                status_test_dapp.allow_button.click_until_absense_of_element(status_test_dapp.allow_button)
         else:
             status_test_dapp.deny_button.click_until_absense_of_element(status_test_dapp.deny_button)
         return status_test_dapp

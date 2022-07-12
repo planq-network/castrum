@@ -12,11 +12,14 @@
             [status-im.utils.db :as utils.db]
             [status-im.utils.http :as http]
             [status-im.chat.models :as chat.models]
-            [status-im.ethereum.stateofus :as stateofus]))
+            [status-im.ethereum.stateofus :as stateofus]
+            [status-im.utils.wallet-connect :as wallet-connect]))
 
 (def ethereum-scheme "ethereum:")
 
 (def uri-schemes ["status-im://" "status-im:"])
+
+(def wallet-connect-scheme "wc:")
 
 (def web-prefixes ["https://" "http://" "https://www." "http://wwww."])
 
@@ -49,8 +52,7 @@
                                   "g/"                    group-chat-extractor
                                   ["wallet/" :account]    :wallet-account
                                   ["u/" :user-id]         :user
-                                  ["user/" :user-id]      :user
-                                  ["referral/" :referrer] :referrals}
+                                  ["user/" :user-id]      :user}
                  ethereum-scheme eip-extractor}])
 
 (defn parse-query-params
@@ -172,10 +174,6 @@
 (defn address->eip681 [address]
   (match-eip681 (str ethereum-scheme address)))
 
-(defn match-referral [{:keys [referrer]}]
-  {:type     :referrals
-   :referrer referrer})
-
 (defn match-wallet-account [{:keys [account]}]
   {:type    :wallet-account
    :account (when account (string/lower-case account))})
@@ -214,9 +212,6 @@
       (= handler :community-chat)
       (cb {:type handler :chat-id (:chat-id route-params)})
 
-      (= handler :referrals)
-      (cb (match-referral route-params))
-
       (= handler :wallet-account)
       (cb (match-wallet-account route-params))
 
@@ -225,6 +220,9 @@
 
       (http/url? uri)
       (cb (match-browser-string uri))
+
+      (wallet-connect/url? uri)
+      (cb {:type :wallet-connect :data uri})
 
       :else
       (cb {:type :undefined

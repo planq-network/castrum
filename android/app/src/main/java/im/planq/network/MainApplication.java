@@ -24,6 +24,9 @@ import network.planq.im.module.StatusPackage;
 import network.planq.im.pushnotifications.PushNotificationPackage;
 import network.planq.im.StatusOkHttpClientFactory;
 
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
+
 public class MainApplication extends NavigationApplication {
 
     private final ReactNativeHost mReactNativeHost = new NavigationReactNativeHost(this) {
@@ -48,6 +51,11 @@ public class MainApplication extends NavigationApplication {
         protected String getJSMainModuleName() {
             return "index";
         }
+
+	@Override
+	protected JSIModulePackage getJSIModulePackage() {
+	    return new ReanimatedJSIModulePackage();
+	}
     };
 
     @Override

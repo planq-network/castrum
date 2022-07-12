@@ -5,12 +5,10 @@
             [status-im.i18n.i18n :as i18n]
             [status-im.keycard.core :as keycard.core]
             [status-im.ui.components.icons.icons :as icons]
-            [status-im.ui.components.invite.views :as invite]
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.ui.screens.add-new.new-chat.views :as new-chat]
             [status-im.ui.screens.add-new.new-public-chat.view :as new-public-chat]
             [status-im.ui.screens.advanced-settings.views :as advanced-settings]
-            [status-im.ui.screens.anonymous-metrics-settings.views :as anonymous-metrics-settings]
             [status-im.ui.screens.appearance.views :as appearance]
             [status-im.ui.screens.bootnodes-settings.edit-bootnode.views
              :as
@@ -104,7 +102,6 @@
             [status-im.ui.screens.profile.seed.views :as profile.seed]
             [status-im.ui.screens.progress.views :as progress]
             [status-im.ui.screens.qr-scanner.views :as qr-scanner]
-            [status-im.ui.screens.referrals.public-chat :as referrals.public-chat]
             [status-im.ui.screens.backup-settings.view :as backup-settings]
             [status-im.ui.screens.reset-password.views :as reset-password]
             [status-im.ui.screens.rpc-usage-info :as rpc-usage-info]
@@ -119,17 +116,20 @@
             [status-im.ui.screens.wallet.accounts-manage.views :as accounts-manage]
             [status-im.ui.screens.wallet.buy-crypto.views :as wallet.buy-crypto]
             [status-im.ui.screens.wallet.recipient.views :as recipient]
-            [status-im.ui.screens.wallet.send.views :as wallet.send]))
+            [status-im.ui.screens.wallet.send.views :as wallet.send]
+            [quo2.screens.main :as quo2.preview]
+            [status-im.utils.config :as config]
+            [status-im.navigation2.screens :as navigation2.screens]))
+            ;[quo2.foundations.colors :as quo2.colors]))
 
 (def components
-  [{:name      :chat-toolbar
-    :component chat/topbar}])
+  [])
 
 (defn right-button-options [id icon]
   {:id   id
    :icon (icons/icon-source icon)})
 
-(def screens
+(defn screens []
   (concat [;;INTRO, ONBOARDING, LOGIN
 
            ;Multiaccounts
@@ -221,10 +221,9 @@
            ;Chat
            {:name          :chat
             :options       {:popGesture false
-                            :topBar     {:title        {:component {:name :chat-toolbar :id :chat-toolbar}
-                                                        :alignment :fill}
-                                         :rightButtons (right-button-options :chat :more)}}
-            :right-handler chat/topbar-button
+                            :hardwareBackButton {:dismissModalOnPress false
+                                                 :popStackOnPress     false}
+                            :topBar             {:visible false}}
             :component     chat/chat}
 
            ;Pinned messages
@@ -310,10 +309,6 @@
             :options   {:topBar {:visible false}}
             ;;TODO custom subtitle
             :component group-chat/new-group}
-           {:name      :referral-enclav
-            ;;TODO custom content
-            :options   {:topBar {:visible false}}
-            :component referrals.public-chat/view}
            {:name      :communities
             ;;TODO custom
             :options   {:topBar {:visible false}}
@@ -355,9 +350,11 @@
            {:name      :wallet
             :insets    {:top false}
             :on-focus  [:wallet/tab-opened]
-            :component wallet.accounts/accounts-overview}
+            ;;TODO wallet redesign
+            ;;:options   {:statusBar {:backgroundColor quo2.colors/neutral-5}}
+            :component wallet.accounts/accounts-overview-old}
            {:name      :wallet-account
-            ;;TODO dynamic title
+            ;;TODO dynamic titleaccounts-overview
             :options   {:topBar {:visible false}}
             :component wallet.account/account}
            {:name      :add-new-account
@@ -586,15 +583,6 @@
            {:name      :default-sync-period-settings
             :options   {:topBar {:title {:text (i18n/label :t/default-sync-period)}}}
             :component default-sync-period-settings/default-sync-period-settings}
-           {:name      :anonymous-metrics-settings
-            :component anonymous-metrics-settings/settings}
-           {:name      :anon-metrics-learn-more
-            :component anonymous-metrics-settings/learn-more}
-           {:name      :anon-metrics-view-data
-            :component anonymous-metrics-settings/view-data}
-           {:name         :anon-metrics-opt-in
-            :back-handler :noop
-            :component    anonymous-metrics-settings/new-account-opt-in}
 
            ;;MODALS
 
@@ -650,12 +638,6 @@
             ;;TODO accessories
             :options   {:topBar {:visible false}}
             :component new-chat/new-contact}
-
-           ;Refferal invite
-           {:name      :referral-invite
-            :insets    {:bottom true}
-            :options   {:topBar {:title {:text (i18n/label :t/invite-friends)}}}
-            :component invite/referral-invite}
 
            ;[Wallet] Recipient
            {:name      :recipient
@@ -903,7 +885,14 @@
             :options   {:topBar {:visible false}}
             :component bug-report/bug-report}]
 
-          (when js/goog.DEBUG
+          navigation2.screens/screens
+          (when config/quo-preview-enabled?
             quo.preview/screens)
-          (when js/goog.DEBUG
-            quo.preview/main-screens)))
+          (when config/quo-preview-enabled?
+            quo.preview/main-screens)
+          (when config/quo-preview-enabled?
+            quo2.preview/screens)
+          (when @config/new-ui-enabled?
+            navigation2.screens/screen-overwrites)
+          (when config/quo-preview-enabled?
+            quo2.preview/main-screens)))

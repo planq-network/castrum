@@ -14,10 +14,9 @@ fi
 # required to build the project
 
 GIT_ROOT=$(cd "${BASH_SOURCE%/*}" && git rev-parse --show-toplevel)
-THIS_SCRIPT=$(realpath --relative-to="${GIT_ROOT}" ${BASH_SOURCE})
-CUR_DIR=$(cd "${BASH_SOURCE%/*}" && pwd)
 source "${GIT_ROOT}/scripts/colors.sh"
 
+CUR_DIR=$(cd "${BASH_SOURCE%/*}" && pwd)
 PROJ_LIST="${CUR_DIR}/proj.list"
 DEPS_LIST="${CUR_DIR}/deps.list"
 DEPS_URLS="${CUR_DIR}/deps.urls"
@@ -52,7 +51,8 @@ function gen_deps_json() {
 
     # Format URLs into a Nix consumable file.
     URLS=$(cat ${DEPS_URLS})
-    parallel --will-cite --keep-order \
+    # Avoid rate limiting by using 4 of the available threads.
+    parallel --will-cite --keep-order --jobs 4 \
         "${CUR_DIR}/url2json.sh" \
         ::: ${URLS} \
         >> ${DEPS_JSON}

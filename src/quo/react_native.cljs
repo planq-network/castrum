@@ -103,6 +103,10 @@
                                                :delete   #js {:type     (:ease-in-ease-out layout-animation-types)
                                                               :property (:opacity layout-animation-properties)}}})
 
+(defonce enable-layout-animations
+  (when platform/android?
+    (.setLayoutAnimationEnabledExperimental ^js ui-manager true)))
+
 (def activity-indicator (reagent/adapt-react-class (.-ActivityIndicator ^js rn)))
 
 ;; Flat-list

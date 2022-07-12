@@ -123,11 +123,6 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
-/**
- * Exclude google library so we can publish to external android stores
- */
-def googleFree = project.env.get("GOOGLE_FREE", 0) == '1'
-
 def getCommitHash = { ->
     if (project.hasProperty("commitHash")) {
         return project.commitHash
@@ -234,23 +229,6 @@ android {
         jumboMode true
         javaMaxHeapSize "8g"
     }
-    signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-        /* Caution! In production, you need to generate your own keystore file.
-         * See: https://facebook.github.io/react-native/docs/signed-apk-android */
-        release {
-            /* environment variables take precedence over gradle.properties file */
-            storeFile     file(getEnvOrConfig('KEYSTORE_PATH').replaceAll("~", System.properties['user.home']))
-            storePassword getEnvOrConfig('KEYSTORE_PASSWORD')
-            keyAlias      getEnvOrConfig('KEYSTORE_ALIAS')
-            keyPassword   getEnvOrConfig('KEYSTORE_KEY_PASSWORD')
-        }
-    }
     splits {
         abi {
             reset()
@@ -259,20 +237,26 @@ android {
             universalApk true
         }
     }
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
             debuggable          true
             versionNameSuffix   "-SNAPSHOT"
-            signingConfig signingConfigs.debug
             resValue "string", "build_config_package", "network.planq.im"
+            signingConfig signingConfigs.debug
         }
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            if (getEnvOrConfig('ANDROID_APK_SIGNED').toBoolean()) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig null
         }
         pr {
             initWith release
@@ -335,16 +319,6 @@ dependencies {
       implementation jscFlavor
     }
 
-    if (googleFree) {
-        implementation(project(':react-native-device-info')) {
-            exclude group: 'com.google.firebase'
-            exclude group: 'com.google.android.gms'
-            exclude group: 'com.android.installreferrer'
-        }
-    } else {
-	implementation 'com.google.firebase:firebase-messaging:23.0.0'
-    }
-
     // react-native-screens
     implementation 'androidx.appcompat:appcompat:1.1.0-rc01'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0-alpha02'
@@ -396,7 +370,3 @@ task hemroidBuild(type: Exec) {
 preBuild.dependsOn hemroidBuild
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
-
-if (!googleFree) {
-	apply plugin: "com.google.gms.google-services"
-}

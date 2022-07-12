@@ -159,7 +159,7 @@
                                                 :gasLimit (money/to-fixed (money/bignumber gas)))
                                          clj->js)]
                        :on-success #(log/info "pending transfer is saved")
-                       :on-failure #(log/info "pending transfer was not saved" %)}]}))
+                       :on-error #(log/info "pending transfer was not saved" %)}]}))
 
 (defn get-method-type [data]
   (cond
@@ -288,7 +288,7 @@
 (fx/defn send-transaction-message
   {:events [:sign/send-transaction-message]}
   [cofx chat-id value contract transaction-hash signature]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "sendTransaction")
+  {::json-rpc/call [{:method "wakuext_sendTransaction"
                      ;; We make sure `value` is serialized as string, and not
                      ;; as an integer or big-int
                      :params [chat-id (str value) contract transaction-hash
@@ -301,7 +301,7 @@
 (fx/defn send-accept-request-transaction-message
   {:events [:sign/send-accept-transaction-message]}
   [cofx message-id transaction-hash signature]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "acceptRequestTransaction")
+  {::json-rpc/call [{:method "wakuext_acceptRequestTransaction"
                      :params [transaction-hash message-id
                               (or (:result (types/json->clj signature))
                                   (ethereum/normalized-hex signature))]
@@ -445,15 +445,6 @@
             {:db (update db :signing/queue conj (normalize-tx-obj db tx))}
             (check-queue)))
 
-(fx/defn eth-transaction-call
-  "Prepares tx-obj for contract call and show signing sheet"
-  [cofx {:keys [contract method params on-result on-error from]}]
-  (sign cofx {:tx-obj    {:to   contract
-                          :data (abi-spec/encode method params)
-                          :from from}
-              :on-result on-result
-              :on-error  on-error}))
-
 (fx/defn sign-transaction-button-clicked-from-chat
   {:events  [:wallet.ui/sign-transaction-button-clicked-from-chat]}
   [{:keys [db] :as cofx} {:keys [to amount from token]}]
@@ -482,7 +473,7 @@
                                     [to-norm amount-hex])})}))
       {:db db
        ::json-rpc/call
-       [{:method (json-rpc/call-ext-method "requestAddressForTransaction")
+       [{:method "wakuext_requestAddressForTransaction"
          :params [(:current-chat-id db)
                   from-address
                   amount

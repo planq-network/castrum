@@ -1,10 +1,7 @@
-{ lib, pkgs, deps, callPackage, mkShell
+{ pkgs, deps, callPackage, mkShell
 , status-go, androidPkgs, androidShell }:
 
 let
-  # For generating a temporary keystore for local development
-  keystore = callPackage ./keystore.nix { };
-
   # Import a jsbundle compiled out of clojure codebase
   jsbundle = callPackage ./jsbundle { };
 
@@ -13,12 +10,12 @@ let
 
   # TARGETS
   release = callPackage ./release.nix {
-    inherit keystore jsbundle status-go watchmanFactory;
+    inherit jsbundle status-go watchmanFactory;
   };
 
 in {
   # TARGETS
-  inherit keystore release jsbundle;
+  inherit release jsbundle;
 
   shell = mkShell {
     buildInputs = with pkgs; [
@@ -40,7 +37,7 @@ in {
       export STATUS_NIX_MAVEN_REPO="${deps.gradle}"
 
       # required by some makefile targets
-      export STATUS_GO_ANDROID_LIBDIR=${status-go}
+      export STATUS_GO_ANDROID_LIBDIR=${status-go {}}
 
       # check if node modules changed and if so install them
       $STATUS_REACT_HOME/nix/scripts/node_modules.sh ${deps.nodejs-patched}

@@ -55,8 +55,7 @@
                               (fn []
                                 (reset! actions nil)
                                 (reset! visible false)
-                                (picker-on-close))
-                              reaction-picker/animation-duration))
+                                (picker-on-close))))
             on-open        (fn [pos]
                              (picker-on-open)
                              (reset! position pos)
@@ -91,5 +90,6 @@
                                                       (on-close)
                                                       (js/setTimeout #(on-emoji-press emoji)
                                                                      reaction-picker/animation-duration))}
-             [render message {:modal       true
-                              :close-modal on-close}]]])]))))
+             [render message {:modal         true
+                              :on-long-press #()
+                              :close-modal   on-close}]]])]))))

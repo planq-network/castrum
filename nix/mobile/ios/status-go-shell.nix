@@ -1,16 +1,16 @@
 #
-# This prepares status-go build file called Statusgo.framework for XCode.
+# This prepares status-go build file called Statusgo.xcframework for XCode.
 # It copies the status-go build result to 'modules/react-native-status/ios/RCTStatus'.
 #
 
-{ lib, mkShell, status-go }:
+{ mkShell, status-go }:
 
 mkShell {
   shellHook = ''
-    export STATUS_GO_IOS_LIBDIR=${status-go}/Statusgo.framework
+    export STATUS_GO_IOS_LIBDIR=${status-go {}}/Statusgo.xcframework
 
     RCTSTATUS_DIR="$STATUS_REACT_HOME/modules/react-native-status/ios/RCTStatus"
-    targetBasename='Statusgo.framework'
+    targetBasename='Statusgo.xcframework'
 
     # Compare target folder with source to see if copying is required
     if [ -d "$RCTSTATUS_DIR/$targetBasename" ] && [ -d $STATUS_REACT_HOME/ios/Pods/ ] && \

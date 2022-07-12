@@ -16,7 +16,7 @@
                 [refactor-nrepl "2.5.0"]
                 [cider/cider-nrepl "0.25.3"]
                 [cider/piggieback "0.4.1"]
-                [re-frisk-remote "1.5.0"]
+                [re-frisk-remote "1.6.0"]
                 ;; routing
                 [bidi "2.1.6"]
                 ;; test dependencies
@@ -64,8 +64,7 @@
                                         :static-fns true
                                         :fn-invoke-direct true
                                         :optimizations :advanced
-                                        :js-options {:js-provider :closure}
-                                        :reader-features #{#shadow/env ["READER_FEATURES" :as :keyword :default :cljs]}}}}
+                                        :js-options {:js-provider :closure}}}}
           ;; the tests are ran with node, react-native dependencies are mocked
           ;; by using node --require override.js, which uses the node-library
           ;; produced by the target :mocks below and redefines node require

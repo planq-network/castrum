@@ -4,6 +4,7 @@ import hmac
 import os
 from hashlib import md5
 from sauceclient import SauceException
+import re
 
 from support.test_data import SingleTestData
 
@@ -42,13 +43,17 @@ class BaseTestReport:
         if geth:
             geth_paths = self.save_geth(geth)
         else:
-            geth_paths = test.geth_paths
+            if hasattr(test, 'geth_paths'):
+                geth_paths = test.geth_paths
+            else:
+                geth_paths = ''
         file_path = self.get_test_report_file_path(test.name)
         test_dict = {
             'testrail_case_id': test.testrail_case_id,
             'name': test.name,
             'geth_paths': geth_paths,
-            'testruns': list()
+            'testruns': list(),
+            'group_name': test.group_name
         }
         for testrun in test.testruns:
             test_dict['testruns'].append(testrun.__dict__)
@@ -66,11 +71,13 @@ class BaseTestReport:
                     steps=testrun_data['steps'],
                     jobs=testrun_data['jobs'],
                     error=testrun_data['error'],
-                    first_commands=testrun_data['first_commands']))
+                    first_commands=testrun_data['first_commands'],
+                    xfail=testrun_data['xfail']))
             tests.append(SingleTestData(name=test_data['name'],
                                         geth_paths=test_data['geth_paths'],
                                         testruns=testruns,
-                                        testrail_case_id=test_data['testrail_case_id']))
+                                        testrail_case_id=test_data['testrail_case_id'],
+                                        grop_name=test_data['group_name']))
         return tests
 
     def get_failed_tests(self):
@@ -102,7 +109,7 @@ class BaseTestReport:
 
     @staticmethod
     def get_jenkins_link_to_rerun_e2e(branch_name="develop", pr_id="", apk_name="", tr_case_ids=""):
-        return 'https://ci.status.im/job/end-to-end-tests/job/status-app-prs-rerun/parambuild/' \
+        return 'https://ci.status.im/job/status-react/job/e2e/job/status-app-prs-rerun/parambuild/' \
                '?BRANCH_NAME=%s&APK_NAME=%s&PR_ID=%s&TR_CASE_IDS=%s' % (branch_name, apk_name, pr_id, tr_case_ids)
 
     def get_sauce_final_screenshot_url(self, job_id):
@@ -119,3 +126,18 @@ class BaseTestReport:
     def is_test_successful(test):
         # Test passed if last testrun has passed
         return test.testruns[-1].error is None
+
+    @staticmethod
+    def separate_xfail_error(error):
+        issue_id_list = re.findall(r'#\d+', error)
+        issue_id = issue_id_list[0] if issue_id_list else ''
+
+        xfail_error = re.findall(r'\[\[.*\]\]', error)
+        if xfail_error:
+            no_code_error_str = xfail_error[0]
+            main_error = error.replace(no_code_error_str, '')
+        else:
+            no_code_error_str = ''
+            main_error = error
+
+        return main_error, no_code_error_str, issue_id

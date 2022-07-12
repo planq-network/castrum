@@ -1417,15 +1417,15 @@
   },
 
   {
-    "path": "re-frisk-remote/re-frisk-remote/1.5.0/re-frisk-remote-1.5.0",
+    "path": "re-frisk-remote/re-frisk-remote/1.6.0/re-frisk-remote-1.6.0",
     "host": "https://repo.clojars.org",
     "pom": {
-      "sha1": "12ff1acda6797f3fe03f390f2726916322133209",
-      "sha256": "0lwvj9q41h0ipqal2b79bz61wwnlmsmmri277awk2p716sq3hhx7"
+      "sha1": "6b39ea7b345a81df08b80b411f9892b83f61890b",
+      "sha256": "0w577jvb7vgrdp29rfp85lvq3h3svycm6f0h29ln23j2qisqs7a8"
     },
     "jar": {
-      "sha1": "701ba6326703e53627e292ccdf91c76f2f98fc2a",
-      "sha256": "0pmsznf8axdsb363g42hixsv9va8n7gqlq13lnwgfvdp9n76l36w"
+      "sha1": "dea48c4be6421c50c4bbf2c1be2ea3a6b2418d8d",
+      "sha256": "1rkfyc5fwbafx56a6zhy0k9ygmlxp9asqzby09a5xzjsmkrx2jf1"
     }
   },
 

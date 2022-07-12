@@ -97,13 +97,14 @@
                                  :community-id (.-contentCommunityId chat)}
        :last-clock-value        (.-lastClockValue chat)
        :profile-public-key      (.-profile chat)
-       :highlight               (.-highlight chat)}
+       :highlight               (.-highlight chat)
+       :active                  (.-active chat)}
       rpc->type
       unmarshal-members))
 
 (fx/defn fetch-chats-rpc [_ {:keys [on-success]}]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "chatsPreview")
+  {::json-rpc/call [{:method "wakuext_chatsPreview"
                      :params []
                      :js-response true
                      :on-success #(on-success ^js %)
-                     :on-failure #(log/error "failed to fetch chats" 0 -1 %)}]})
+                     :on-error #(log/error "failed to fetch chats" 0 -1 %)}]})

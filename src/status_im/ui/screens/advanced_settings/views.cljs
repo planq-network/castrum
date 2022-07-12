@@ -13,7 +13,10 @@
                                           transactions-management-enabled?
                                           wakuv2-flag
                                           current-fleet
-                                          webview-debug]}]
+                                          webview-debug
+                                          new-ui-enabled?
+                                          mutual-contact-requests-enabled?
+                                          wallet-connect-enabled?]}]
   (keep
    identity
    [{:size                 :small
@@ -68,13 +71,6 @@
      :on-press
      #(re-frame/dispatch [:navigate-to :rpc-usage-info])
      :chevron              true}
-    (when-not config/google-free
-      {:size                :small
-       :title               (i18n/label :t/notification-settings)
-       :accessibility-label :advanced-notification-settings
-       :on-press
-       #(re-frame/dispatch [:navigate-to :notifications-advanced-settings])
-       :chevron             true})
     ;; If it's enabled in the config, we don't show the option
     (when (not config/communities-enabled?)
       {:size                   :small
@@ -112,7 +108,32 @@
      #(re-frame/dispatch
        [:multiaccounts.ui/waku-bloom-filter-mode-switched (not waku-bloom-filter-mode)])
      :accessory               :switch
-     :active                  waku-bloom-filter-mode}]))
+     :active                  waku-bloom-filter-mode}
+    {:size                    :small
+     :title                   (i18n/label :t/mutual-contact-requests)
+     :accessibility-label     :mutual-contact-requests-switch
+     :container-margin-bottom 8
+     :on-press
+     #(re-frame/dispatch
+       [:multiaccounts.ui/switch-mutual-contact-requests-enabled (not mutual-contact-requests-enabled?)])
+     :accessory               :switch
+     :active                  mutual-contact-requests-enabled?}
+    {:size                    :small
+     :title                   (i18n/label :t/wallet-connect)
+     :accessibility-label     :wallet-connect-settings-switch
+     :container-margin-bottom 8
+     :on-press
+     #(re-frame/dispatch
+       [:multiaccounts.ui/switch-wallet-connect-enabled (not wallet-connect-enabled?)])
+     :accessory               :switch
+     :active                  wallet-connect-enabled?}
+    {:size                    :small
+     :title                   (i18n/label :t/new-ui)
+     :accessibility-label     :new-ui-toggle
+     :container-margin-bottom 8
+     :on-press                #(re-frame/dispatch [:toggle-new-ui])
+     :accessory               :switch
+     :active                  new-ui-enabled?}]))
 
 (defn- flat-list-data [options]
   (normal-mode-settings-data options))
@@ -130,7 +151,9 @@
                   communities-enabled?             [:communities/enabled?]
                   transactions-management-enabled? [:wallet/transactions-management-enabled?]
                   current-log-level                [:log-level/current-log-level]
-                  current-fleet                    [:fleets/current-fleet]]
+                  current-fleet                    [:fleets/current-fleet]
+                  mutual-contact-requests-enabled? [:mutual-contact-requests/enabled?]
+                  wallet-connect-enabled?          [:wallet-connect/enabled?]]
     [list/flat-list
      {:data      (flat-list-data
                   {:network-name                     network-name
@@ -141,6 +164,9 @@
                    :dev-mode?                        false
                    :wakuv2-flag                      wakuv2-flag
                    :waku-bloom-filter-mode           waku-bloom-filter-mode
-                   :webview-debug                    webview-debug})
+                   :webview-debug                    webview-debug
+                   :new-ui-enabled?                  @config/new-ui-enabled?
+                   :mutual-contact-requests-enabled? mutual-contact-requests-enabled?
+                   :wallet-connect-enabled?          wallet-connect-enabled?})
       :key-fn    (fn [_ i] (str i))
       :render-fn render-item}]))

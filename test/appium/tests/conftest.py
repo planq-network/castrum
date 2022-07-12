@@ -1,3 +1,5 @@
+import time
+
 import requests
 import pytest
 import re
@@ -178,11 +180,16 @@ def pytest_configure(config):
                         response.raise_for_status()
                         file = BytesIO(response.content)
                         del response
-                        requests.post('http://saucelabs.com/rest/v1/storage/'
-                                      + sauce_username + '/' + test_suite_data.apk_name + '?overwrite=true',
-                                      auth=(sauce_username, sauce_access_key),
-                                      data=file,
-                                      headers={'Content-Type': 'application/octet-stream'})
+                        for _ in range(3):
+                            try:
+                                requests.post('http://saucelabs.com/rest/v1/storage/'
+                                              + sauce_username + '/' + test_suite_data.apk_name + '?overwrite=true',
+                                              auth=(sauce_username, sauce_access_key),
+                                              data=file,
+                                              headers={'Content-Type': 'application/octet-stream'})
+                                break
+                            except ConnectionError:
+                                time.sleep(3)
                     else:
                         sauce.storage.upload_file(config.getoption('apk'))
 
@@ -216,15 +223,56 @@ def should_save_device_stats(config):
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+
+    is_sauce_env = item.config.getoption('env') == 'sauce'
+
+    def catch_error():
+        error = report.longreprtext
+        failure_pattern = 'E.*Message:|E.*Error:|E.*Failed:'
+        exception = re.findall(failure_pattern, error)
+        if exception:
+            error = error.replace(re.findall(failure_pattern, report.longreprtext)[0], '')
+        return error
+
+    if report.when == 'setup':
+        is_group = "xdist_group" in item.keywords._markers or "xdist_group" in item.parent.keywords._markers
+        error_intro, error = 'Test setup failed:', ''
+        final_error = '%s %s' % (error_intro, error)
+        if hasattr(report, 'wasxfail'):
+            if '[NOTRUN]' in report.wasxfail:
+                test_suite_data.set_current_test(item.name, testrail_case_id=get_testrail_case_id(item))
+                test_suite_data.current_test.create_new_testrun()
+                if is_group:
+                    test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error_intro, error = 'Test is not run, e2e blocker ', report.wasxfail
+                final_error = "%s [[%s]]" % (error_intro, error)
+            else:
+                if is_group:
+                    test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error = catch_error()
+                final_error = '%s %s [[%s]]' % (error_intro, error, report.wasxfail)
+        else:
+            if is_group and report.failed:
+                test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error = catch_error()
+                final_error = '%s %s' % (error_intro, error)
+                if is_sauce_env:
+                    update_sauce_jobs(test_suite_data.current_test.group_name,
+                                      test_suite_data.current_test.testruns[-1].jobs,
+                                      report.passed)
+        if error:
+            test_suite_data.current_test.testruns[-1].error = final_error
+            github_report.save_test(test_suite_data.current_test)
+
     if report.when == 'call':
-        is_sauce_env = item.config.getoption('env') == 'sauce'
         current_test = test_suite_data.current_test
+        error = catch_error()
         if report.failed:
-            error = report.longreprtext
-            exception = re.findall('E.*Message:|E.*Error:|E.*Failed:', error)
-            if exception:
-                error = error.replace(re.findall('E.*Message:|E.*Error:|E.*Failed:', report.longreprtext)[0], '')
             current_test.testruns[-1].error = error
+        if hasattr(report, 'wasxfail'):
+            current_test.testruns[-1].xfail = report.wasxfail
+            if error:
+                current_test.testruns[-1].error = '%s [[%s]]' % (error, report.wasxfail)
         if is_sauce_env:
             update_sauce_jobs(current_test.name, current_test.testruns[-1].jobs, report.passed)
         if item.config.getoption('docker'):

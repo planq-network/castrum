@@ -7,11 +7,13 @@ import time
 from json import JSONDecodeError
 from decimal import Decimal
 from os import environ
+from web3.exceptions import TransactionNotFound
 import tests
 import support.api.web3_api as w3
 
-class NetworkApi(object):
 
+
+class NetworkApi(object):
 
     def __init__(self):
         self.network_url = 'http://api-ropsten.etherscan.io/api?'
@@ -79,7 +81,7 @@ class NetworkApi(object):
         counter = 0
         while True:
             if counter >= wait_time:
-                for entry in range(0,5):
+                for entry in range(0, 5):
                     self.log('Transaction #%s, amount is %s' %(entry+1, float(int(transactions[entry]['value']) / 10 ** decimals)))
                     self.log(str(transactions[entry]))
                 pytest.fail(
@@ -100,12 +102,19 @@ class NetworkApi(object):
                 try:
                     for transaction in transactions:
                         if float(int(transaction['value']) / 10 ** decimals) == float(amount):
+                            self.log("Tx is found: %s (etherscan API)" % transaction['hash'])
+                            try:
+                                w3.transaction_status(transaction['hash'])
+                                self.log("Tx is found (web3 API)")
+                            except TransactionNotFound:
+                                self.log("Tx is not found (web3 API)")
+                                continue
                             return transaction
                 except TypeError as e:
                     self.log("Failed iterate transactions(Etherscan unexpected error): " + str(e))
                     continue
 
-    def wait_for_confirmation_of_transaction(self, address, amount, confirmations=6, token=False):
+    def wait_for_confirmation_of_transaction(self, address, amount, confirmations=3, token=False):
         start_time = time.time()
         if token:
             token_info = "token transaction"
@@ -148,9 +157,9 @@ class NetworkApi(object):
             pass
 
     def faucet_backup(self, address):
-            self.log("Trying to get funds from %s" % self.faucet_backup_address)
-            address = "0x" + address
-            w3.donate_testnet_eth(address=address, amount=0.005, inscrease_default_gas_price=10)
+        self.log("Trying to get funds from %s" % self.faucet_backup_address)
+        address = "0x" + address
+        w3.donate_testnet_eth(address=address, amount=0.01, inscrease_default_gas_price=10)
 
     def get_donate(self, address, external_faucet=False, wait_time=300):
         initial_balance = self.get_balance(address)

@@ -13,6 +13,13 @@
 (def ^:const content-type-audio 8)
 (def ^:const content-type-community 9)
 (def ^:const content-type-gap 10)
+(def ^:const content-type-contact-request 11) ;; TODO: temp, will be removed
+
+(def ^:const contact-request-state-none 0)
+(def ^:const contact-request-state-mutual 1)
+(def ^:const contact-request-state-sent 2)
+(def ^:const contact-request-state-received 3)
+(def ^:const contact-request-state-dismissed 4)
 
 (def ^:const emoji-reaction-love 1)
 (def ^:const emoji-reaction-thumbs-up  2)
@@ -27,6 +34,10 @@
 (def ^:const profile-chat-type 4)
 (def ^:const timeline-chat-type 5)
 (def ^:const community-chat-type 6)
+
+(def ^:const contact-request-message-state-pending 1)
+(def ^:const contact-request-message-state-accepted 2)
+(def ^:const contact-request-message-state-declined 3)
 
 (def request-to-join-pending-state 1)
 
@@ -152,8 +163,6 @@
 (def ^:const one-week (* one-day 7))
 (def ^:const one-month (* one-day 31))
 
-(def ^:const metrics-github-link
-  "https://github.com/status-im/status-go/blob/develop/_docs/app-metrics.md")
 (def ^:const privacy-policy-link "https://status.im/privacy-policy/")
 (def ^:const terms-of-service-link "https://status.im/terms-of-use")
 (def ^:const docs-link "https://status.im/docs/")
@@ -163,9 +172,18 @@
 (def ^:const activity-center-notification-type-private-group-chat 2)
 (def ^:const activity-center-notification-type-mention 3)
 (def ^:const activity-center-notification-type-reply 4)
+(def ^:const activity-center-notification-type-contact-request 5)
+(def ^:const activity-center-notification-type-contact-request-retracted 6)
 
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)
 (def ^:const visibility-status-dnd 2)
 (def ^:const visibility-status-always-online 3)
 (def ^:const visibility-status-inactive 4)
+
+(def ^:const wallet-connect-version-1 1)
+(def ^:const wallet-connect-version-2 2)
+
+(def ^:const sticker-pack-status-installed 1)
+(def ^:const sticker-pack-status-pending 2)
+(def ^:const sticker-pack-status-owned 3)

@@ -39,8 +39,8 @@ local.properties
 .tags*
 
 # VS Code
-.vscode/ipch/
-.vscode/settings.json
+.vscode/
+workspace.code-workspace
 
 # node.js
 #
@@ -95,6 +95,7 @@ doo-index.html
 
 # Status
 Statusgo.framework
+Statusgo.xcframework
 
 #ios
 /ios/Pods/
@@ -169,3 +170,8 @@ project.clj
 ##appium
 test/appium/report/
 result.xml
+test/appium/tests/users.py
+
+##node bindings
+/bin/
+/lib/

@@ -1,9 +1,7 @@
-{ lib, callPackage, mkShell, openjdk, androidPkgs }:
+{ lib, callPackage, mkShell }:
 
 let
-  inherit (lib)
-    catAttrs concatStrings concatStringsSep fileContents makeBinPath
-    getConfig optional attrValues mapAttrs attrByPath;
+  inherit (lib) attrValues mapAttrs;
 
   # Metadata common to all builds of status-go
   meta = {
@@ -30,12 +28,13 @@ let
     "-s" # -s disabled symbol table
     "-w" # -w disables DWARF debugging information
   ];
-
-  goBuildFlags = [ "-v" ];
-
 in rec {
   mobile = callPackage ./mobile {
-    inherit meta source goBuildFlags goBuildLdFlags;
+    inherit meta source goBuildLdFlags;
+  };
+
+  library = callPackage ./library {
+    inherit meta source;
   };
 
   shell = mkShell {

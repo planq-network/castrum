@@ -30,7 +30,6 @@
 (def cached-webviews-enabled? (enabled? (get-config :CACHED_WEBVIEWS_ENABLED 0)))
 (def snoopy-enabled? (enabled? (get-config :SNOOPY 0)))
 (def dev-build? (enabled? (get-config :DEV_BUILD 0)))
-(def erc20-contract-warnings-enabled? (enabled? (get-config :ERC20_CONTRACT_WARNINGS)))
 (def tr-to-talk-enabled? (enabled? (get-config :TRIBUTE_TO_TALK 0)))
 (def max-message-delivery-attempts (js/parseInt (get-config :MAX_MESSAGE_DELIVERY_ATTEMPTS "6")))
 (def max-images-batch (js/parseInt (get-config :MAX_IMAGES_BATCH "1")))
@@ -40,20 +39,18 @@
 (def group-chat-enabled? (enabled? (get-config :GROUP_CHATS_ENABLED "0")))
 (def tooltip-events? (enabled? (get-config :TOOLTIP_EVENTS "0")))
 (def commands-enabled? (enabled? (get-config :COMMANDS_ENABLED "0")))
-(def keycard-test-menu-enabled? (enabled? (get-config :KEYCARD_TEST_MENU "0")))
+(def keycard-test-menu-enabled? (enabled? (get-config :KEYCARD_TEST_MENU "1")))
 (def qr-test-menu-enabled? (enabled? (get-config :QR_READ_TEST_MENU "0")))
-(def referrals-invite-enabled? (enabled? (get-config :ENABLE_REFERRAL_INVITE "0")))
 (def quo-preview-enabled? (enabled? (get-config :ENABLE_QUO_PREVIEW "0")))
-(def google-free (enabled? (get-config :GOOGLE_FREE "0")))
 (def communities-enabled? (enabled? (get-config :COMMUNITIES_ENABLED "0")))
 (def database-management-enabled? (enabled? (get-config :DATABASE_MANAGEMENT_ENABLED "0")))
 (def debug-webview? (enabled? (get-config :DEBUG_WEBVIEW "0")))
-(def metrics-enabled? (enabled? (get-config :METRICS_ENABLED "0")))
 (def delete-message-enabled? (enabled? (get-config :DELETE_MESSAGE_ENABLED "0")))
 (def collectibles-enabled? (enabled? (get-config :COLLECTIBLES_ENABLED "1")))
 (def test-stateofus? (enabled? (get-config :TEST_STATEOFUS "0")))
 (def two-minutes-syncing? (enabled? (get-config :TWO_MINUTES_SYNCING "0")))
 (def swap-enabled? (enabled? (get-config :SWAP_ENABLED "0")))
+(def stickers-test-enabled? (enabled? (get-config :STICKERS_TEST_ENABLED "0")))
 
 ;; CONFIG VALUES
 (def log-level
@@ -87,7 +84,6 @@
    :profile-pictures-visibility 1
    :log-level log-level
    :webview-allow-permission-requests? false
-   :anon-metrics/should-send?          false
    :opensea-enabled?                   false
    :link-previews-enabled-sites        #{}
    :link-preview-request-enabled       true})
@@ -167,3 +163,14 @@
     "giphy.com"
     "gph.is"
     "media.giphy.com"})
+
+(def default-relay-provider "https://relay.walletconnect.com")
+
+(def default-wallet-connect-metadata {:name "Status Wallet"
+                                      :description "Status is a secure messaging app, crypto wallet, and Web3 browser built with state of the art technology."
+                                      :url "#"
+                                      :icons ["https://statusnetwork.com/img/press-kit-status-logo.svg"]})
+
+(def wallet-connect-project-id "87815d72a81d739d2a7ce15c2cfdefb3")
+
+(def new-ui-enabled? (atom false))

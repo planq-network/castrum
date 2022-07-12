@@ -81,7 +81,7 @@ def get_capabilities_sauce_lab():
     desired_caps['deviceName'] = 'Android GoogleAPI Emulator'
     desired_caps['deviceOrientation'] = "portrait"
     desired_caps['commandTimeout'] = 600
-    desired_caps['idleTimeout'] = 600
+    desired_caps['idleTimeout'] = 1000
     desired_caps['unicodeKeyboard'] = True
     desired_caps['automationName'] = 'UiAutomator2'
     desired_caps['setWebContentDebuggingEnabled'] = True
@@ -302,7 +302,7 @@ def create_shared_drivers(quantity):
     else:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        capabilities = {'maxDuration': 1800}
+        capabilities = {'maxDuration': 3600}
         drivers = loop.run_until_complete(start_threads(quantity,
                                                         Driver,
                                                         drivers,
@@ -330,6 +330,14 @@ class LocalSharedMultipleDeviceTestCase(AbstractTestCase):
             except WebDriverException:
                 pass
 
+    @pytest.fixture(scope='class', autouse=True)
+    def prepare(self, request):
+        try:
+            request.cls.prepare_devices(request)
+        finally:
+            for item, value in request.__dict__.items():
+                setattr(request.cls, item, value)
+
     @classmethod
     def teardown_class(cls):
         for driver in cls.drivers:
@@ -349,6 +357,7 @@ class SauceSharedMultipleDeviceTestCase(AbstractTestCase):
             for index, driver in self.drivers.items():
                 jobs[driver.session_id] = index + 1
         self.errors = Errors()
+        test_suite_data.current_test.group_name = self.__class__.__name__
 
     def teardown_method(self, method):
         geth_names, geth_contents = [], []
@@ -365,6 +374,14 @@ class SauceSharedMultipleDeviceTestCase(AbstractTestCase):
             finally:
                 geth = {geth_names[i]: geth_contents[i] for i in range(len(geth_names))}
                 test_suite_data.current_test.geth_paths = self.github_report.save_geth(geth)
+
+    @pytest.fixture(scope='class', autouse=True)
+    def prepare(self, request):
+        try:
+            request.cls.prepare_devices(request)
+        finally:
+            for item, value in request.__dict__.items():
+                setattr(request.cls, item, value)
 
     @classmethod
     def teardown_class(cls):

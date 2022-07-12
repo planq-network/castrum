@@ -227,6 +227,7 @@ class ProfileView(BaseView):
         # Appearance
         self.appearance_button = Button(self.driver, accessibility_id="appearance-settings-button")
         self.show_profile_pictures_of = Button(self.driver, accessibility_id="show-profile-pictures")
+        self.show_profile_pictures_to = Button(self.driver, accessibility_id="show-profile-pictures-to")
         ## Backup recovery phrase
         self.backup_recovery_phrase_button = BackupRecoveryPhraseButton(self.driver)
         self.recovery_phrase_table = RecoveryPhraseTable(self.driver)
@@ -291,6 +292,7 @@ class ProfileView(BaseView):
 
         # Advanced
         self.advanced_button = AdvancedButton(self.driver)
+        self.mutual_contact_request_switcher = Button(self.driver, accessibility_id="mutual-contact-requests-switch")
         ## Network
         self.network_settings_button = Button(self.driver, accessibility_id="network-button")
         self.active_network_name = Text(self.driver,

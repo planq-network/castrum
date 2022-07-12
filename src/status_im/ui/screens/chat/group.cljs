@@ -12,13 +12,6 @@
             [status-im.utils.platform :as platform])
   (:require-macros [status-im.utils.views :refer [defview letsubs]]))
 
-(defn join-chat-button [chat-id]
-  [quo/button
-   {:type                :secondary
-    :accessibility-label :join-chat-button
-    :on-press            #(debounce/dispatch-and-chill [:group-chats.ui/join-pressed chat-id] 2000)}
-   (i18n/label :t/join-group-chat)])
-
 (defn decline-chat [chat-id]
   [quo/button
    {:type                :secondary
@@ -69,16 +62,9 @@
 
 (defview group-chat-footer
   [chat-id invitation-admin]
-  (letsubs [{:keys [joined?]} [:group-chat/inviter-info chat-id]
-            removed? [:group-chat/removed-from-current-chat?]
-            invitations [:group-chat/invitations-by-chat-id chat-id]]
-    (if invitation-admin
-      [request-membership (first invitations)]
-      (when (and (not joined?) (not removed?))
-        [react/view {:style style/group-chat-join-footer}
-         [react/view {:style style/group-chat-join-container}
-          [join-chat-button chat-id]
-          [decline-chat chat-id]]]))))
+  (letsubs [invitations [:group-chat/invitations-by-chat-id chat-id]]
+    (when invitation-admin
+      [request-membership (first invitations)])))
 
 (def group-chat-description-loading
   [react/view {:style (merge style/intro-header-description-container
@@ -92,13 +78,14 @@
 
 (defn calculate-quiet-time [synced-to
                             synced-from]
-  (let [quiet-hours (quot (- synced-to synced-from)
-                          (* 60 60))]
-    (if (<= quiet-hours 24)
-      (i18n/label :t/quiet-hours
-                  {:quiet-hours quiet-hours})
-      (i18n/label :t/quiet-days
-                  {:quiet-days (quot quiet-hours 24)}))))
+  (when synced-from
+    (let [quiet-hours (quot (- synced-to synced-from)
+                            (* 60 60))]
+      (if (<= quiet-hours 24)
+        (i18n/label :t/quiet-hours
+                    {:quiet-hours quiet-hours})
+        (i18n/label :t/quiet-days
+                    {:quiet-days (quot quiet-hours 24)})))))
 
 (defview no-messages-community-chat-description-container [chat-id]
   (letsubs [{:keys [synced-to synced-from]}
@@ -113,18 +100,20 @@
 (defview no-messages-private-group-chat-description-container [chat-id]
   (letsubs [{:keys [synced-to synced-from]}
             [:chats/synced-to-and-from chat-id]]
-    [react/nested-text {:style (merge style/intro-header-description
-                                      {:margin-bottom 36})}
-     (let [quiet-time (calculate-quiet-time synced-to
-                                            synced-from)]
-       (i18n/label :t/empty-chat-description-public
-                   {:quiet-hours quiet-time}))
-     [{:style    {:color colors/blue}
-       :on-press #(list-selection/open-share
-                   {:message
-                    (i18n/label
-                     :t/share-public-chat-text {:link (links/generate-link :public-chat :external chat-id)})})}
-      (i18n/label :t/empty-chat-description-public-share-this)]]))
+    (let [quiet-time (calculate-quiet-time synced-to
+                                           synced-from)]
+      [react/nested-text {:style (merge style/intro-header-description
+                                        {:margin-bottom 36})}
+       (if quiet-time
+         (i18n/label :t/empty-chat-description-public
+                     {:quiet-hours quiet-time})
+         (i18n/label :t/cleared-chat-description-public))
+       [{:style    {:color colors/blue}
+         :on-press #(list-selection/open-share
+                     {:message
+                      (i18n/label
+                       :t/share-public-chat-text {:link (links/generate-link :public-chat :external chat-id)})})}
+        (i18n/label :t/empty-chat-description-public-share-this)]])))
 
 (defview pending-invitation-description
   [inviter-pk chat-name]
@@ -150,10 +139,10 @@
                {:group-name chat-name})])
 
 (defview group-chat-inviter-description-container [chat-id chat-name]
-  (letsubs [{:keys [joined? inviter-pk]}
+  (letsubs [{:keys [member? inviter-pk]}
             [:group-chat/inviter-info chat-id]]
     (cond
-      (not joined?)
+      (not member?)
       [pending-invitation-description inviter-pk chat-name]
       inviter-pk
       [joined-group-chat-description inviter-pk chat-name]

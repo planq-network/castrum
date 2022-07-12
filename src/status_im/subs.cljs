@@ -13,6 +13,7 @@
             [status-im.ethereum.tokens :as tokens]
             [status-im.ethereum.transactions.core :as transactions]
             [status-im.fleet.core :as fleet]
+            [status-im.mailserver.core :as mailserver]
             [status-im.group-chats.db :as group-chats.db]
             [status-im.communities.core :as communities]
             [status-im.group-chats.core :as group-chat]
@@ -87,6 +88,7 @@
 (reg-root-key-sub :home-items-show-number :home-items-show-number)
 (reg-root-key-sub :waku/v2-peer-stats :peer-stats)
 (reg-root-key-sub :visibility-status-updates :visibility-status-updates)
+(reg-root-key-sub :navigation2/navigation2-stacks :navigation2/navigation2-stacks)
 
 ;;NOTE this one is not related to ethereum network
 ;; it is about cellular network/ wifi network
@@ -136,9 +138,7 @@
 ;;stickers
 (reg-root-key-sub :stickers/selected-pack :stickers/selected-pack)
 (reg-root-key-sub :stickers/packs :stickers/packs)
-(reg-root-key-sub :stickers/installed-packs :stickers/packs-installed)
-(reg-root-key-sub :stickers/packs-owned :stickers/packs-owned)
-(reg-root-key-sub :stickers/packs-pending :stickers/packs-pending)
+(reg-root-key-sub :stickers/recent-stickers :stickers/recent-stickers)
 
 ;;mailserver
 (reg-root-key-sub :mailserver/current-id :mailserver/current-id)
@@ -237,8 +237,6 @@
 (reg-root-key-sub :push-notifications/servers :push-notifications/servers)
 (reg-root-key-sub :push-notifications/preferences :push-notifications/preferences)
 
-(reg-root-key-sub :acquisition :acquisition)
-
 (reg-root-key-sub :buy-crypto/on-ramps :buy-crypto/on-ramps)
 
 ;; communities
@@ -254,19 +252,26 @@
 (reg-root-key-sub :activity.center/notifications :activity.center/notifications)
 (reg-root-key-sub :activity.center/notifications-count :activity.center/notifications-count)
 
-;; anon. metrics
-(reg-root-key-sub :anon-metrics/opt-in-screen-displayed? :anon-metrics/opt-in-screen-displayed?)
-(reg-root-key-sub :anon-metrics/show-thank-you? :anon-metrics/show-thank-you?)
-(reg-root-key-sub :anon-metrics/events :anon-metrics/events)
-(reg-root-key-sub :anon-metrics/total-count :anon-metrics/total-count)
-(reg-root-key-sub :anon-metrics/fetching? :anon-metrics/fetching?)
-(reg-root-key-sub :anon-metrics/data-visible? :anon-metrics/data-visible?)
-(reg-root-key-sub :anon-metrics/learn-more-visible? :anon-metrics/learn-more-visible?)
-
 (reg-root-key-sub :bug-report/description-error :bug-report/description-error)
 (reg-root-key-sub :bug-report/details :bug-report/details)
 
 (reg-root-key-sub :backup/performing-backup :backup/performing-backup)
+
+;; wallet connect
+(reg-root-key-sub :wallet-connect/proposal-metadata :wallet-connect/proposal-metadata)
+(reg-root-key-sub :wallet-connect/enabled? :wallet-connect/enabled?)
+(reg-root-key-sub :wallet-connect/session-connected :wallet-connect/session-connected)
+(reg-root-key-sub :wallet-connect/showing-app-management-sheet? :wallet-connect/showing-app-management-sheet?)
+(reg-root-key-sub :wallet-connect/sessions :wallet-connect/sessions)
+(reg-root-key-sub :wallet-connect-legacy/sessions :wallet-connect-legacy/sessions)
+(reg-root-key-sub :wallet-connect/session-managed :wallet-connect/session-managed)
+(reg-root-key-sub :contact-requests/pending :contact-requests/pending)
+
+
+; Testing
+
+
+(reg-root-key-sub :messenger/started? :messenger/started?)
 
 (re-frame/reg-sub
  :communities
@@ -640,9 +645,11 @@
  :bottom-sheet
  :<- [:bottom-sheet/show?]
  :<- [:bottom-sheet/view]
- (fn [[show? view]]
+ :<- [:bottom-sheet/options]
+ (fn [[show? view options]]
    {:show? show?
-    :view  view}))
+    :view view
+    :options options}))
 
 (re-frame/reg-sub
  :is-contact-selected?
@@ -943,6 +950,13 @@
    (get ui-props prop)))
 
 (re-frame/reg-sub
+ :chats/current-chat-contact
+ :<- [:contacts/contacts]
+ :<- [:chats/current-chat-id]
+ (fn [[contacts current-chat-id]]
+   (get contacts current-chat-id)))
+
+(re-frame/reg-sub
  :chats/home-list-chats
  :<- [::chats]
  :<- [:chats-home-list]
@@ -1033,25 +1047,35 @@
  :<- [:chats/current-raw-chat]
  :<- [:multiaccount/public-key]
  :<- [:communities/current-community]
- (fn [[{:keys [group-chat] :as current-chat}
-       my-public-key
-       community]]
+ :<- [:contacts/blocked-set]
+ :<- [:contacts/contacts]
+ :<- [:chat/inputs]
+ :<- [:mutual-contact-requests/enabled?]
+ (fn [[{:keys [group-chat chat-id] :as current-chat} my-public-key community blocked-users-set contacts inputs mutual-contact-requests-enabled?]]
    (when current-chat
      (cond-> current-chat
        (chat.models/public-chat? current-chat)
        (assoc :show-input? true)
 
        (and (chat.models/group-chat? current-chat)
-            (group-chats.db/joined? my-public-key current-chat))
+            (group-chats.db/member? my-public-key current-chat))
        (assoc :show-input? true
-              :joined? true)
+              :member? true)
 
        (and (chat.models/community-chat? current-chat)
             (communities/can-post? community my-public-key (:chat-id current-chat)))
        (assoc :show-input? true)
 
        (not group-chat)
-       (assoc :show-input? true)))))
+       (assoc :show-input?
+              (and
+               (or
+                (not mutual-contact-requests-enabled?)
+                (get-in inputs [chat-id :metadata :sending-contact-request])
+                (and mutual-contact-requests-enabled?
+                     (= constants/contact-request-state-mutual
+                        (get-in contacts [chat-id :contact-request-state]))))
+               (not (contains? blocked-users-set chat-id))))))))
 
 (re-frame/reg-sub
  :chats/current-chat-chat-view
@@ -1303,6 +1327,12 @@
    (:editing-message metadata)))
 
 (re-frame/reg-sub
+ :chats/sending-contact-request
+ :<- [:chats/current-chat-inputs]
+ (fn [{:keys [metadata]}]
+   (:sending-contact-request metadata)))
+
+(re-frame/reg-sub
  :chats/sending-image
  :<- [:chats/current-chat-inputs]
  (fn [{:keys [metadata]}]
@@ -1323,22 +1353,27 @@
  :<- [:current-chat/metadata]
  :<- [:chats/reply-message]
  :<- [:chats/edit-message]
- (fn [[{:keys [processing]} sending-image mainnet? one-to-one-chat? {:keys [public?]} reply edit]]
+ :<- [:chats/sending-contact-request]
+ (fn [[{:keys [processing]} sending-image mainnet? one-to-one-chat? {:keys [public?]} reply edit sending-contact-request]]
    (let [sending-image (seq sending-image)]
      {:send          (not processing)
-      :stickers      (and mainnet?
+      :stickers      (and (or config/stickers-test-enabled? mainnet?)
                           (not sending-image)
+                          (not sending-contact-request)
                           (not reply))
       :image         (and (not reply)
                           (not edit)
+                          (not sending-contact-request)
                           (not public?))
       :extensions    (and one-to-one-chat?
                           (or config/commands-enabled? mainnet?)
                           (not edit)
+                          (not sending-contact-request)
                           (not reply))
       :audio         (and (not sending-image)
                           (not reply)
                           (not edit)
+                          (not sending-contact-request)
                           (not public?))
       :sending-image sending-image})))
 
@@ -1383,7 +1418,7 @@
    [(re-frame/subscribe [:chat-by-id chat-id])
     (re-frame/subscribe [:multiaccount/public-key])])
  (fn [[chat my-public-key]]
-   {:joined? (group-chats.db/joined? my-public-key chat)
+   {:member? (group-chats.db/member? my-public-key chat)
     :inviter-pk (group-chats.db/get-inviter-pk my-public-key chat)}))
 
 (re-frame/reg-sub
@@ -1505,23 +1540,20 @@
 ;;STICKERS =============================================================================================================
 
 (re-frame/reg-sub
- :stickers/installed-packs-vals
- :<- [:stickers/installed-packs]
+ :stickers/installed-packs
+ :<- [:stickers/packs]
  (fn [packs]
-   (vals packs)))
+   (filter #(= (:status %) constants/sticker-pack-status-installed) (vals packs))))
 
 (re-frame/reg-sub
  :stickers/all-packs
  :<- [:stickers/packs]
- :<- [:stickers/installed-packs]
- :<- [:stickers/packs-owned]
- :<- [:stickers/packs-pending]
- (fn [[packs installed owned pending]]
-   (map (fn [{:keys [id] :as pack}]
-          (cond-> pack
-            (get installed id) (assoc :installed true)
-            (get owned id) (assoc :owned true)
-            (get pending id) (assoc :pending true)))
+ (fn [packs]
+   (map (fn [{:keys [status] :as pack}]
+          (-> pack
+              (assoc :installed (= status constants/sticker-pack-status-installed))
+              (assoc :pending (= status constants/sticker-pack-status-pending))
+              (assoc :owned (= status constants/sticker-pack-status-owned))))
         (vals packs))))
 
 (re-frame/reg-sub
@@ -1530,19 +1562,6 @@
  :<- [:stickers/all-packs]
  (fn [[{:keys [id]} packs]]
    (first (filter #(= (:id %) id) packs))))
-
-(defn find-pack-id-for-hash [sticker-uri packs]
-  (some (fn [{:keys [stickers id]}]
-          (when (some #(= sticker-uri (:hash %)) stickers)
-            id))
-        packs))
-
-(re-frame/reg-sub
- :stickers/recent
- :<- [:multiaccount]
- :<- [:stickers/installed-packs-vals]
- (fn [[{:keys [:stickers/recent-stickers]} packs]]
-   (map (fn [hash] {:hash hash :pack (find-pack-id-for-hash hash packs)}) recent-stickers)))
 
 ;;HOME ==============================================================================================================
 
@@ -1556,7 +1575,8 @@
  :<- [:view-id]
  :<- [:home-items-show-number]
  (fn [[search-filter filtered-chats communities view-id home-items-show-number]]
-   (if (= view-id :home)
+   (if (or (= view-id :home)
+           (and config/new-ui-enabled? (= view-id :chat-stack)))
      (let [communities-count (count communities)
            chats-count (count filtered-chats)
            ;; If we have both communities & chats we want to display
@@ -1913,6 +1933,8 @@
          (filter (fn [{:keys [type last-message]}]
                    (or (and (= constants/activity-center-notification-type-one-to-one-chat type)
                             (not (nil? last-message)))
+                       (= constants/activity-center-notification-type-contact-request type)
+                       (= constants/activity-center-notification-type-contact-request-retracted type)
                        (= constants/activity-center-notification-type-private-group-chat type)
                        (= constants/activity-center-notification-type-reply type)
                        (= constants/activity-center-notification-type-mention type)))
@@ -2235,6 +2257,12 @@
    (get multiaccount :profile-pictures-show-to)))
 
 (re-frame/reg-sub
+ :mutual-contact-requests/enabled?
+ :<- [:multiaccount]
+ (fn [settings]
+   (boolean (:mutual-contact-enabled? settings))))
+
+(re-frame/reg-sub
  ::profile-pictures-visibility
  :<- [:multiaccount]
  (fn [multiaccount]
@@ -2328,6 +2356,13 @@
    [(re-frame/subscribe [:contacts/contact-by-identity identity])])
  (fn [[contact] _]
    (:added contact)))
+
+(re-frame/reg-sub
+ :contacts/contact-blocked?
+ (fn [[_ identity] _]
+   [(re-frame/subscribe [:contacts/contact-by-identity identity])])
+ (fn [[contact] _]
+   (:blocked contact)))
 
 (re-frame/reg-sub
  :contacts/contact-two-names-by-identity
@@ -2457,6 +2492,11 @@
  (fn [[mailserver current-mailserver-id]]
    (= (get-in mailserver [:id :value])
       current-mailserver-id)))
+
+(re-frame/reg-sub
+ :mailserver/use-status-nodes?
+ (fn [db _]
+   (boolean (mailserver/fetch-use-mailservers? {:db db}))))
 
 (re-frame/reg-sub
  :mailserver.edit/validation-errors
@@ -2947,3 +2987,19 @@
  :<- [:bookmarks]
  (fn [bookmarks]
    (into {} (remove #(:removed (second %)) bookmarks))))
+
+;; NAVIGATION2
+
+
+(re-frame/reg-sub
+ :navigation2/switcher-cards
+ :<- [:navigation2/navigation2-stacks]
+ (fn [stacks [_ toggle-switcher-screen]]
+   (sort-by :clock >
+            (reduce (fn [acc stack-vector]
+                      (let [{:keys [type clock id]} (get stack-vector 1)]
+                        (conj acc {:type  type
+                                   :clock clock
+                                   :id    id
+                                   :toggle-switcher-screen toggle-switcher-screen})))
+                    '() stacks))))

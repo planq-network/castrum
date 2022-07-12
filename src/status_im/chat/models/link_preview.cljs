@@ -49,15 +49,17 @@
   {:events [::community-resolved]}
   [{:keys [db] :as cofx} community-id community]
   (fx/merge cofx
-            {:db       (community-resolved db community-id)
-             :dispatch [::cache-link-preview-data (community-link community-id) community]}
+            (cond-> {:db (community-resolved db community-id)}
+              (some? community)
+              (assoc :dispatch [::cache-link-preview-data
+                                (community-link community-id) community]))
             (models.communities/handle-community community)))
 
 (fx/defn resolve-community-info
   {:events [::resolve-community-info]}
   [{:keys [db]} community-id]
   {:db (community-resolving db community-id)
-   ::json-rpc/call [{:method     (json-rpc/call-ext-method "requestCommunityInfoFromMailserver")
+   ::json-rpc/call [{:method     "wakuext_requestCommunityInfoFromMailserver"
                      :params     [community-id]
                      :on-success #(re-frame/dispatch [::community-resolved community-id %])
                      :on-error   #(do
@@ -67,7 +69,7 @@
 (fx/defn load-link-preview-data
   {:events [::load-link-preview-data]}
   [cofx link]
-  {::json-rpc/call [{:method     (json-rpc/call-ext-method "getLinkPreviewData")
+  {::json-rpc/call [{:method     "wakuext_getLinkPreviewData"
                      :params     [link]
                      :on-success #(re-frame/dispatch [::cache-link-preview-data link %])
                      :on-error   #(re-frame/dispatch [::cache-link-preview-data
@@ -98,7 +100,7 @@
 
 (fx/defn request-link-preview-whitelist
   [_]
-  {::json-rpc/call [{:method     (json-rpc/call-ext-method "getLinkPreviewWhitelist")
+  {::json-rpc/call [{:method     "wakuext_getLinkPreviewWhitelist"
                      :params     []
                      :on-success #(re-frame/dispatch [::link-preview-whitelist-received %])
                      :on-error   #(log/error "Failed to get link preview whitelist")}]})

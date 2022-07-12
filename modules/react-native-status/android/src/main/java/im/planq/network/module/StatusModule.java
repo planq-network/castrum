@@ -371,6 +371,18 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
+    public void loginWithConfig(final String accountData, final String password, final String configJSON) {
+        Log.d(TAG, "loginWithConfig");
+        this.migrateKeyStoreDir(accountData, password);
+        String result = Statusgo.loginWithConfig(accountData, password, configJSON);
+        if (result.startsWith("{\"error\":\"\"")) {
+            Log.d(TAG, "LoginWithConfig result: " + result);
+        } else {
+            Log.e(TAG, "LoginWithConfig failed: " + result);
+        }
+    }
+
+    @ReactMethod
     public void exportUnencryptedDatabase(final String accountData, final String password, final Callback callback) {
         Log.d(TAG, "login");
 
@@ -403,12 +415,24 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     @ReactMethod
     public void logout() {
         Log.d(TAG, "logout");
-        String result = Statusgo.logout();
-        if (result.startsWith("{\"error\":\"\"")) {
-            Log.d(TAG, "Logout result: " + result);
-        } else {
-            Log.e(TAG, "Logout failed: " + result);
+        if (!checkAvailability()) {
+            System.exit(0);
+            return;
         }
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                String result = Statusgo.logout();
+                if (result.startsWith("{\"error\":\"\"")) {
+                    Log.d(TAG, "Logout result: " + result);
+                } else {
+                    Log.e(TAG, "Logout failed: " + result);
+                }
+            }
+        };
+
+        StatusThreadPoolExecutor.getInstance().execute(r);
     }
 
     private void deleteDirectory(File folder) {
