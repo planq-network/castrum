@@ -11,13 +11,14 @@
    :align-items      :flex-end
    :flex-direction   :row})
 
-(defn input-container []
+(defn input-container [contact-request]
   {:background-color           (:ui-01 @colors/theme)
    :flex                       1
-   :border-top-left-radius     16
-   :border-top-right-radius    16
-   :border-bottom-right-radius 4
-   :border-bottom-left-radius  16
+   :height                     (when contact-request 44)
+   :border-top-left-radius     (if contact-request 8 16)
+   :border-top-right-radius    (if contact-request 8 16)
+   :border-bottom-right-radius (if contact-request 8 4)
+   :border-bottom-left-radius  (if contact-request 8 16)
    :margin-horizontal          8})
 
 (def input-row
@@ -34,7 +35,7 @@
          (when platform/ios?
            {:padding-top 2})))
 
-(defn text-input []
+(defn text-input [contact-request]
   (merge typography/font-regular
          typography/base
          {:flex               1
@@ -46,16 +47,15 @@
           :padding-horizontal 12}
          (if platform/android?
            {:padding-vertical 2}
-           {:padding-top    2
-            :padding-bottom 6})))
+           {:padding-top    (if contact-request 10 2)
+            :padding-bottom (if contact-request 5 6)})))
 
 (defn actions-wrapper [show-send]
-  (merge
-   (when show-send
-     {:width 0 :left -88})
-   {:flex-direction :row
-    :padding-left   4
-    :min-height     34}))
+  (merge (when show-send
+           {:width 0 :left -88})
+         {:flex-direction :row
+          :padding-left   4
+          :min-height     34}))
 
 (defn touchable-icon []
   {:padding-horizontal 10
@@ -84,12 +84,25 @@
    :background-color           (:ui-03 @colors/theme)})
 
 (defn reply-container []
-  {:flex-direction             :row})
+  {:flex-direction :row})
 
 (defn reply-content []
   {:padding-vertical   6
    :padding-horizontal 10
    :flex               1})
+
+(defn quoted-message [pin?]
+  (merge {:flex-direction :row
+          :align-items :center
+          :width "45%"}
+         (when-not pin? {:position :absolute
+                         :left 34
+                         :top 3})))
+
+(defn contact-request-content []
+  {:flex            1
+   :flex-direction  :row
+   :justify-content :space-between})
 
 (defn close-button []
   {:margin-top 3})
@@ -98,11 +111,11 @@
   {:margin-vertical   4
    :margin-horizontal 5})
 
-(defn send-message-container []
+(defn send-message-container [contact-request]
   {:background-color (:interactive-01 @colors/theme)
    :width            26
-   :height           26
-   :border-radius    13
+   :height           (if contact-request 44 26)
+   :border-radius    (if contact-request 22 13)
    :justify-content  :center
    :align-items      :center})
 
@@ -116,4 +129,5 @@
    :bottom           bottom
    :background-color (colors/get-color :ui-background)
    :border-top-width 1
-   :border-top-color (colors/get-color :ui-01)})
+   :border-top-color (colors/get-color :ui-01)
+   :z-index          3})

@@ -5,12 +5,13 @@ project-board:
   min-reviewers: 1
   tested-pr-label-name: 'Tested - Issues'
   contributor-column-name: 'CONTRIBUTOR'
+  to-rebase-column-name: 'TO REBASE'
   review-column-name: 'REVIEW'
   test-column-name: 'E2E Tests'
 
 automated-tests:
-  repo-full-name: 'status-im/status-react'
-  job-full-name: 'end-to-end-tests/status-app-prs'
+  repo-full-name: 'status-im/status-mobile'
+  job-full-name: 'status-mobile/e2e/status-app-prs'
   kickoff-column-name: 'E2E Tests'
 
 github-team:

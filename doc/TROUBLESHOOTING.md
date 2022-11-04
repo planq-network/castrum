@@ -64,9 +64,9 @@ info Visit https://yarnpkg.com/en/docs/cli/install for documentation about this 
 `yarn.lock` is not updated to be in sync with `package.json`.
 
 ## Solution
-Update yarn.lock file. In order to do this, perform the following steps on a clean `status-react` repo:
+Update yarn.lock file. In order to do this, perform the following steps on a clean `status-mobile` repo:
 ```
-cd status-react
+cd status-mobile
 yarn install
 ```
 and don't forget to commit updated `yarn.lock` together with `package.json`.
@@ -87,7 +87,7 @@ adb server version (41) doesn't match this client (40); killing...
 This might cause all kinds of difficult-to-debug errors, e.g.:
   -  not being able to find the device through `adb devices`
   -  `make run-android` throwing `com.android.builder.testing.api.DeviceException: com.android.ddmlib.InstallException: device 'device-id' not found.`
-  -  `make run-android` throwing `- Error: Command failed: ./gradlew app:installDebug -PreactNativeDevServerPort=8081 Unable to install /status-react/android/app/build/outputs/apk/debug/app-debug.apk com.android.ddmlib.InstallException: EOF`
+  -  `make run-android` throwing `- Error: Command failed: ./gradlew app:installDebug -PreactNativeDevServerPort=8081 Unable to install /status-mobile/android/app/build/outputs/apk/debug/app-debug.apk com.android.ddmlib.InstallException: EOF`
   - dropped CLJS repl connections (that have been enabled previously with the help of `make android-ports`)
 
 ## Cause
@@ -97,3 +97,32 @@ System's local adb and Nix's adb differ. As adb include of server/client process
 Always use respective `make` commands, e.g. `make android-ports`, `make android-devices`, etc.
 
 Alternatively, run adb commands only from `make shell TARGET=android` shell. Don't forget the `TARGET=android` env var setting - otherwise `adb` will still be selected from the system's default location. You can double-check this by running `which adb`.
+
+# Hot Reloading Crashes
+## APP Crashes on reloading changes
+
+### Cause
+Status-mobile uses `shadow-cljs` for hot reloading changes and uses its own [reloader](https://github.com/status-im/status-mobile/blob/develop/src/status_im/reloader.cljs) for updating them in the running app. If react-native's fast refresh is also enabled then it creates conflicts and crashes the app.
+
+### Solution
+Open react native's [In-App Developer Menu](https://reactnative.dev/docs/debugging#accessing-the-in-app-developer-menu) and press "Disable Fast Refresh" or "Disable Hot Reloading"
+
+## App Crashes after few reloads
+
+### Cause
+For x86 CPU architecture Android Devices, Hermes is creating the issue and the app crashes after a few reloads.
+([Original Issue](https://github.com/status-im/status-mobile/issues/14031))
+
+<details>
+  <summary>How to Find CPU architecture</summary>
+
+  CPU architecture of android device can be found using
+  - `adb shell uname -m` or
+  - `adb shell getprop ro.product.cpu.abilist`
+
+</details>
+
+### Solution
+Disable Hermes while building the app
+
+`make run-android DISABLE_HERMES=true`

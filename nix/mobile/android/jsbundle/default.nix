@@ -8,7 +8,7 @@
 { secretsFile ? "" }:
 
 stdenv.mkDerivation {
-  name = "status-react-build-jsbundle-android";
+  name = "status-mobile-build-jsbundle-android";
   src =
     let path = ./../../../..;
     # We use builtins.path so that we can name the resulting derivation,
@@ -16,7 +16,7 @@ stdenv.mkDerivation {
     # which is outside of our control inherit path;
     in builtins.path {
       inherit path;
-      name = "status-react-source-jsbundle";
+      name = "status-mobile-source-jsbundle";
       filter =
         # Keep this filter as restrictive as possible in order to avoid
         # unnecessary rebuilds and limit closure size
@@ -44,10 +44,10 @@ stdenv.mkDerivation {
     "configurePhase" "buildPhase" "installPhase"
   ];
 
-  # For optional INFURA_TOKEN variable
+  # For optional POKT_TOKEN variable
   secretsPhase = if (secretsFile != "") then ''
     source "${secretsFile}"
-    ${lib.checkEnvVarSet "INFURA_TOKEN"}
+    ${lib.checkEnvVarSet "POKT_TOKEN"}
   '' else ''
     echo "No secrets provided!"
   '';

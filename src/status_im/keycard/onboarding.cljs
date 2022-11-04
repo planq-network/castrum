@@ -128,13 +128,6 @@
            (assoc-in [:keycard :recovery-phrase :input-word] nil)
            (assoc-in [:keycard :setup-step] :recovery-phrase-confirm-word2))})
 
-(fx/defn recovery-phrase-confirm-word-back-pressed
-  {:events [:keycard.onboarding.recovery-phrase-confirm-word.ui/back-pressed]}
-  [{:keys [db] :as cofx}]
-  (if (= (:view-id db) :keycard-onboarding-recovery-phrase-confirm-word1)
-    (navigation/navigate-to-cofx cofx :keycard-onboarding-recovery-phrase nil)
-    (navigation/navigate-to-cofx cofx :keycard-onboarding-recovery-phrase-confirm-word1 nil)))
-
 (fx/defn proceed-with-generating-key
   [{:keys [db] :as cofx}]
   (let [pin (get-in db [:keycard :secrets :pin]
@@ -182,7 +175,9 @@
               {:keycard/check-nfc-enabled nil}
               (if (= flow :import)
                 (navigation/navigate-to-cofx :keycard-recovery-intro nil)
-                (navigation/navigate-to-cofx :keycard-onboarding-intro nil)))))
+                (do
+                  (common/listen-to-hardware-back-button)
+                  (navigation/navigate-to-cofx :keycard-onboarding-intro nil))))))
 
 (fx/defn start-onboarding-flow
   {:events [:keycard/start-onboarding-flow]}
@@ -190,6 +185,7 @@
   (fx/merge cofx
             {:db                           (assoc-in db [:keycard :flow] :create)
              :keycard/check-nfc-enabled nil}
+            (common/listen-to-hardware-back-button)
             (navigation/navigate-to-cofx :keycard-onboarding-intro nil)))
 
 (fx/defn open-nfc-settings-pressed
@@ -272,8 +268,10 @@
         pin'              (or pin (common/vector->string (get-in db [:keycard :pin :current])))]
     (fx/merge cofx
               {:keycard/generate-and-load-key
-               {:mnemonic     mnemonic
-                :pin          pin'}})))
+               {:mnemonic             mnemonic
+                :pin                  pin'
+                :key-uid              (:key-uid multiaccount)
+                :delete-multiaccount? (get-in db [:keycard :delete-account?])}})))
 
 (fx/defn factory-reset-card-toggle
   {:events [:keycard.onboarding.intro.ui/factory-reset-card-toggle]}

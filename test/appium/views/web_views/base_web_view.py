@@ -2,6 +2,7 @@ import time
 
 from views.base_element import EditBox, Button, BaseElement
 from views.base_view import BaseView
+from appium.webdriver.common.touch_action import TouchAction
 
 
 class BaseWebView(BaseView):
@@ -44,7 +45,7 @@ class BaseWebView(BaseView):
     def wait_for_d_aap_to_load(self, wait_time=35):
         self.driver.info("Waiting %ss for dapp to load" % wait_time)
         counter = 0
-        while self.progress_bar_icon.is_element_present(5):
+        while self.progress_bar_icon.is_element_displayed(5):
             time.sleep(1)
             counter += 1
             if counter > wait_time:
@@ -63,7 +64,7 @@ class BaseWebView(BaseView):
             self.driver.info("Closing all tabs")
             self.close_all_button.click()
         else:
-            self.driver.info("Removing '%s' from recent websites")
+            self.driver.info("Removing '%s' from recent websites" % name)
             close_button = Button(self.driver,
                                   xpath="//*[contains(@text, '%s')]/../../../../*[@content-desc='empty-tab']" % name)
             close_button.scroll_to_element()
@@ -86,3 +87,8 @@ class BaseWebView(BaseView):
             bookmark_name = self.bookmark_name_input.text
             self.save_bookmark_button.click()
         return bookmark_name
+
+    def open_right_collapsed_menu(self):
+        # written for status.im
+        size = self.driver.get_window_size()
+        TouchAction(self.driver).tap(None,  size["width"] * 0.92, size["height"] * 0.2, 1).perform()

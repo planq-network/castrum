@@ -1,30 +1,29 @@
 (ns status-im.navigation.core
   (:require
    ["react-native" :as rn]
-   [clojure.set :as clojure.set]
    ["react-native-gesture-handler" :refer (gestureHandlerRootHOC)]
    ["react-native-navigation" :refer (Navigation)]
+   [clojure.set :as clojure.set]
    [quo.components.text-input :as quo.text-input]
    [quo.design-system.colors :as quo.colors]
    [re-frame.core :as re-frame]
+   [status-im.multiaccounts.login.core :as login-core]
    [status-im.navigation.roots :as roots]
+   [status-im.navigation.state :as state]
    [status-im.ui.components.icons.icons :as icons]
    [status-im.ui.components.react :as react]
    [status-im.ui.screens.views :as views]
    [status-im.utils.fx :as fx]
    [status-im.utils.platform :as platform]
+   [taoensso.encore :as enc]
    [taoensso.timbre :as log]))
 
 (def debug? ^boolean js/goog.DEBUG)
 
 (def splash-screen (-> rn .-NativeModules .-SplashScreen))
 
-(defonce root-comp-id (atom nil))
-(defonce root-id (atom nil))
-(defonce pushed-screen-id (atom nil))
-(defonce curr-modal (atom nil))
-(defonce modals (atom []))
-(defonce dissmissing (atom false))
+(defonce set-navigation-default-options
+  (.setDefaultOptions Navigation (clj->js {:layout {:orientation "portrait"}})))
 
 ;; REGISTER COMPONENT (LAZY)
 (defn reg-comp [key]
@@ -39,19 +38,19 @@
 
 (defn dismiss-all-modals []
   (log/debug "dissmiss-all-modals")
-  (when @curr-modal
-    (reset! curr-modal false)
-    (reset! dissmissing true)
-    (doseq [modal @modals]
+  (when @state/curr-modal
+    (reset! state/curr-modal false)
+    (reset! state/dissmissing true)
+    (doseq [modal @state/modals]
       (.dismissModal Navigation (name modal)))
-    (reset! modals [])))
+    (reset! state/modals [])))
 
 ;; PUSH SCREEN
 (defn navigate [comp]
   (log/debug "NAVIGATE" comp)
   (let [{:keys [options]} (get views/screens comp)]
     (.push Navigation
-           (name @root-comp-id)
+           (name @state/root-comp-id)
            (clj->js {:component {:id      comp
                                  :name    comp
                                  :options (merge options
@@ -76,11 +75,11 @@
 (defn open-modal [comp]
   (log/debug "open-modal" comp)
   (let [{:keys [options]} (get views/screens comp)]
-    (if @dissmissing
-      (reset! dissmissing comp)
+    (if @state/dissmissing
+      (reset! state/dissmissing comp)
       (do
-        (reset! curr-modal true)
-        (swap! modals conj comp)
+        (reset! state/curr-modal true)
+        (swap! state/modals conj comp)
         (.showModal Navigation
                     (clj->js {:stack {:children
                                       [{:component
@@ -96,8 +95,8 @@
 ;; DISSMISS MODAL
 (defn dissmissModal []
   (log/debug "dissmissModal")
-  (reset! dissmissing true)
-  (.dismissModal Navigation (name (last @modals))))
+  (reset! state/dissmissing true)
+  (.dismissModal Navigation (name (last @state/modals))))
 
 (defonce register-nav-button-reg
   (.registerNavigationButtonPressedListener
@@ -106,7 +105,7 @@
      (let [id (.-buttonId evn)]
        (if (= "dismiss-modal" id)
          (do
-           (when-let [event (get-in views/screens [(last @modals) :on-dissmiss])]
+           (when-let [event (get-in views/screens [(last @state/modals) :on-dissmiss])]
              (re-frame/dispatch event))
            (dissmissModal))
          (when-let [handler (get-in views/screens [(keyword id) :right-handler])]
@@ -115,7 +114,7 @@
 (defn set-view-id [view-id]
   (log/debug "set-view-id" view-id)
   (when-let [{:keys [on-focus]} (get views/screens view-id)]
-    (re-frame/dispatch [:set :view-id view-id])
+    (re-frame/dispatch [:set-view-id view-id])
     (re-frame/dispatch [:screens/on-will-focus view-id])
     (when on-focus
       (re-frame/dispatch on-focus))))
@@ -124,17 +123,17 @@
   (.registerModalDismissedListener
    (.events Navigation)
    (fn [_]
-     (if (> (count @modals) 1)
-       (let [new-modals (butlast @modals)]
-         (reset! modals (vec new-modals))
+     (if (> (count @state/modals) 1)
+       (let [new-modals (butlast @state/modals)]
+         (reset! state/modals (vec new-modals))
          (set-view-id (last new-modals)))
        (do
-         (reset! modals [])
-         (reset! curr-modal false)
-         (set-view-id @pushed-screen-id)))
+         (reset! state/modals [])
+         (reset! state/curr-modal false)
+         (set-view-id @state/pushed-screen-id)))
 
-     (let [comp @dissmissing]
-       (reset! dissmissing false)
+     (let [comp @state/dissmissing]
+       (reset! state/dissmissing false)
        (when (keyword? comp)
          (open-modal comp))))))
 
@@ -150,8 +149,8 @@
                     (not= view-id :popover)
                     (not= view-id :visibility-status-popover))
            (set-view-id view-id)
-           (when-not @curr-modal
-             (reset! pushed-screen-id view-id))))))))
+           (when-not @state/curr-modal
+             (reset! state/pushed-screen-id view-id))))))))
 
 ;; SCREEN DID DISAPPEAR
 (defonce screen-disappear-reg
@@ -159,7 +158,7 @@
    (.events Navigation)
    (fn [^js evn]
      (let [view-id (keyword (.-componentName evn))]
-       (when-not (#{"popover" "bottom-sheet" "signing-sheet" "visibility-status-popover"}
+       (when-not (#{"popover" "bottom-sheet" "signing-sheet" "visibility-status-popover" "wallet-connect-sheet" "wallet-connect-success-sheet" "wallet-connect-app-management-sheet"}
                   (.-componentName evn))
          (re-frame/dispatch [::view-disappeared view-id])
          (doseq [[_ {:keys [ref value]}] @quo.text-input/text-input-refs]
@@ -172,16 +171,16 @@
  :init-root-fx
  (fn [new-root-id]
    (log/debug :init-root-fx new-root-id)
-   (reset! root-comp-id new-root-id)
-   (reset! root-id @root-comp-id)
+   (reset! state/root-comp-id new-root-id)
+   (reset! state/root-id @state/root-comp-id)
    (.setRoot Navigation (clj->js (get (roots/roots) new-root-id)))))
 
 (re-frame/reg-fx
  :init-root-with-component-fx
  (fn [[new-root-id new-root-comp-id]]
    (log/debug :init-root-with-component-fx new-root-id new-root-comp-id)
-   (reset! root-comp-id new-root-comp-id)
-   (reset! root-id @root-comp-id)
+   (reset! state/root-comp-id new-root-comp-id)
+   (reset! state/root-id @state/root-comp-id)
    (.setRoot Navigation (clj->js (get (roots/roots) new-root-id)))))
 
 (fx/defn set-multiaccount-root
@@ -197,13 +196,15 @@
 (defonce rset-app-launched
   (.registerAppLaunchedListener (.events Navigation)
                                 (fn []
-                                  (reset! curr-modal false)
-                                  (reset! dissmissing false)
-                                  (if (or (= @root-id :multiaccounts) (= @root-id :multiaccounts-keycard))
+                                  (reset! state/curr-modal false)
+                                  (reset! state/dissmissing false)
+                                  (if (or (= @state/root-id :multiaccounts)
+                                          (= @state/root-id :multiaccounts-keycard))
                                     (re-frame/dispatch-sync [::set-multiaccount-root])
-                                    (when @root-id
-                                      (reset! root-comp-id @root-id)
-                                      (.setRoot Navigation (clj->js (get (roots/roots) @root-id)))))
+                                    (when @state/root-id
+                                      (reset! state/root-comp-id @state/root-id)
+                                      (.setRoot Navigation (clj->js (get (roots/roots) @state/root-id)))
+                                      (re-frame/dispatch [::login-core/check-last-chat])))
                                   (.hide ^js splash-screen))))
 
 (defn get-screen-component [comp]
@@ -243,7 +244,7 @@
  :change-tab-fx
  (fn [tab]
    (log/debug :change-tab-fx)
-   (reset! root-comp-id (get tab-root-ids (get tab-key-idx tab)))
+   (reset! state/root-comp-id (get tab-root-ids (get tab-key-idx tab)))
    (.mergeOptions Navigation "tabs-stack" (clj->js {:bottomTabs {:currentTabIndex (get tab-key-idx tab)}}))
    ;;when we change tab we want to dismiss all modals
    (dismiss-all-modals)))
@@ -284,9 +285,12 @@
            comp               (get tab-root-ids selected-tab-index)
            tab-key            (get (clojure.set/map-invert tab-key-idx) selected-tab-index)]
        (re-frame/dispatch [:set :current-tab tab-key])
-       (when (and platform/android? (= @root-comp-id comp))
-         (.popToRoot Navigation (name comp)))
-       (reset! root-comp-id comp)))))
+       (when (= @state/root-comp-id comp)
+         (when (= :chat tab-key)
+           (re-frame/dispatch [:close-chat]))
+         (when platform/android?
+           (.popToRoot Navigation (name comp))))
+       (reset! state/root-comp-id comp)))))
 
 ;; OVERLAY (Popover and bottom sheets)
 (defn dissmiss-overlay [comp]
@@ -300,7 +304,7 @@
                               :id      comp
                               :options (merge (cond-> (roots/status-bar-options)
                                                 (and platform/android? (not (quo.colors/dark?)))
-                                                (assoc-in [:statusBar :translucent] true))
+                                                (assoc-in [:statusBar :backgroundColor] "#99999A"))
                                               {:layout  {:componentBackgroundColor (if platform/android?
                                                                                      (:backdrop @quo.colors/theme)
                                                                                      "transparent")}
@@ -338,6 +342,33 @@
 (re-frame/reg-fx :show-bottom-sheet (fn [] (show-overlay "bottom-sheet")))
 (re-frame/reg-fx :hide-bottom-sheet (fn [] (dissmiss-overlay "bottom-sheet")))
 
+;; WALLET CONNECT
+
+(defonce wallet-connect-sheet-reg
+  (.registerComponent Navigation
+                      "wallet-connect-sheet"
+                      (fn [] (gestureHandlerRootHOC views/wallet-connect-comp))
+                      (fn [] views/wallet-connect-comp)))
+
+(defonce wallet-connect-success-sheet-reg
+  (.registerComponent Navigation
+                      "wallet-connect-success-sheet"
+                      (fn [] (gestureHandlerRootHOC views/wallet-connect-success-comp))
+                      (fn [] views/wallet-connect-success-comp)))
+
+(defonce wallet-connect-app-management-sheet-reg
+  (.registerComponent Navigation
+                      "wallet-connect-app-management-sheet"
+                      (fn [] (gestureHandlerRootHOC views/wallet-connect-app-management-comp))
+                      (fn [] views/wallet-connect-app-management-comp)))
+
+(re-frame/reg-fx :show-wallet-connect-sheet (fn [] (show-overlay "wallet-connect-sheet")))
+(re-frame/reg-fx :hide-wallet-connect-sheet (fn [] (dissmiss-overlay "wallet-connect-sheet")))
+(re-frame/reg-fx :show-wallet-connect-success-sheet (fn [] (show-overlay "wallet-connect-success-sheet")))
+(re-frame/reg-fx :hide-wallet-connect-success-sheet (fn [] (dissmiss-overlay "wallet-connect-success-sheet")))
+(re-frame/reg-fx :show-wallet-connect-app-management-sheet (fn [] (show-overlay "wallet-connect-app-management-sheet")))
+(re-frame/reg-fx :hide-wallet-connect-app-management-sheet (fn [] (dissmiss-overlay "wallet-connect-app-management-sheet")))
+
 ;; SIGNING
 
 (defonce signing-sheet-reg
@@ -373,15 +404,15 @@
  :navigate-back-fx
  (fn []
    (log/debug :navigate-back-fx)
-   (if @curr-modal
+   (if @state/curr-modal
      (dissmissModal)
-     (.pop Navigation (name @root-comp-id)))))
+     (.pop Navigation (name @state/root-comp-id)))))
 
 (re-frame/reg-fx
  :navigate-replace-fx
  (fn [view-id]
    (log/debug :navigate-replace-fx view-id)
-   (.pop Navigation (name @root-comp-id))
+   (.pop Navigation (name @state/root-comp-id))
    (navigate view-id)))
 
 (def community-screens '(:community-management
@@ -390,7 +421,9 @@
                          :create-community-channel
                          :community-emoji-thumbnail-picker
                          :create-community-category
-                         :community-edit-chats))
+                         :community-edit-chats
+                         :community-edit
+                         :community-reorder-categories))
 
 ;; change view-id if it is still same after component is disappeared
 ;; https://github.com/wix/react-native-navigation/issues/5744#issuecomment-563226820
@@ -406,4 +439,6 @@
                               :community
 
                               :else
-                              :home))}))
+                              :home))
+     :dispatch-n (enc/conj-when []
+                                (and (= view-id :chat) [:chat.ui/sync-all-deleted-for-me-messages]))}))

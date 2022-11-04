@@ -3,15 +3,15 @@
 # for the Android development environment.
 #
 
-{ stdenv, config, callPackage, androidenv, openjdk, mkShell }:
+{ androidenv }:
 
 # The "android-sdk-license" license is accepted
 # by setting android_sdk.accept_license = true.
 androidenv.composeAndroidPackages {
   toolsVersion = "26.1.1";
-  platformToolsVersion = "31.0.3";
+  platformToolsVersion = "33.0.2";
   buildToolsVersions = [ "31.0.0" ];
-  platformVersions = [ "30" ];
+  platformVersions = [ "31" ];
   cmakeVersions = [ "3.18.1" ];
   ndkVersion = "22.1.7171670";
   includeNDK = true;

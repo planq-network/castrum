@@ -24,13 +24,13 @@ from tests import test_suite_data, start_threads, appium_container, pytest_confi
 import base64
 from re import findall
 
-from tests.conftest import sauce
+from tests.cloudbase_test_api import sauce
 
 sauce_username = environ.get('SAUCE_USERNAME')
 
 sauce_access_key = environ.get('SAUCE_ACCESS_KEY')
 
-executor_sauce_lab = 'http://%s:%s@ondemand.saucelabs.com:80/wd/hub' % (sauce_username, sauce_access_key)
+executor_sauce_lab = 'https://%s:%s@ondemand.eu-central-1.saucelabs.com:443/wd/hub' % (sauce_username, sauce_access_key)
 
 executor_local = 'http://localhost:4723/wd/hub'
 
@@ -81,7 +81,7 @@ def get_capabilities_sauce_lab():
     desired_caps['deviceName'] = 'Android GoogleAPI Emulator'
     desired_caps['deviceOrientation'] = "portrait"
     desired_caps['commandTimeout'] = 600
-    desired_caps['idleTimeout'] = 600
+    desired_caps['idleTimeout'] = 1000
     desired_caps['unicodeKeyboard'] = True
     desired_caps['automationName'] = 'UiAutomator2'
     desired_caps['setWebContentDebuggingEnabled'] = True
@@ -302,7 +302,7 @@ def create_shared_drivers(quantity):
     else:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        capabilities = {'maxDuration': 1800}
+        capabilities = {'maxDuration': 3600}
         drivers = loop.run_until_complete(start_threads(quantity,
                                                         Driver,
                                                         drivers,
@@ -330,6 +330,14 @@ class LocalSharedMultipleDeviceTestCase(AbstractTestCase):
             except WebDriverException:
                 pass
 
+    @pytest.fixture(scope='class', autouse=True)
+    def prepare(self, request):
+        try:
+            request.cls.prepare_devices(request)
+        finally:
+            for item, value in request.__dict__.items():
+                setattr(request.cls, item, value)
+
     @classmethod
     def teardown_class(cls):
         for driver in cls.drivers:
@@ -349,6 +357,7 @@ class SauceSharedMultipleDeviceTestCase(AbstractTestCase):
             for index, driver in self.drivers.items():
                 jobs[driver.session_id] = index + 1
         self.errors = Errors()
+        test_suite_data.current_test.group_name = self.__class__.__name__
 
     def teardown_method(self, method):
         geth_names, geth_contents = [], []
@@ -366,6 +375,14 @@ class SauceSharedMultipleDeviceTestCase(AbstractTestCase):
                 geth = {geth_names[i]: geth_contents[i] for i in range(len(geth_names))}
                 test_suite_data.current_test.geth_paths = self.github_report.save_geth(geth)
 
+    @pytest.fixture(scope='class', autouse=True)
+    def prepare(self, request):
+        try:
+            request.cls.prepare_devices(request)
+        finally:
+            for item, value in request.__dict__.items():
+                setattr(request.cls, item, value)
+
     @classmethod
     def teardown_class(cls):
         requests_session = requests.Session()
@@ -380,7 +397,7 @@ class SauceSharedMultipleDeviceTestCase(AbstractTestCase):
                 driver.quit()
             except WebDriverException:
                 pass
-            url = sauce.jobs.get_job_asset_url(job_id=session_id, filename="log.json")
+            url = 'https://eu-central-1.saucelabs.com/rest/v1/%s/jobs/%s/assets/%s' % (sauce_username, session_id, "log.json")
             WebDriverWait(driver, 60, 2).until(lambda _: requests_session.get(url).status_code == 200)
             commands = requests_session.get(url).json()
             for command in commands:

@@ -1,4 +1,4 @@
-library 'status-jenkins-lib@v1.3.3'
+library 'status-jenkins-lib@v1.6.1'
 
 pipeline {
   agent { label 'linux' }
@@ -33,7 +33,7 @@ pipeline {
   stages {
     stage('Prep') {
       steps { script {
-        println "Current JOB: ${env.JOB_NAME}"
+        println("Current JOB: ${env.JOB_NAME}")
         /* just for a shorter access */
         btype = utils.getBuildType()
       } }
@@ -41,13 +41,16 @@ pipeline {
     stage('Build') {
       parallel {
         stage('iOS') { steps { script {
-          ios = jenkins.Build('status-react/platforms/ios')
+          ios = jenkins.Build('status-mobile/platforms/ios')
         } } }
         stage('Android') { steps { script {
-          apk = jenkins.Build('status-react/platforms/android')
+          apk = jenkins.Build('status-mobile/platforms/android')
         } } }
         stage('Android e2e') { steps { script {
-          apke2e = jenkins.Build('status-react/platforms/android-e2e')
+          apke2e = jenkins.Build('status-mobile/platforms/android-e2e')
+        } } }
+        stage('Tests') { steps { script {
+          jenkins.Build('status-mobile/platforms/tests')
         } } }
       }
     }
@@ -73,7 +76,7 @@ pipeline {
           /* mobile */
           Apk: utils.pkgUrl(apk), Apke2e: utils.pkgUrl(apke2e),
           iOS: utils.pkgUrl(ios), /*iOSe2e: utils.pkgUrl(iose2e),*/
-          Diawi: utils.utils.getEnv(ios, 'DIAWI_URL'),
+          Diawi: utils.getEnv(ios, 'DIAWI_URL'),
           /* upload the sha256 checksums file too */
           SHA: s3.uploadArtifact(sha),
         ]
@@ -91,7 +94,7 @@ pipeline {
             build(job: 'website/status.im', wait: false);
             break;
           case 'release':
-            github.publishReleaseFiles(repo: 'status-react');
+            github.publishReleaseFiles(repo: 'status-mobile');
             break;
         }
       } }
@@ -101,7 +104,7 @@ pipeline {
       steps { script {
         e2eApk = utils.getEnv(apke2e, 'SAUCE_URL')
         build(
-          job: 'end-to-end-tests/status-app-nightly',
+          job: 'status-mobile/e2e/status-app-nightly',
           parameters: [string(name: 'APK_NAME', value: e2eApk)],
           wait: false
         )
@@ -126,7 +129,7 @@ def List genChoices(String previousChoice, List defaultChoices) {
  * - A user explicitly specified a value
  * Since release builds create and re-create GitHub drafts every time. */
 def Boolean getPublishDefault(Boolean previousValue) {
-  if (env.JOB_NAME.startsWith('status-react/release')) { return true }
+  if (env.JOB_NAME.startsWith('status-mobile/release')) { return true }
   if (previousValue != null) { return previousValue }
   return false
 }

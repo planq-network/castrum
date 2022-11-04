@@ -1,3 +1,5 @@
+import time
+
 import requests
 import pytest
 import re
@@ -10,6 +12,7 @@ from datetime import datetime
 from os import environ
 from io import BytesIO
 from sauceclient import SauceClient, SauceException
+import tests.cloudbase_test_api
 from support.api.network_api import NetworkApi
 from support.github_report import GithubHtmlReport
 from support.testrail_report import TestrailReport
@@ -141,7 +144,7 @@ def is_master(config):
 
 
 def is_uploaded():
-    stored_files = sauce.storage.get_stored_files()
+    stored_files = tests.cloudbase_test_api.sauce.storage.get_stored_files()
     for i in range(len(stored_files['files'])):
         if stored_files['files'][i]['name'] == test_suite_data.apk_name:
             return True
@@ -167,24 +170,16 @@ def pytest_configure(config):
                 testrail_report.add_run(run_name)
             if pr_number:
                 from github import Github
-                repo = Github(github_token).get_user('status-im').get_repo('status-react')
+                repo = Github(github_token).get_user('status-im').get_repo('status-mobile')
                 pull = repo.get_pull(int(pr_number))
                 pull.get_commits()[0].create_status(state='pending', context='Mobile e2e tests',
                                                     description='e2e tests are running')
             if config.getoption('env') == 'sauce':
                 if not is_uploaded():
                     if 'http' in config.getoption('apk'):
-                        response = requests.get(config.getoption('apk'), stream=True)
-                        response.raise_for_status()
-                        file = BytesIO(response.content)
-                        del response
-                        requests.post('http://saucelabs.com/rest/v1/storage/'
-                                      + sauce_username + '/' + test_suite_data.apk_name + '?overwrite=true',
-                                      auth=(sauce_username, sauce_access_key),
-                                      data=file,
-                                      headers={'Content-Type': 'application/octet-stream'})
+                        tests.cloudbase_test_api.upload_from_url(config.getoption('apk'))
                     else:
-                        sauce.storage.upload_file(config.getoption('apk'))
+                        tests.cloudbase_test_api.sauce.storage.upload_file(config.getoption('apk'))
 
 
 def pytest_unconfigure(config):
@@ -193,7 +188,7 @@ def pytest_unconfigure(config):
             testrail_report.add_results()
         if config.getoption('pr_number'):
             from github import Github
-            repo = Github(github_token).get_user('status-im').get_repo('status-react')
+            repo = Github(github_token).get_user('status-im').get_repo('status-mobile')
             pull = repo.get_pull(int(config.getoption('pr_number')))
             comment = pull.create_issue_comment(github_report.build_html_report(testrail_report.run_id))
             if not testrail_report.is_run_successful():
@@ -216,15 +211,59 @@ def should_save_device_stats(config):
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+
+    is_sauce_env = item.config.getoption('env') == 'sauce'
+
+    def catch_error():
+        error = report.longreprtext
+        failure_pattern = 'E.*Message:|E.*Error:|E.*Failed:'
+        exception = re.findall(failure_pattern, error)
+        if exception:
+            error = error.replace(re.findall(failure_pattern, report.longreprtext)[0], '')
+        return error
+
+    if report.when == 'setup':
+        is_group = "xdist_group" in item.keywords._markers or "xdist_group" in item.parent.keywords._markers
+        error_intro, error = 'Test setup failed:', ''
+        final_error = '%s %s' % (error_intro, error)
+        if hasattr(report, 'wasxfail') and str([mark.args[0] for mark in item.iter_markers(name='testrail_id')][0]) \
+                in str(item.config.getoption("run_testrail_ids")):
+            if '[NOTRUN]' in report.wasxfail:
+                test_suite_data.set_current_test(item.name, testrail_case_id=get_testrail_case_id(item))
+                test_suite_data.current_test.create_new_testrun()
+                if is_group:
+                    test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error_intro, error = 'Test is not run, e2e blocker ', report.wasxfail
+                final_error = "%s [[%s]]" % (error_intro, error)
+            else:
+                if is_group:
+                    test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error = catch_error()
+                final_error = '%s %s [[%s]]' % (error_intro, error, report.wasxfail)
+        else:
+            if is_group and report.failed:
+                test_suite_data.current_test.group_name = item.instance.__class__.__name__
+                error = catch_error()
+                final_error = '%s %s' % (error_intro, error)
+                if is_sauce_env:
+                    update_sauce_jobs(test_suite_data.current_test.group_name,
+                                      test_suite_data.current_test.testruns[-1].jobs,
+                                      report.passed)
+        if error:
+            test_suite_data.current_test.testruns[-1].error = final_error
+            github_report.save_test(test_suite_data.current_test)
+
     if report.when == 'call':
-        is_sauce_env = item.config.getoption('env') == 'sauce'
         current_test = test_suite_data.current_test
+        error = catch_error()
         if report.failed:
-            error = report.longreprtext
-            exception = re.findall('E.*Message:|E.*Error:|E.*Failed:', error)
-            if exception:
-                error = error.replace(re.findall('E.*Message:|E.*Error:|E.*Failed:', report.longreprtext)[0], '')
             current_test.testruns[-1].error = error
+        in_run = str([mark.args[0] for mark in item.iter_markers(name='testrail_id')][0]) in str(item.config.getoption(
+            "run_testrail_ids"))
+        if hasattr(report, 'wasxfail') and in_run:
+            current_test.testruns[-1].xfail = report.wasxfail
+            if error:
+                current_test.testruns[-1].error = '%s [[%s]]' % (error, report.wasxfail)
         if is_sauce_env:
             update_sauce_jobs(current_test.name, current_test.testruns[-1].jobs, report.passed)
         if item.config.getoption('docker'):
@@ -253,7 +292,7 @@ def pytest_runtest_makereport(item, call):
 def update_sauce_jobs(test_name, job_ids, passed):
     for job_id in job_ids.keys():
         try:
-            sauce.jobs.update_job(job_id, name=test_name, passed=passed)
+            tests.cloudbase_test_api.sauce.jobs.update_job(job_id, name=test_name, passed=passed)
         except (RemoteDisconnected, SauceException):
             pass
 
@@ -289,11 +328,11 @@ def pytest_runtest_protocol(item, nextitem):
             return True  # no need to rerun
 
 
-@pytest.fixture(scope="session", autouse=False)
-def faucet_for_senders():
-    network_api = NetworkApi()
-    for user in transaction_senders.values():
-        network_api.faucet(address=user['address'])
+# @pytest.fixture(scope="session", autouse=False)
+# def faucet_for_senders():
+#     network_api = NetworkApi()
+#     for user in transaction_senders.values():
+#         network_api.faucet(address=user['address'])
 
 
 @pytest.fixture

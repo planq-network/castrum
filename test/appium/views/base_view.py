@@ -4,10 +4,8 @@ import base64
 import random
 import re
 import string
-from PIL import Image
 from appium.webdriver.common.touch_action import TouchAction
 from datetime import datetime
-from io import BytesIO
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 from support.device_apps import start_web_browser
@@ -17,13 +15,12 @@ from views.base_element import Button, BaseElement, EditBox, Text, CheckBox
 
 class BackButton(Button):
     def __init__(self, driver):
-        super().__init__(driver, accessibility_id="Navigate Up")
+        super().__init__(driver, accessibility_id="back-button")
 
     def click(self, times_to_click: int = 1):
         for _ in range(times_to_click):
             self.find_element().click()
         return self.navigate()
-
 
 
 class AllowButton(Button):
@@ -82,7 +79,27 @@ class HomeButton(TabButton):
             self.click_until_presence_of_element(element)
         return self.navigate()
 
+class CommunitiesTab(TabButton):
+    def __init__(self, driver):
+        super().__init__(driver, accessibility_id="communities-stack-tab")
 
+
+class ChatsTab(TabButton):
+    def __init__(self, driver):
+        super().__init__(driver, accessibility_id="chats-stack-tab")
+
+    def navigate(self):
+        from views.home_view import HomeView
+        return HomeView(self.driver)
+
+
+class WalletTab(TabButton):
+    def __init__(self, driver):
+        super().__init__(driver, accessibility_id="wallet-stack-tab")
+
+class BrowserTab(TabButton):
+    def __init__(self, driver):
+        super().__init__(driver, accessibility_id="browser-stack-tab")
 
 class DappTabButton(TabButton):
     def __init__(self, driver):
@@ -199,7 +216,7 @@ class AirplaneModeButton(Button):
     def click(self):
         counter = 0
         desired_element = AirplaneModeButton(self.driver)
-        while not desired_element.is_element_present() and counter <= 3:
+        while not desired_element.is_element_displayed() and counter <= 3:
             try:
                 self.open_quick_action_menu()
                 desired_element.wait_for_element(5)
@@ -225,13 +242,20 @@ class BaseView(object):
     def __init__(self, driver):
         self.driver = driver
         self.send_message_button = SendMessageButton(self.driver)
+        self.send_contact_request_button = Button(self.driver, translation_id="send-request")
 
-        # Tabs
+        # Old UI Tabs
         self.home_button = HomeButton(self.driver)
         self.wallet_button = WalletButton(self.driver)
         self.profile_button = ProfileButton(self.driver)
         self.dapp_tab_button = DappTabButton(self.driver)
         self.status_button = StatusButton(self.driver)
+
+        # New UI Tabs
+        self.communities_tab = CommunitiesTab(self.driver)
+        self.chats_tab = ChatsTab(self.driver)
+        self.browser_tab = BrowserTab(self.driver)
+        self.wallet_tab = WalletTab(self.driver)
 
         self.yes_button = Button(self.driver, xpath="//*[@text='YES' or @text='GOT IT']")
         self.no_button = Button(self.driver, translation_id="no")
@@ -254,6 +278,7 @@ class BaseView(object):
         self.close_sticker_view_icon = Button(self.driver, xpath="//androidx.appcompat.widget.LinearLayoutCompat")
         self.native_close_button = Button(self.driver, id="android:id/aerr_close")
         self.close_button = Button(self.driver, accessibility_id="back-button")
+        self.navigate_up_button = Button(self.driver, accessibility_id="Navigate Up")
         self.show_roots_button = Button(self.driver, accessibility_id="Show roots")
         self.get_started_button = Button(self.driver, translation_id="get-started")
         self.ok_got_it_button = Button(self.driver, translation_id="ok-got-it")
@@ -285,7 +310,7 @@ class BaseView(object):
 
     @property
     def status_account_name(self):
-        return self.get_translation_by_key('ethereum-account')
+        return self.get_translation_by_key('main-account')
 
     def accept_agreements(self):
         iterations = int()
@@ -314,7 +339,7 @@ class BaseView(object):
 
     def close_native_device_dialog(self, alert_text_part):
         element = self.element_by_text_part(alert_text_part)
-        if element.is_element_present(1):
+        if element.is_element_displayed(1):
             self.driver.info("Closing '%s' alert..." % alert_text_part)
             self.native_close_button.click()
 
@@ -331,7 +356,7 @@ class BaseView(object):
 
     def confirm_until_presence_of_element(self, desired_element, attempts=3):
         counter = 0
-        while not desired_element.is_element_present(1) and counter <= attempts:
+        while not desired_element.is_element_displayed(1) and counter <= attempts:
             try:
                 self.confirm()
                 self.driver.info("Wait for '%s'" % desired_element.name)
@@ -342,11 +367,28 @@ class BaseView(object):
 
     def just_fyi(self, some_str):
         self.driver.info('# STEP: %s' % some_str, device=False)
+        self.driver.execute_script("sauce:context=STEP: %s" % some_str)
 
     def click_system_back_button(self, times=1):
         self.driver.info('Click system back button')
         for _ in range(times):
             self.driver.press_keycode(4)
+
+    def click_system_back_button_until_element_is_shown(self, attempts=3, element='home'):
+        counter = 0
+        if element == 'home':
+            element = self.chats_tab
+            # Old UI
+            # element = self.home_button
+        while not element.is_element_displayed(1) and counter <= attempts:
+            self.driver.press_keycode(4)
+            try:
+                element.wait_for_element(2)
+                return self
+            except (NoSuchElementException, TimeoutException):
+                counter += 1
+        else:
+            self.driver.info("Could not reach %s element by pressing back" % element.name)
 
     def get_app_from_background(self):
         self.driver.info('Get Status back from Recent apps')
@@ -468,6 +510,10 @@ class BaseView(object):
         from views.web_views.status_test_dapp import StatusTestDAppView
         return StatusTestDAppView(self.driver)
 
+    def get_dapp_view(self):
+        from views.dapps_view import DappsView
+        return DappsView(self.driver)
+
     def get_home_view(self):
         from views.home_view import HomeView
         return HomeView(self.driver)
@@ -506,7 +552,7 @@ class BaseView(object):
 
     @staticmethod
     def get_unique_amount():
-        return '0.00%s' % datetime.now().strftime('%-d%-H%-M%-S').strip('0')
+        return '0.000%s' % datetime.now().strftime('%-d%-H%-M%-S').strip('0')
 
     @staticmethod
     def get_random_chat_name():
@@ -517,21 +563,20 @@ class BaseView(object):
         message = 'test message:'
         return message + ''.join(random.choice(string.ascii_lowercase) for _ in range(10))
 
-
     def get_back_to_home_view(self, times_to_click_on_back_btn=3):
         counter = 0
-        while BackButton(self.driver).is_element_displayed(2) or self.close_button.is_element_displayed(2):
+        while self.back_button.is_element_displayed(2) or self.navigate_up_button.is_element_displayed(2):
             try:
                 if counter >= times_to_click_on_back_btn:
                     break
-                if BackButton(self.driver).is_element_displayed(2):
-                    self.back_button.click()
+                if self.back_button.is_element_displayed(2):
+                    self.back_button.click_until_absense_of_element(self.back_button)
                 else:
-                    self.close_button.click()
+                    self.navigate_up_button.click_until_absense_of_element(self.navigate_up_button)
                 counter += 1
             except (NoSuchElementException, TimeoutException):
                 continue
-        return self.get_home_view()
+        return self
 
     def relogin(self, password=common_password):
         try:
@@ -556,7 +601,9 @@ class BaseView(object):
 
     def get_public_key_and_username(self, return_username=False):
         self.driver.info("Get public key and username")
-        profile_view = self.profile_button.click()
+        # profile_view = self.profile_button.click()
+        self.browser_tab.click()  # temp, until profile is on browser tab
+        profile_view = self.get_profile_view()
         default_username = profile_view.default_username_text.text
         profile_view.share_my_profile_button.click()
         profile_view.public_key_text.wait_for_visibility_of_element(20)
@@ -565,10 +612,16 @@ class BaseView(object):
         user_data = (public_key, default_username) if return_username else public_key
         return user_data
 
+    def tap_mutual_cr_switcher(self):
+        profile_view = self.profile_button.click()
+        profile_view.advanced_button.scroll_and_click()
+        profile_view.mutual_contact_request_switcher.scroll_and_click()
+        profile_view.click_system_back_button()
+
     def share_via_messenger(self):
         self.driver.info("Sharing via messenger", device=False)
-        self.element_by_text_part("Direct share").wait_for_element()
-        self.element_by_text('Messages').wait_and_click()
+        self.element_by_text('Messages').wait_for_visibility_of_element(40)
+        self.element_by_text('Messages').click_until_presence_of_element(self.element_by_text('New message'))
         self.element_by_text('New message').wait_and_click()
         self.send_as_keyevent('+0100100101')
         self.confirm()
@@ -660,6 +713,38 @@ class BaseView(object):
         if web_view.new_tab_button.is_element_displayed():
             web_view.new_tab_button.click()
         return web_view
+
+    def get_test_assets(self, token=False, keycard=False):
+        from views.home_view import HomeView
+        status_test_dapp = HomeView(self.driver).open_status_test_dapp()
+        status_test_dapp.wait_for_d_aap_to_load()
+
+        self.just_fyi("Requesting test assets in dapp")
+        status_test_dapp.assets_button.click()
+        if token:
+            send_tx = status_test_dapp.request_stt_button.click()
+            send_tx.sign_transaction(keycard=keycard)
+            wallet = self.wallet_button.click()
+            wallet.wait_balance_is_changed(asset='STT', scan_tokens=True)
+        else:
+            status_test_dapp.request_eth_button.click()
+            status_test_dapp.ok_button.wait_and_click()
+            wallet = self.wallet_button.click()
+            wallet.wait_balance_is_changed()
+
+        return wallet
+
+    def donate_leftovers(self, keycard=False):
+        self.just_fyi("Send leftovers from test accounts")
+        wallet = self.wallet_button.click()
+        self.wallet_button.click()
+        send_transaction = wallet.send_transaction_from_main_screen.click()
+        send_transaction.set_max_button.click()
+        send_transaction.confirm()
+        send_transaction.chose_recipient_button.click()
+        send_transaction.set_recipient_address('0xE2363E6e91d1a29d82C2c695fa8fa2e3Fa5d55eA')
+        send_transaction.sign_transaction_button.click()
+        send_transaction.sign_transaction(keycard=keycard)
 
     # Method-helper
     def write_page_source_to_file(self, full_path_to_file):

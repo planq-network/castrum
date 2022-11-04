@@ -15,12 +15,12 @@
             [status-im.ui.screens.chat.image.preview.views :as preview]
             [status-im.ui.screens.chat.photos :as photos]
             [status-im.ui.components.tabs :as tabs]
-            [status-im.utils.contenthash :as contenthash]
-            [status-im.ui.screens.chat.message.reactions :as reactions]
+            [status-im.ui.screens.chat.message.reactions-old :as reactions]
             [status-im.chat.models.reactions :as models.reactions]
             [status-im.ui.screens.chat.components.reply :as components.reply]
             [status-im.ui.screens.chat.message.link-preview :as link-preview]
-            [status-im.chat.models :as chat]))
+            [status-im.chat.models :as chat]
+            [status-im.ui.components.fast-image :as fast-image]))
 
 (defonce messages-list-ref (atom nil))
 (def image-max-dimension 192)
@@ -33,16 +33,18 @@
   (let [width (reagent/atom nil)]
     (fn [uri show-close?]
       [react/view {:style               {:width         @width
+                                         :align-items   :center
                                          :height        image-max-dimension
+                                         :max-width     :100%
                                          :overflow      :hidden
                                          :opacity       (if @width 1 0)
                                          :border-radius 16
                                          :margin-top    8}
                    :accessibility-label :image-message}
-       [react/fast-image {:style       {:width  @width
-                                        :height image-max-dimension}
-                          :on-load     (image-set-size width)
-                          :source      {:uri uri}}]
+       [fast-image/fast-image {:style   {:width      @width
+                                         :height image-max-dimension}
+                               :on-load (image-set-size width)
+                               :source  {:uri uri}}]
        [react/view {:border-width     1
                     :top              0
                     :left             0
@@ -91,6 +93,7 @@
 (defn message-item [account profile]
   (fn [{:keys [content-type content from timestamp outgoing] :as message}
        {:keys [modal on-long-press close-modal]}]
+
     [react/view (merge {:padding-vertical   8
                         :flex-direction     :row
                         :background-color   (when modal colors/white)
@@ -107,15 +110,18 @@
          [photos/member-photo from])]]
      [react/view {:flex 1}
       [react/view {:flex-direction  :row
-                   :justify-content :space-between}
+                   :justify-content :space-between
+                   :width           :98%
+                   :word-break      :break-all}
        [react/touchable-highlight
         {:on-press #(do (when modal (close-modal))
                         (when profile (re-frame/dispatch [:navigate-back]))
                         (re-frame/dispatch [:chat.ui/show-profile from]))}
-        (if outgoing
-          [message/message-my-name {:profile? true :you? false}]
-          [message/message-author-name from {:profile? true}])]
-       [react/text {:style {:font-size 10 :color colors/gray}}
+        (let [message-author-width (* @(re-frame/subscribe [:dimensions/window-width]) 0.75)]
+          (if outgoing
+            [react/view {:style {:width message-author-width}} [message/message-my-name {:profile? true :you? false}]]
+            [react/view {:style {:width message-author-width}} [message/message-author-name from {:profile? true}]]))]
+       [react/text {:style {:font-size 10 :color colors/gray :margin-left :auto}}
         (datetime/time-ago (datetime/to-date timestamp))]]
       [react/view
        (if (= content-type constants/content-type-image)
@@ -169,8 +175,6 @@
      [tabs/tab-title state :timeline (i18n/label :t/timeline) (= tab :timeline)]
      [tabs/tab-title state :status (i18n/label :t/my-status) (= tab :status)]]))
 
-(def image-hash "e3010170122080c27fe972a95dbb4b0ead029d2c73d18610e849fac197e91068a918755e21b2")
-
 (defn timeline []
   (let [messages @(re-frame/subscribe [:chats/timeline-messages-stream])
         loading-messages? @(re-frame/subscribe [:chats/loading-messages? constants/timeline-chat-id])
@@ -185,10 +189,10 @@
        (if no-messages?
          [react/view {:padding-horizontal 32
                       :margin-top         64}
-          [react/image {:style  {:width      140
-                                 :height     140
-                                 :align-self :center}
-                        :source {:uri (contenthash/url image-hash)}}]
+          [fast-image/fast-image {:style  {:width      140
+                                           :height     140
+                                           :align-self :center}
+                                  :source {:uri "https://bafybeieayj76s4vjlw5uwdvnakosy46rqyioqsp2ygl6sedivemhkxrbwi.ipfs.cf-ipfs.com"}}]
           [react/view (styles/descr-container)
            [react/text {:style {:color       colors/gray
                                 :line-height 22}}
@@ -206,5 +210,5 @@
            :on-scroll-to-index-failed #()
            :header                    [react/view {:height 8}]
            :footer                    [react/view {:height 68}]}]))
-     [components.plus-button/plus-button
+     [components.plus-button/plus-button-old
       {:on-press #(re-frame/dispatch [:open-modal :my-status])}]]))

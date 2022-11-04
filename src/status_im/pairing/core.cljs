@@ -9,29 +9,29 @@
             [taoensso.timbre :as log]
             [status-im.multiaccounts.update.core :as multiaccounts.update]))
 
-(defn enable-installation-rpc [installation-id on-success on-failure]
-  (json-rpc/call {:method     (json-rpc/call-ext-method "enableInstallation")
+(defn enable-installation-rpc [installation-id on-success on-error]
+  (json-rpc/call {:method     "wakuext_enableInstallation"
                   :params     [installation-id]
                   :on-success on-success
-                  :on-failure on-failure}))
+                  :on-error on-error}))
 
-(defn disable-installation-rpc [installation-id on-success on-failure]
-  (json-rpc/call {:method     (json-rpc/call-ext-method "disableInstallation")
+(defn disable-installation-rpc [installation-id on-success on-error]
+  (json-rpc/call {:method     "wakuext_disableInstallation"
                   :params     [installation-id]
                   :on-success on-success
-                  :on-failure on-failure}))
+                  :on-error on-error}))
 
-(defn set-installation-metadata-rpc [installation-id metadata on-success on-failure]
-  (json-rpc/call {:method     (json-rpc/call-ext-method "setInstallationMetadata")
+(defn set-installation-metadata-rpc [installation-id metadata on-success on-error]
+  (json-rpc/call {:method     "wakuext_setInstallationMetadata"
                   :params     [installation-id metadata]
                   :on-success on-success
-                  :on-failure on-failure}))
+                  :on-error on-error}))
 
-(defn get-our-installations-rpc [on-success on-failure]
-  (json-rpc/call {:method     (json-rpc/call-ext-method "getOurInstallations")
+(defn get-our-installations-rpc [on-success on-error]
+  (json-rpc/call {:method     "wakuext_getOurInstallations"
                   :params     []
                   :on-success on-success
-                  :on-failure on-failure}))
+                  :on-error on-error}))
 
 (defn compare-installation
   "Sort installations, first by our installation-id, then on whether is
@@ -43,12 +43,10 @@
     (= our-installation-id (:installation-id b))
     1
     :else
-    (let [enabled-compare (compare (:enabled? b)
-                                   (:enabled? a))]
+    (let [enabled-compare (compare (:enabled? b) (:enabled? a))]
       (if (not= 0 enabled-compare)
         enabled-compare
-        (compare (:timestamp b)
-                 (:timestamp a))))))
+        (compare (:timestamp a) (:timestamp b))))))
 
 (defn sort-installations
   [our-installation-id installations]
@@ -57,7 +55,7 @@
 (fx/defn send-pair-installation
   {:events [:pairing.ui/pair-devices-pressed]}
   [_]
-  {::json-rpc/call [{:method     (json-rpc/call-ext-method "sendPairInstallation")
+  {::json-rpc/call [{:method     "wakuext_sendPairInstallation"
                      :params     []
                      :on-success #(log/info "sent pair installation message")}]})
 
@@ -185,14 +183,14 @@
   [{:keys [db]}]
   (let [multiaccount                             (:multiaccount db)
         {:keys [name preferred-name identicon]} multiaccount]
-    {::json-rpc/call [{:method     (json-rpc/call-ext-method "syncDevices")
+    {::json-rpc/call [{:method     "wakuext_syncDevices"
                        :params     [(or preferred-name name) identicon]
                        :on-success #(log/debug "successfully synced devices")}]}))
 
-(defn installation<-rpc [{:keys [metadata id enabled]}]
+(defn installation<-rpc [{:keys [metadata id enabled timestamp]}]
   {:installation-id id
    :name (:name metadata)
-   :timestamp (:timestamp metadata)
+   :timestamp timestamp
    :device-type (:deviceType metadata)
    :enabled? enabled})
 

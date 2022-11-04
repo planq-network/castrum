@@ -371,6 +371,18 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
+    public void loginWithConfig(final String accountData, final String password, final String configJSON) {
+        Log.d(TAG, "loginWithConfig");
+        this.migrateKeyStoreDir(accountData, password);
+        String result = Statusgo.loginWithConfig(accountData, password, configJSON);
+        if (result.startsWith("{\"error\":\"\"")) {
+            Log.d(TAG, "LoginWithConfig result: " + result);
+        } else {
+            Log.e(TAG, "LoginWithConfig failed: " + result);
+        }
+    }
+
+    @ReactMethod
     public void exportUnencryptedDatabase(final String accountData, final String password, final Callback callback) {
         Log.d(TAG, "login");
 
@@ -403,12 +415,24 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     @ReactMethod
     public void logout() {
         Log.d(TAG, "logout");
-        String result = Statusgo.logout();
-        if (result.startsWith("{\"error\":\"\"")) {
-            Log.d(TAG, "Logout result: " + result);
-        } else {
-            Log.e(TAG, "Logout failed: " + result);
+        if (!checkAvailability()) {
+            System.exit(0);
+            return;
         }
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                String result = Statusgo.logout();
+                if (result.startsWith("{\"error\":\"\"")) {
+                    Log.d(TAG, "Logout result: " + result);
+                } else {
+                    Log.e(TAG, "Logout failed: " + result);
+                }
+            }
+        };
+
+        StatusThreadPoolExecutor.getInstance().execute(r);
     }
 
     private void deleteDirectory(File folder) {
@@ -1387,6 +1411,61 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return Statusgo.identicon(seed);
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String encodeTransfer(final String to, final String value) {
+        return Statusgo.encodeTransfer(to, value);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String encodeFunctionCall(final String method, final String paramsJSON) {
+        return Statusgo.encodeFunctionCall(method, paramsJSON);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String decodeParameters(final String decodeParamJSON) {
+        return Statusgo.decodeParameters(decodeParamJSON);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String hexToNumber(final String hex) {
+        return Statusgo.hexToNumber(hex);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String numberToHex(final String numString) {
+        return Statusgo.numberToHex(numString);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String sha3(final String str) {
+        return Statusgo.sha3(str);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String utf8ToHex(final String str) {
+        return Statusgo.utf8ToHex(str);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String hexToUtf8(final String str) {
+        return Statusgo.hexToUtf8(str);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String checkAddressChecksum(final String address) {
+        return Statusgo.checkAddressChecksum(address);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String isAddress(final String address) {
+        return Statusgo.isAddress(address);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String toChecksumAddress(final String address) {
+        return Statusgo.toChecksumAddress(address);
+    }
+
     @ReactMethod
     public void identiconAsync(final String seed, final Callback callback) {
         Log.d(TAG, "identiconAsync");
@@ -1548,5 +1627,6 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
         StatusThreadPoolExecutor.getInstance().execute(r);
     }
+
 }
 

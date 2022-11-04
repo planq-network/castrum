@@ -84,7 +84,8 @@
   (when-not (= reply @had-reply)
     (reset! had-reply reply)
     (when reply
-      (js/setTimeout #(input-focus text-input-ref) 250))))
+      ;; A setTimeout of 0 is necessary to ensure the statement is enqueued and will get executed ASAP.
+      (js/setTimeout #(input-focus text-input-ref) 0))))
 
 (defn reply-message-wrapper [reply]
   [rn/view {:style {:padding-horizontal 15

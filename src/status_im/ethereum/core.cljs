@@ -1,30 +1,30 @@
 (ns status-im.ethereum.core
   (:require [clojure.string :as string]
-            ["web3-utils" :as utils]
+            [status-im.native-module.core :as status]
             [status-im.ethereum.eip55 :as eip55]))
 
 (defn sha3 [s]
   (when s
-    (.sha3 utils (str s))))
+    (status/sha3 (str s))))
 
 (defn utf8-to-hex [s]
-  (try
-    (.utf8ToHex utils (str s))
-    (catch :default _ nil)))
+  (let [hex (status/utf8-to-hex (str s))]
+    (if (empty? hex)
+      nil
+      hex)))
 
 (defn hex-to-utf8 [s]
-  (try
-    (.hexToUtf8 utils s)
-    (catch :default _ nil)))
+  (let [utf8 (status/hex-to-utf8 s)]
+    (if (empty? utf8)
+      nil
+      utf8)))
 
 (def BSC-mainnet-chain-id 56)
 (def BSC-testnet-chain-id 97)
 
 ;; IDs standardized in https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 (def chains
-  {:mainnet     {:id 7000 :name "Mainnet"}
-   :testnet     {:id 3 :name "Ropsten"}
-   :rinkeby     {:id 4 :name "Rinkeby"}
+  {:mainnet     {:id 1 :name "Mainnet"}
    :xdai        {:id 100 :name "xDai"}
    :goerli      {:id 5 :name "Goerli"}
    :bsc         {:id   BSC-mainnet-chain-id
@@ -49,9 +49,7 @@
     :STT))
 
 (defn testnet? [id]
-  (contains? #{(chain-keyword->chain-id :testnet)
-               (chain-keyword->chain-id :rinkeby)
-               (chain-keyword->chain-id :goerli)
+  (contains? #{(chain-keyword->chain-id :goerli)
                (chain-keyword->chain-id :bsc-testnet)} id))
 
 (defn sidechain? [id]
@@ -100,7 +98,7 @@
 
 (defn address? [s]
   (when s
-    (.isAddress utils s)))
+    (status/address? s)))
 
 (defn network->chain-id [network]
   (get-in network [:config :NetworkId]))
@@ -153,8 +151,8 @@
 
 (defn address= [address1 address2]
   (and address1 address2
-       (= (normalized-hex address1)
-          (normalized-hex address2))))
+       (= (string/lower-case (normalized-hex address1))
+          (string/lower-case (normalized-hex address2)))))
 
 (defn public-key->address [public-key]
   (let [length (count public-key)

@@ -15,6 +15,7 @@
             [status-im.ethereum.core :as ethereum]
             [status-im.bottom-sheet.core :as bottom-sheet]
             [status-im.native-module.core :as status]
+            [status-im.popover.core :as popover]
             [status-im.utils.types :as types]
             [status-im.utils.security :as security]
             [status-im.utils.keychain.core :as keychain]
@@ -86,6 +87,7 @@
   (fx/merge cofx
             {:db                           (assoc-in db [:keycard :flow] :recovery)
              :keycard/check-nfc-enabled nil}
+            (common/listen-to-hardware-back-button)
             (navigation/navigate-to-cofx :keycard-onboarding-intro nil)))
 
 (fx/defn cancel-pressed
@@ -126,12 +128,15 @@
 (fx/defn intro-wizard
   {:events [:multiaccounts.create.ui/intro-wizard]}
   [{:keys [db] :as cofx}]
-  (fx/merge cofx
-            {:db (-> db
-                     (update :keycard dissoc :flow)
-                     (dissoc :restored-account?))}
-            (multiaccounts.create/prepare-intro-wizard)
-            (navigation/navigate-to-cofx :get-your-keys nil)))
+  (let [accs (get db :multiaccounts/multiaccounts)]
+    (fx/merge cofx
+              {:db (-> db
+                       (update :keycard dissoc :flow)
+                       (dissoc :restored-account?))}
+              (multiaccounts.create/prepare-intro-wizard)
+              (if (pos? (count accs))
+                (navigation/navigate-to-cofx :get-your-keys nil)
+                (navigation/set-stack-root :onboarding [:get-your-keys])))))
 
 (fx/defn recovery-no-key
   {:events [:keycard.recovery.no-key.ui/generate-key-pressed]}
@@ -142,6 +147,9 @@
             (intro-wizard)))
 
 (fx/defn create-keycard-multiaccount
+  {:events [::create-keycard-multiaccount]
+   :interceptors [(re-frame/inject-cofx :random-guid-generator)
+                  (re-frame/inject-cofx ::multiaccounts.create/get-signing-phrase)]}
   [{:keys [db] :as cofx}]
   (let [{{:keys [multiaccount secrets flow]} :keycard} db
         {:keys [address
@@ -267,6 +275,19 @@
              (dissoc :recovered-account?))
      ::finish-migration [account settings password encryption-pass login-params]}))
 
+(fx/defn delete-multiaccount
+  [{:keys [db]}]
+  (let [key-uid (get-in db [:multiaccounts/login :key-uid])]
+    {:keycard/delete-multiaccount-before-migration
+     {:key-uid    key-uid
+      :on-error   #(re-frame/dispatch [::delete-multiaccount-error %])
+      :on-success #(re-frame/dispatch [::create-keycard-multiaccount])}}))
+
+(fx/defn handle-delete-multiaccount-error
+  {:events [::delete-multiaccount-error]}
+  [cofx _]
+  (popover/show-popover cofx {:view :transfer-multiaccount-unknown-error}))
+
 (fx/defn on-generate-and-load-key-success
   {:events       [:keycard.callback/on-generate-and-load-key-success]
    :interceptors [(re-frame/inject-cofx :random-guid-generator)
@@ -300,6 +321,10 @@
               (common/hide-connection-sheet)
               (cond backup?    (on-backup-success backup?)
                     migration? (migrate-account)
+
+                    (get-in db [:keycard :delete-account?])
+                    (delete-multiaccount)
+
                     :else      (create-keycard-multiaccount)))))
 
 (fx/defn on-generate-and-load-key-error
@@ -326,8 +351,9 @@
                                         (assoc-in [:keycard :pin :status] :verifying)
                                         (assoc-in [:keycard :secrets] {:pairing   pairing'
                                                                        :paired-on (utils.datetime/timestamp)}))
-               :keycard/import-keys {:pin        pin
-                                     :on-success :keycard.callback/on-generate-and-load-key-success}})))
+               :keycard/import-keys
+               {:pin                  pin
+                :on-success           :keycard.callback/on-generate-and-load-key-success}})))
 
 (fx/defn load-recovering-key-screen
   {:events [:keycard/load-recovering-key-screen]}

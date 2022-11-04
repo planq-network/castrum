@@ -1,9 +1,9 @@
 (ns status-im.multiaccounts.login.core-test
   (:require [cljs.test :as test]
-            [status-im.multiaccounts.login.core :as login]
             [status-im.multiaccounts.biometric.core :as biometric]
-            [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.fx :as fx]))
+            [status-im.multiaccounts.login.core :as login]
+            [status-im.utils.fx :as fx]
+            [status-im.utils.keychain.core :as keychain]))
 
 (test/deftest save-password-test
   (test/testing "check save password, biometric unavailable"
@@ -54,9 +54,9 @@
                                                :bioauth-code    nil}))
                                             false)]
       (test/is (= true (get-in db [:multiaccounts/login :save-password?])))
-      ;; case 2 from https://github.com/status-im/status-react/issues/9573
+      ;; case 2 from https://github.com/status-im/status-mobile/issues/9573
       (test/is (= keychain/auth-method-biometric-prepare (:auth-method db)))
       (test/testing "disable biometric"
         (let [{:keys [db]} (biometric/disable {:db db})]
           (test/is (= false (get-in db [:multiaccounts/login :save-password?])))
-          (test/is (= keychain/auth-method-none) (:auth-method db)))))))
+          (test/is (= keychain/auth-method-none (:auth-method db))))))))

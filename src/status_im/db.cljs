@@ -13,7 +13,7 @@
              :sync-state                         :done
              :link-previews-whitelist            []
              :app-state                          "active"
-             :wallet                              wallet.db/default-wallet
+             :wallet                             wallet.db/default-wallet
              :wallet/all-tokens                  {}
              :peers-count                        0
              :node-info                          {}
@@ -33,11 +33,10 @@
              :dimensions/window                  (dimensions/window)
              :registry                           {}
              :visibility-status-updates          {}
-             :stickers/packs-owned               #{}
              :stickers/packs-pending             #{}
-             :keycard                            {:nfc-enabled?   false
-                                                  :pin            {:original     []
-                                                                   :confirmation []
-                                                                   :current      []
-                                                                   :puk          []
-                                                                   :enter-step   :original}}})
+             :keycard                            {:nfc-enabled? false
+                                                  :pin          {:original     []
+                                                                 :confirmation []
+                                                                 :current      []
+                                                                 :puk          []
+                                                                 :enter-step   :original}}})

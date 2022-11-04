@@ -138,8 +138,8 @@
        #(re-frame/dispatch [::name-resolved username
                             (cond
                               (not public-key) :owned
-                              (string/ends-with? % "0000000000000000000000000000000000000000000000000000000000000000")
-                              :invalid
+                              (and (string/ends-with? % "0000000000000000000000000000000000000000000000000000000000000000") (not custom-domain?))
+                              :invalid-ens
                               (= % public-key) :connected
                               :else :connected-with-different-key)
                             (eip55/address->checksum response)]))
@@ -150,6 +150,7 @@
   [chain-id]
   (case chain-id
     3 50
+    5 10
     1 10))
 
 (fx/defn register-name

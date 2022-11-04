@@ -24,7 +24,7 @@
             [status-im.ui.components.accordion :as accordion]
             [status-im.ui.screens.communities.styles :as styles]))
 
-(def request-cooldown-ms (* 60 1000))
+(def request-cooldown-ms (* 24 60 60 1000))
 
 (defn can-request-access-again? [requested-at]
   (> (datetime/timestamp) (+ (* requested-at 1000) request-cooldown-ms)))
@@ -48,7 +48,7 @@
          id
          true
          display-name
-         (or color (rand-nth colors/chat-colors))])]
+         (or color (rand-nth colors/chat-colors)) nil 36])]
      [rn/view {:style {:flex 1 :justify-content :center}}
       [quo/text {:number-of-lines     1
                  :accessibility-label :community-name-text}
@@ -148,7 +148,7 @@
     text]])
 
 (defn community-chat-item [{:keys [chat-id] :as home-item} _ _ _]
-  [inner-item/home-list-item
+  [inner-item/home-list-item-old
    ;; We want communities to behave as public chats when it comes to
    ;; unread indicator
    (assoc home-item :public? true)
@@ -271,7 +271,7 @@
              [community-chat-list id categories false from-chat]
              [community-channel-preview-list id chats])
            (when admin
-             [components.plus-button/plus-button
+             [components.plus-button/plus-button-old
               {:on-press #(>evt [:bottom-sheet/show-sheet
                                  {:content (fn []
                                              [community-plus-actions community])}])

@@ -137,10 +137,11 @@
                [{:ms 100 :dispatch [:chat/add-senders-to-chat-users (vals senders)]}]))}))
 
 (defn reduce-js-statuses [db ^js message-js]
-  (let [chat-id (.-localChatId message-js)
+  (let [chat-id             (.-localChatId message-js)
         profile-initialized (get-in db [:pagination-info chat-id :messages-initialized?])
-        timeline-message (timeline-message? db chat-id)]
-    (if (or profile-initialized timeline-message)
+        timeline-message    (timeline-message? db chat-id)
+        old-message         (get-in db [:messages chat-id (.-id message-js)])]
+    (if (and (or profile-initialized timeline-message) (nil? old-message))
       (let [{:keys [message-id] :as message} (data-store.messages/<-rpc (types/js->clj message-js))]
         (cond-> db
           profile-initialized
@@ -169,13 +170,12 @@
 (fx/defn update-message-status
   [{:keys [db] :as cofx} chat-id message-id status]
   (fx/merge cofx
-            (update-db-message-status chat-id message-id status)
-            (data-store.messages/update-outgoing-status message-id status)))
+            (update-db-message-status chat-id message-id status)))
 
 (fx/defn resend-message
   [{:keys [db] :as cofx} chat-id message-id]
   (fx/merge cofx
-            {::json-rpc/call [{:method (json-rpc/call-ext-method "reSendChatMessage")
+            {::json-rpc/call [{:method "wakuext_reSendChatMessage"
                                :params [message-id]
                                :on-success #(log/debug "re-sent message successfully")
                                :on-error #(log/error "failed to re-send message" %)}]}

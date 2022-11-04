@@ -14,8 +14,7 @@
             [status-im.utils.fx :as fx]
             ["emojilib" :as emojis]
             [status-im.chat.models.mentions :as mentions]
-            [status-im.utils.utils :as utils]
-            [status-im.multiaccounts.update.core :as multiaccounts.update]))
+            [status-im.utils.utils :as utils]))
 
 (defn text->emoji
   "Replaces emojis in a specified `text`"
@@ -144,6 +143,20 @@
                      :on-error    #(log/error "failed to delete message message " %)
                      :on-success  #(re-frame/dispatch [:sanitize-messages-and-process-response %])}]})
 
+(fx/defn show-contact-request-input
+  "Sets reference to previous chat message and focuses on input"
+  {:events [:chat.ui/send-contact-request]}
+  [{:keys [db] :as cofx}]
+  (let [current-chat-id (:current-chat-id db)]
+    {:db (-> db
+             (assoc-in [:chat/inputs current-chat-id :metadata :sending-contact-request]
+                       current-chat-id)
+             (assoc-in [:chat/inputs current-chat-id :metadata :responding-to-message]
+                       nil)
+             (assoc-in [:chat/inputs current-chat-id :metadata :editing-message] nil)
+             (update-in [:chat/inputs current-chat-id :metadata]
+                        dissoc :sending-image))}))
+
 (fx/defn cancel-message-reply
   "Cancels stage message reply"
   {:events [:chat.ui/cancel-message-reply]}
@@ -180,6 +193,7 @@
 (fx/defn clean-input [{:keys [db] :as cofx} current-chat-id]
   (fx/merge cofx
             {:db (-> db
+                     (assoc-in [:chat/inputs current-chat-id :metadata :sending-contact-request] nil)
                      (assoc-in [:chat/inputs current-chat-id :metadata :sending-image] nil)
                      (assoc-in [:chat/inputs current-chat-id :metadata :editing-message] nil)
                      (assoc-in [:chat/inputs current-chat-id :metadata :responding-to-message] nil))}
@@ -230,19 +244,23 @@
                                      :text              (i18n/label :t/update-to-listen-audio {"locale" "en"})})))
 
 (fx/defn send-sticker-message
-  [cofx {:keys [hash pack]} current-chat-id]
-  (when-not (string/blank? hash)
+  [cofx {:keys [hash packID pack]} current-chat-id]
+  (when-not (or (string/blank? hash) (and (string/blank? packID) (string/blank? pack)))
     (chat.message/send-message cofx {:chat-id      current-chat-id
                                      :content-type constants/content-type-sticker
                                      :sticker {:hash hash
-                                               :pack pack}
+                                               :pack (int (if (string/blank? packID) pack packID))}
                                      :text    (i18n/label :t/update-to-see-sticker {"locale" "en"})})))
 
-(fx/defn send-edited-message [{:keys [db] :as cofx} text {:keys [message-id]}]
+(fx/defn send-edited-message [{:keys [db] :as cofx} text {:keys [message-id quoted-message]}]
   (fx/merge
    cofx
    {::json-rpc/call [{:method     "wakuext_editMessage"
-                      :params     [{:id message-id :text text}]
+                      :params     [{:id message-id
+                                    :text text
+                                    :content-type (if (message-content/emoji-only-content? {:text text :response-to quoted-message})
+                                                    constants/content-type-emoji
+                                                    constants/content-type-text)}]
                       :js-response true
                       :on-error #(log/error "failed to edit message " %)
                       :on-success #(re-frame/dispatch [:sanitize-messages-and-process-response %])}]}
@@ -263,15 +281,46 @@
               (mentions/clear-mentions)
               (mentions/clear-cursor))))
 
+(fx/defn send-contact-request
+  {:events [:contacts/send-contact-request]}
+  [{:keys [db] :as cofx} public-key message]
+  (fx/merge cofx
+            {:chat.ui/clear-inputs     nil
+             :chat.ui/clear-inputs-old nil
+             ::json-rpc/call           [{:method "wakuext_sendContactRequest"
+                                         :js-response true
+                                         :params [{:id public-key :message message}]
+                                         :on-error #(log/warn "failed to send a contact request" %)
+                                         :on-success #(re-frame/dispatch [:transport/message-sent %])}]}
+            (mentions/clear-mentions)
+            (mentions/clear-cursor)
+            (clean-input (:current-chat-id db))
+            (process-cooldown)))
+
+(fx/defn cancel-contact-request
+  "Cancels contact request"
+  {:events [:chat.ui/cancel-contact-request]}
+  [{:keys [db] :as cofx}]
+  (let [current-chat-id (:current-chat-id db)]
+    (fx/merge cofx
+              {:db (assoc-in db [:chat/inputs current-chat-id :metadata :sending-contact-request] nil)}
+              (mentions/clear-mentions)
+              (mentions/clear-cursor)
+              (clean-input (:current-chat-id db))
+              (process-cooldown))))
+
 (fx/defn chat-send-sticker
   {:events [:chat/send-sticker]}
-  [{{:keys [current-chat-id multiaccount]} :db :as cofx} {:keys [hash] :as sticker}]
+  [{{:keys [current-chat-id] :as db} :db :as cofx} {:keys [hash packID pack] :as sticker}]
   (fx/merge
    cofx
-   (multiaccounts.update/multiaccount-update
-    :stickers/recent-stickers
-    (conj (remove #(= hash %) (:stickers/recent-stickers multiaccount)) hash)
-    {})
+   {:db (update db
+                :stickers/recent-stickers
+                (fn [recent]
+                  (conj (remove #(= hash (:hash %)) recent) sticker)))
+    ::json-rpc/call [{:method     "stickers_addRecent"
+                      :params     [(int (if (string/blank? packID) pack packID)) hash]
+                      :on-success #()}]}
    (send-sticker-message sticker current-chat-id)))
 
 (fx/defn chat-send-audio

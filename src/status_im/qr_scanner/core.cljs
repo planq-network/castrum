@@ -8,7 +8,8 @@
             [status-im.ethereum.core :as ethereum]
             [status-im.add-new.db :as new-chat.db]
             [status-im.utils.fx :as fx]
-            [status-im.group-chats.core :as group-chats]))
+            [status-im.group-chats.core :as group-chats]
+            [clojure.string :as string]))
 
 (fx/defn scan-qr-code
   {:events [::scan-code]}
@@ -49,7 +50,7 @@
 
 (fx/defn handle-public-chat [cofx {:keys [topic]}]
   (when (seq topic)
-    (chat/start-public-chat cofx topic {})))
+    (chat/start-public-chat cofx topic)))
 
 (fx/defn handle-group-chat [cofx params]
   (group-chats/create-from-link cofx params))
@@ -78,16 +79,25 @@
             (navigation/change-tab :wallet)
             (navigation/pop-to-root-tab :wallet-stack)))
 
+(fx/defn handle-wallet-connect
+  {:events [::handle-wallet-connect-uri]}
+  [cofx data]
+  (let [wc-version (last (string/split (first (string/split data "?")) "@"))]
+    (if (= wc-version "1")
+      {:dispatch [:wallet-connect-legacy/pair data]}
+      {:dispatch [:wallet-connect/pair data]})))
+
 (fx/defn match-scan
   {:events [::match-scanned-value]}
   [cofx {:keys [type] :as data}]
   (case type
-    :public-chat  (handle-public-chat cofx data)
-    :group-chat   (handle-group-chat cofx data)
-    :private-chat (handle-private-chat cofx data)
-    :contact      (handle-view-profile cofx data)
-    :browser      (handle-browse cofx data)
-    :eip681       (handle-eip681 cofx data)
+    :public-chat    (handle-public-chat cofx data)
+    :group-chat     (handle-group-chat cofx data)
+    :private-chat   (handle-private-chat cofx data)
+    :contact        (handle-view-profile cofx data)
+    :browser        (handle-browse cofx data)
+    :eip681         (handle-eip681 cofx data)
+    :wallet-connect (handle-wallet-connect cofx data)
     {:dispatch [:navigate-back]
      :utils/show-popup {:title      (i18n/label :t/unable-to-read-this-code)
                         :on-dismiss #(re-frame/dispatch [:pop-to-root-tab :chat-stack])}}))

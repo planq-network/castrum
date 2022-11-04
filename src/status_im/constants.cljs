@@ -13,6 +13,20 @@
 (def ^:const content-type-audio 8)
 (def ^:const content-type-community 9)
 (def ^:const content-type-gap 10)
+(def ^:const content-type-contact-request 11) ;; TODO: temp, will be removed
+
+(def ^:const contact-request-state-none 0)
+(def ^:const contact-request-state-mutual 1)
+(def ^:const contact-request-state-sent 2)
+(def ^:const contact-request-state-received 3)
+(def ^:const contact-request-state-dismissed 4)
+
+(def ^:const contact-verification-state-unknown 0)
+(def ^:const contact-verification-state-pending 1)
+(def ^:const contact-verification-state-accepted 2)
+(def ^:const contact-verification-state-declined 3)
+(def ^:const contact-verification-state-cancelled 4)
+(def ^:const contact-verification-state-trusted 5)
 
 (def ^:const emoji-reaction-love 1)
 (def ^:const emoji-reaction-thumbs-up  2)
@@ -28,14 +42,26 @@
 (def ^:const timeline-chat-type 5)
 (def ^:const community-chat-type 6)
 
+(def ^:const contact-request-message-state-none 0)
+(def ^:const contact-request-message-state-pending 1)
+(def ^:const contact-request-message-state-accepted 2)
+(def ^:const contact-request-message-state-declined 3)
+
 (def request-to-join-pending-state 1)
 
-(def reactions {emoji-reaction-love        (:love resources/reactions)
-                emoji-reaction-thumbs-up   (:thumbs-up resources/reactions)
-                emoji-reaction-thumbs-down (:thumbs-down resources/reactions)
-                emoji-reaction-laugh       (:laugh resources/reactions)
-                emoji-reaction-sad         (:sad resources/reactions)
-                emoji-reaction-angry       (:angry resources/reactions)})
+(def reactions-old {emoji-reaction-love        (:love resources/reactions-old)
+                    emoji-reaction-thumbs-up   (:thumbs-up resources/reactions-old)
+                    emoji-reaction-thumbs-down (:thumbs-down resources/reactions-old)
+                    emoji-reaction-laugh       (:laugh resources/reactions-old)
+                    emoji-reaction-sad         (:sad resources/reactions-old)
+                    emoji-reaction-angry       (:angry resources/reactions-old)})
+
+(def reactions {emoji-reaction-love        :main-icons2/love
+                emoji-reaction-thumbs-up   :main-icons2/angry
+                emoji-reaction-thumbs-down :main-icons2/sad
+                emoji-reaction-laugh       :main-icons2/laugh
+                emoji-reaction-sad         :main-icons2/thumbs-up
+                emoji-reaction-angry       :main-icons2/thumbs-down})
 
 (def ^:const invitation-state-unknown 0)
 (def ^:const invitation-state-requested 1)
@@ -152,20 +178,39 @@
 (def ^:const one-week (* one-day 7))
 (def ^:const one-month (* one-day 31))
 
-(def ^:const metrics-github-link
-  "https://github.com/status-im/status-go/blob/develop/_docs/app-metrics.md")
 (def ^:const privacy-policy-link "https://status.im/privacy-policy/")
 (def ^:const terms-of-service-link "https://status.im/terms-of-use")
 (def ^:const docs-link "https://status.im/docs/")
 (def ^:const principles-link "https://our.status.im/our-principles/")
 
+(def ^:const activity-center-notification-type-no-type 0)
 (def ^:const activity-center-notification-type-one-to-one-chat 1)
 (def ^:const activity-center-notification-type-private-group-chat 2)
 (def ^:const activity-center-notification-type-mention 3)
 (def ^:const activity-center-notification-type-reply 4)
+(def ^:const activity-center-notification-type-contact-request 5)
+(def ^:const activity-center-notification-type-contact-verification 6)
+
+;; TODO: Remove this constant once the old Notification Center code is removed.
+;; Its value clashes with the new constant `activity-center-notification-type-contact-verification`
+;; used in status-go.
+(def ^:const activity-center-notification-type-contact-request-retracted 6)
+
+;; TODO: Replace with correct enum values once status-go implements them.
+(def ^:const activity-center-notification-type-admin 66610)
+(def ^:const activity-center-notification-type-tx 66612)
+(def ^:const activity-center-notification-type-membership 66613)
+(def ^:const activity-center-notification-type-system 66614)
 
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)
 (def ^:const visibility-status-dnd 2)
 (def ^:const visibility-status-always-online 3)
 (def ^:const visibility-status-inactive 4)
+
+(def ^:const wallet-connect-version-1 1)
+(def ^:const wallet-connect-version-2 2)
+
+(def ^:const sticker-pack-status-installed 1)
+(def ^:const sticker-pack-status-pending 2)
+(def ^:const sticker-pack-status-owned 3)

@@ -3,7 +3,7 @@ import dateutil.parser
 import time
 import re
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 from tests import emojis
 from time import sleep
@@ -88,7 +88,7 @@ class ViewProfileButton(Button):
 
 class ChatOptionsButton(Button):
     def __init__(self, driver):
-        super().__init__(driver, xpath="//androidx.appcompat.widget.LinearLayoutCompat")
+        super().__init__(driver, accessibility_id="chat-menu-button")
 
     def click(self):
         self.click_until_presence_of_element(HomeView(self.driver).mark_all_messages_as_read_button)
@@ -112,7 +112,6 @@ class ProfileBlockContactButton(Button):
     def click(self):
         self.scroll_to_element()
         self.wait_for_element().click()
-
 
 class ChatElementByText(Text):
     def __init__(self, driver, text):
@@ -152,15 +151,11 @@ class ChatElementByText(Text):
         return TimeStampText(self.driver, self.locator)
 
     @property
-    def timestamp_on_tap(self):
-        timestamp_element = Text(self.driver, xpath="//*[@content-desc='message-timestamp']")
-        try:
-            self.sent_status_checkmark.wait_for_element(30)
-        except NoSuchElementException:
-            return ''
-        self.sent_status_checkmark.click_until_presence_of_element(timestamp_element)
-        return timestamp_element.text
-
+    def timestamp(self):
+        class TimeStampText(Button):
+            def __init__(self, driver, parent_locator: str):
+                super().__init__(driver, xpath="%s//*[@content-desc='message-timestamp']" % parent_locator)
+        return TimeStampText(self.driver, self.locator).text
 
     @property
     def member_photo(self):
@@ -230,21 +225,39 @@ class ChatElementByText(Text):
             return RepliedToUsernameText(self.driver, self.message_locator).text
         except NoSuchElementException:
             return ''
+    # Old UI
+    # def emojis_below_message(self, emoji: str = 'thumbs-up', own=True):
+    #     class EmojisNumber(Text):
+    #         def __init__(self, driver, parent_locator: str):
+    #             self.own = own
+    #             self.emoji = emoji
+    #             self.emojis_id = 'emoji-' + str(emojis[self.emoji]) + '-is-own-' + str(self.own).lower()
+    #             super().__init__(driver, prefix=parent_locator, xpath="/../..//*[@content-desc='%s']" % self.emojis_id)
+    #
+    #         @property
+    #         def text(self):
+    #             try:
+    #                 text = self.find_element().text
+    #                 self.driver.info("%s is '%s' for '%s' where my reaction is set on message is '%s'" % (self.name, text, self.emoji, str(self.own)))
+    #                 return text
+    #             except NoSuchElementException:
+    #                 return 0
+    #
+    #     return int(EmojisNumber(self.driver, self.locator).text)
 
-    def emojis_below_message(self, emoji: str = 'thumbs-up', own=True):
+    def emojis_below_message(self, emoji: str = 'thumbs-up'):
         class EmojisNumber(Text):
             def __init__(self, driver, parent_locator: str):
-                self.own = own
                 self.emoji = emoji
-                self.emojis_id = 'emoji-' + str(emojis[self.emoji]) + '-is-own-' + str(self.own).lower()
-                super().__init__(driver, prefix=parent_locator, xpath="/../..//*[@content-desc='%s']" % self.emojis_id)
+                self.emojis_id = 'emoji-reaction-%s' % str(emojis[self.emoji])
+                super().__init__(driver, prefix=parent_locator, xpath="/../..//*[@content-desc='%s']/android.widget.TextView" % self.emojis_id)
 
             @property
             def text(self):
                 try:
                     text = self.find_element().text
-                    self.driver.info("%s is '%s' for '%s' where my reaction is set on message is '%s'" % (self.name, text, self.emoji, str(self.own)))
-                    return text
+                    self.driver.info("%s is '%s' for '%s'" % (self.name, text, self.emoji))
+                    return int(text.strip())
                 except NoSuchElementException:
                     return 0
 
@@ -594,7 +607,7 @@ class ChatView(BaseView):
         self.quote_username_in_message_input = EditBox(self.driver,
                                                        xpath="//android.view.ViewGroup[@content-desc='cancel-message-reply']/..//android.widget.TextView[1]")
         self.cancel_reply_button = Button(self.driver, accessibility_id="cancel-message-reply")
-        self.chat_item = Button(self.driver, accessibility_id="chat-item")
+        self.chat_item = Button(self.driver, xpath="(//*[@content-desc='chat-item'])[1]")
         self.chat_name_editbox = EditBox(self.driver, accessibility_id="chat-name-input")
         self.commands_button = CommandsButton(self.driver)
         self.send_command = SendCommand(self.driver)
@@ -603,6 +616,7 @@ class ChatView(BaseView):
         # General chat view
         self.history_start_icon = Button(self.driver, accessibility_id="history-chat")
         self.unpin_message_popup = UnpinMessagePopUp(self.driver)
+        self.contact_request_button = Button(self.driver, accessibility_id="contact-request--button")
 
         # Stickers
         self.show_stickers_button = Button(self.driver, accessibility_id="show-stickers-icon")
@@ -670,6 +684,8 @@ class ChatView(BaseView):
         self.profile_block_contact = ProfileBlockContactButton(self.driver)
         self.confirm_block_contact_button = Button(self.driver, accessibility_id="block-contact-confirm")
         self.unblock_contact_button = UnblockContactButton(self.driver)
+        self.profile_mute_contact = Button(self.driver, accessibility_id="Mute-item-button")
+        self.profile_unmute_contact = Button(self.driver, accessibility_id="Unmute-item-button")
         self.profile_add_to_contacts = Button(self.driver, accessibility_id="Add to contacts-item-button")
         self.profile_details = Button(self.driver, accessibility_id="share-button")
         self.profile_nickname = Text(self.driver,
@@ -810,6 +826,13 @@ class ChatView(BaseView):
         self.chat_message_input.send_keys(message)
         self.send_message_button.click()
 
+    def send_contact_request(self, message:str = 'Contact request message', wait_chat_input_sec=5):
+        self.driver.info("Sending contact request message '%s'" % BaseElement(self.driver).exclude_emoji(message))
+        self.contact_request_button.wait_and_click()
+        self.chat_message_input.wait_for_element(wait_chat_input_sec)
+        self.chat_message_input.send_keys(message)
+        self.send_contact_request_button.click()
+
     def pin_message(self, message, action="pin"):
         self.driver.info("Looking for message '%s' pin" % message)
         self.element_by_text_part(message).long_press_element()
@@ -850,7 +873,9 @@ class ChatView(BaseView):
                 self.chat_element_by_text(message).long_press_element()
             else:
                 self.element_by_text_part(message).long_press_element()
-        element = Button(self.driver, accessibility_id='pick-emoji-%s' % key)
+        # old UI
+        # element = Button(self.driver, accessibility_id='pick-emoji-%s' % key)
+        element = Button(self.driver, accessibility_id='emoji-picker-%s' % key)
         element.click()
         element.wait_for_invisibility_of_element()
 
@@ -875,16 +900,17 @@ class ChatView(BaseView):
         self.driver.info("Moving to messages by time marker: '%s'" % marker)
         Button(self.driver, xpath="//*[@text='%s'']" % marker).scroll_to_element(depth=50, direction='up')
 
-    def install_sticker_pack_by_name(self, pack_name='Status Cat'):
+    def install_sticker_pack_by_name(self, pack_name='HCPP20'):
         self.driver.info("## Installing '%s' stickerpack" % pack_name, device=False)
+        self.chat_message_input.click()
         self.show_stickers_button.click()
         self.get_stickers.click()
         element = Button(self.driver,
                          xpath="//*[@content-desc='sticker-pack-name'][@text='%s']/..//*[@content-desc='sticker-pack-price']" % pack_name)
-        element.scroll_to_element()
+        element.scroll_to_element(depth=21)
         element.click()
         element.wait_for_invisibility_of_element()
-        self.back_button.click()
+        self.navigate_up_button.click()
         time.sleep(2)
         self.swipe_left()
         self.driver.info("## Stickerpack is installed successfully!", device=False)
@@ -936,6 +962,10 @@ class ChatView(BaseView):
         chat_element.find_element()
         chat_element.member_photo.click()
 
+    def open_user_profile_from_1_1_chat(self):
+        self.chat_options.click()
+        self.view_profile_button.click()
+
     def set_nickname(self, nickname, close_profile=True):
         self.driver.info("Setting nickname:%s" % nickname)
         self.profile_nickname_button.click()
@@ -963,7 +993,7 @@ class ChatView(BaseView):
 
         if image:
             self.timeline_open_images_panel_button.click()
-            if self.allow_button.is_element_present():
+            if self.allow_button.is_element_displayed():
                 self.allow_button.click()
             self.first_image_from_gallery.click()
         self.timeline_send_my_status_button.click()
@@ -1004,16 +1034,16 @@ class ChatView(BaseView):
         return '%s has invited %s' % (admin, invited_user)
 
     @staticmethod
+    def has_added_system_message(admin, invited_user):
+        return '%s has added %s' % (admin, invited_user)
+
+    @staticmethod
     def invited_to_join_system_message(username, chat_name):
         return '%s invited you to join the group %s' % (username, chat_name)
 
     @staticmethod
     def join_system_message(username):
         return '%s joined the group' % username
-
-    @staticmethod
-    def create_for_admin_system_message(chat_name):
-        return 'You created the group %s' % chat_name
 
     @staticmethod
     def changed_group_name_system_message(admin, chat_name):

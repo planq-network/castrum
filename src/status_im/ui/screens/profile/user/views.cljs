@@ -53,9 +53,10 @@
           address]]]
        [react/view styles/share-link-button
         [quo/button
-         {:on-press            #(do
-                                  (re-frame/dispatch [:hide-popover])
-                                  (list-selection/open-share {:message link}))
+         {:on-press            (fn []
+                                 (re-frame/dispatch [:hide-popover])
+                                 (js/setTimeout
+                                  #(list-selection/open-share {:message link}) 250))
           :accessibility-label :share-my-contact-code-button}
          (i18n/label :t/share-link)]]])))
 
@@ -116,6 +117,13 @@
          :accessibility-label :appearance-settings-button
          :chevron             true
          :on-press            #(re-frame/dispatch [:navigate-to :quo-preview])}])
+     (when config/quo-preview-enabled?
+       [quo/list-item
+        {:icon                :main-icons/appearance
+         :title               "Quo2.0 Preview"
+         :accessibility-label :appearance-settings-button
+         :chevron             true
+         :on-press            #(re-frame/dispatch [:navigate-to :quo2-preview])}])
      [quo/list-item
       {:icon                :main-icons/appearance
        :title               (i18n/label :t/appearance)
@@ -171,7 +179,7 @@
 (defn my-profile []
   (fn []
     (let [{:keys [public-key ens-verified preferred-name]
-           :as   account} @(re-frame/subscribe [:multiaccount])
+           :as   account} @(re-frame/subscribe [:profile/multiaccount])
           on-share        #(re-frame/dispatch [:show-popover
                                                {:view     :share-chat-key
                                                 :address  public-key

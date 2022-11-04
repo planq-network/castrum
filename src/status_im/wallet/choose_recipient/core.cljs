@@ -1,18 +1,19 @@
 (ns status-im.wallet.choose-recipient.core
   (:require [re-frame.core :as re-frame]
+            [status-im.bottom-sheet.core :as bottom-sheet]
             [status-im.contact.db :as contact.db]
             [status-im.ethereum.core :as ethereum]
             [status-im.ethereum.eip681 :as eip681]
             [status-im.ethereum.ens :as ens]
             [status-im.i18n.i18n :as i18n]
-            [status-im.utils.money :as money]
-            [status-im.utils.fx :as fx]
-            [status-im.router.core :as router]
-            [status-im.qr-scanner.core :as qr-scaner]
-            [status-im.bottom-sheet.core :as bottom-sheet]
             [status-im.navigation :as navigation]
+            [status-im.qr-scanner.core :as qr-scaner]
+            [status-im.router.core :as router]
+            [status-im.utils.fx :as fx]
             [status-im.utils.http :as http]
-            [status-im.utils.universal-links.utils :as links]))
+            [status-im.utils.money :as money]
+            [status-im.utils.universal-links.utils :as links]
+            [status-im.utils.wallet-connect :as wallet-connect]))
 
 ;; FIXME(Ferossgp): Should be part of QR scanner not wallet
 (fx/defn toggle-flashlight
@@ -74,7 +75,7 @@
      :wallet/keys   [all-tokens] :as db} :db}
    {:keys [chain-id] :as data}
    uri]
-  (let [{:keys [address] :as details}
+  (let [{:keys [address gasPrice] :as details}
         (eip681/extract-request-details data all-tokens)]
     (if address
       (if (:wallet/recipient db)
@@ -84,8 +85,15 @@
           {:db (update db :wallet/prepare-transaction assoc
                        :to address :to-name (find-address-name db address))}
           (let [current-chain-id (get-in networks [current-network :config :NetworkId])]
-            (merge {:db (fill-prepare-transaction-details db details all-tokens)
+            (merge {:db       (fill-prepare-transaction-details db details all-tokens)
                     :dispatch [:open-modal :prepare-send-transaction]}
+                   (when-not gasPrice
+                     {:signing/update-gas-price
+                      {:success-callback
+                       #(re-frame/dispatch
+                         [:wallet.send/update-gas-price-success :wallet/prepare-transaction %])
+                       :network-id (get-in (ethereum/current-network db)
+                                           [:config :NetworkId])}})
                    (when (and chain-id (not= current-chain-id chain-id))
                      {:ui/show-error (i18n/label :t/wallet-invalid-chain-id
                                                  {:data uri :chain current-chain-id})})))))
@@ -124,7 +132,9 @@
       (if (links/universal-link? uri)
         {:dispatch [:universal-links/handle-url uri]}
         {:browser/show-browser-selection uri})
-      {:ui/show-error (i18n/label :t/wallet-invalid-address {:data uri})})))
+      (if (wallet-connect/url? uri)
+        {:dispatch [::qr-scaner/handle-wallet-connect-uri {:data uri}]}
+        {:ui/show-error (i18n/label :t/wallet-invalid-address {:data uri})}))))
 
 (fx/defn qr-scanner-result
   {:events [:wallet.send/qr-scanner-result]}

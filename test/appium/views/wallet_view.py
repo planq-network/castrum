@@ -38,7 +38,7 @@ class AccountElementButton(SilentButton):
 
     def color_matches(self, expected_color_image_name: str):
         amount_text = Text(self.driver, xpath="%s//*[@content-desc='account-total-value']" % self.locator)
-        amount_text.wait_for_element_text('0', 60)
+        amount_text.wait_for_element_text('...', 60)
         return not amount_text.is_element_differs_from_template(expected_color_image_name)
 
 
@@ -175,14 +175,14 @@ class WalletView(BaseView):
                         self.accounts_status_account.scroll_to_element(direction='up')
                 return
 
-    def wait_balance_is_changed(self, asset='ETH', initial_balance=0, wait_time=400, scan_tokens=False):
+    def wait_balance_is_changed(self, asset='ETH', initial_balance=0, wait_time=180, scan_tokens=False, navigate_to_home=True):
         self.driver.info('Waiting %ss for %s updated balance' % (wait_time, asset))
         counter = 0
         while True:
             if counter >= wait_time:
                 self.driver.fail(
                     'Balance %s %s is not changed during %s seconds!' % (asset, initial_balance, wait_time))
-            elif self.asset_by_name(asset).is_element_present() and self.get_asset_amount_by_name(
+            elif self.asset_by_name(asset).is_element_displayed() and self.get_asset_amount_by_name(
                     asset) == initial_balance:
                 if scan_tokens:
                     self.scan_tokens()
@@ -192,7 +192,7 @@ class WalletView(BaseView):
                 counter += 10
                 time.sleep(10)
                 self.driver.info('Waiting %ss for %s updated balance' % (counter, asset))
-            elif not self.asset_by_name(asset).is_element_present(10):
+            elif not self.asset_by_name(asset).is_element_displayed(10):
                 if scan_tokens:
                     self.scan_tokens()
                 self.swipe_up()
@@ -200,9 +200,11 @@ class WalletView(BaseView):
                 time.sleep(10)
                 self.driver.info('Waiting %s seconds for %s to display asset' % (counter, asset))
             else:
-                self.driver.info('Balance is updated!')
-                self.wallet_button.double_click()
-                self.element_by_translation_id("wallet-total-value").scroll_to_element(direction='up')
+                self.driver.info('Initial "%s" is not equal expected balance "%s", it is updated!' % (initial_balance,
+                                 self.get_asset_amount_by_name(asset)))
+                if navigate_to_home:
+                    self.wallet_button.double_click()
+                    self.element_by_translation_id("wallet-total-value").scroll_to_element(direction='up')
                 return self
 
     def get_sign_in_phrase(self):
@@ -235,8 +237,11 @@ class WalletView(BaseView):
             if not asset_value.is_element_displayed():
                 self.element = asset_value.scroll_to_element()
         try:
-            return float(asset_value.text.split()[0])
+            value = float(asset_value.text.split()[0])
+            self.driver.info("%s value is %s" % (asset, value))
+            return value
         except ValueError:
+            self.driver.info("No value for %s" % asset)
             return 0.0
 
     def asset_by_name(self, asset_name):
@@ -272,7 +277,7 @@ class WalletView(BaseView):
         self.manage_assets_button.click()
         for asset in args:
             self.element_by_text(asset).scroll_to_element()
-            self.element_by_text(asset).click()
+            self.element_by_text(asset).scroll_and_click()
         self.cross_icon.click()
 
     def scan_tokens(self, *args):

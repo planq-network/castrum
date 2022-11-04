@@ -11,8 +11,7 @@
 (defn- render-network-type [type _ _ manage-network]
   (let [name (case type
                :mainnet (i18n/label :t/mainnet-network)
-               :testnet (i18n/label :t/ropsten-network)
-               :rinkeby (i18n/label :t/rinkeby-network)
+               :goerli (i18n/label :t/goerli-network)
                :custom (i18n/label :t/custom))]
     [quo/list-item
      {:title name
@@ -48,7 +47,7 @@
             :default-value  (get-in manage-network [:url :value])
             :on-change-text #(re-frame/dispatch [::network/input-changed :url %])}]]]
         [quo/list-header (i18n/label :t/network-chain)]
-        [list/flat-list {:data        [:mainnet :testnet :rinkeby :custom]
+        [list/flat-list {:data        [:mainnet :goerli :custom]
                          :key-fn      (fn [_ i] (str i))
                          :render-data manage-network
                          :render-fn   render-network-type}]

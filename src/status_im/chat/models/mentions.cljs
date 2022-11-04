@@ -185,7 +185,7 @@
    [alias name nickname]))
 
 (defn add-searchable-phrases-to-contact
-  [{:keys [alias name added? blocked? identicon public-key nickname]} community-chat?]
+  [{:keys [alias name added? blocked? identicon public-key nickname ens-verified]} community-chat?]
   (when (and alias
              (not (string/blank? alias))
              (or name
@@ -194,11 +194,12 @@
                  community-chat?)
              (not blocked?))
     (add-searchable-phrases
-     {:alias      alias
-      :name       (or (utils/safe-replace name ".stateofus.eth" "") alias)
-      :identicon  identicon
-      :nickname   nickname
-      :public-key public-key})))
+     {:alias        alias
+      :name         (or (and ens-verified (utils/safe-replace name ".stateofus.eth" "")) alias)
+      :identicon    identicon
+      :nickname     nickname
+      :ens-verified ens-verified
+      :public-key   public-key})))
 
 (defn mentionable-contacts [contacts]
   (reduce
@@ -244,10 +245,15 @@
                                                 contact.db/enrich-contact)))
 
       (= chat-type constants/community-chat-type)
-      (merge mentionable-users
-             (mentionable-contacts-from-identites all-contacts public-key (keys community-members)))
+      (mentionable-contacts-from-identites
+       all-contacts
+       public-key
+       (distinct (concat (keys community-members) (keys mentionable-users))))
 
-      :else (merge mentionable-users mentionable-contacts))))
+      (= chat-type constants/public-chat-type)
+      (merge mentionable-users (select-keys mentionable-contacts (keys mentionable-users)))
+
+      :else mentionable-users)))
 
 (def ending-chars "[\\s\\.,;:]")
 (def ending-chars-regex (re-pattern ending-chars))

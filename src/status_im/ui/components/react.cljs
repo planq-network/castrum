@@ -6,18 +6,19 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.utils :as utils]
             ["react" :as reactjs]
-            ["react-native" :as react-native :refer (Keyboard)]
+            ["react-native" :as react-native :refer (Keyboard BackHandler)]
             ["react-native-image-crop-picker" :default image-picker]
             ["react-native-safe-area-context" :as safe-area-context
              :refer (SafeAreaProvider SafeAreaInsetsContext)]
             ["@react-native-community/clipboard" :default Clipboard]
             ["react-native-linear-gradient" :default LinearGradient]
+            ["@react-native-community/masked-view" :default MaskedView]
             ["react-native-navigation" :refer (Navigation)]
-            ["react-native-fast-image" :as FastImage])
+            ["react-native-fast-image" :as FastImage]
+            ["@react-native-community/blur" :as blur])
   (:require-macros [status-im.utils.views :as views]))
 
 (def native-modules (.-NativeModules react-native))
-(def device-event-emitter (.-DeviceEventEmitter react-native))
 
 ;; React Components
 
@@ -32,12 +33,16 @@
 
 (def image-class (reagent/adapt-react-class (reactjs/memo (.-Image react-native))))
 
-(def fast-image (reagent/adapt-react-class FastImage))
+(def fast-image-class (reagent/adapt-react-class FastImage))
 
 (defn image-get-size [uri callback] (.getSize (.-Image react-native) uri callback))
 (defn resolve-asset-source [uri] (js->clj (.resolveAssetSource (.-Image react-native) uri) :keywordize-keys true))
 
 (def linear-gradient (reagent/adapt-react-class LinearGradient))
+
+(def masked-view (reagent/adapt-react-class MaskedView))
+
+(def blur-view (reagent/adapt-react-class (.-BlurView blur)))
 
 (defn valid-source? [source]
   (or (not (map? source))
@@ -245,6 +250,14 @@
                   (update props :keyboardVerticalOffset + 44 (:status-bar-height @navigation-const))))]
         children))
 
+(defn keyboard-avoiding-view-new [props & children]
+  (into [keyboard-avoiding-view-class
+         (merge (when platform/ios? {:behavior :padding})
+                (if (:ignore-offset props)
+                  props
+                  (update props :keyboardVerticalOffset + 44)))]
+        children))
+
 (defn scroll-view [props & children]
   (vec (conj children props scroll-view-class)))
 
@@ -267,3 +280,9 @@
 
 (def safe-area-provider (reagent/adapt-react-class SafeAreaProvider))
 (def safe-area-consumer (reagent/adapt-react-class (.-Consumer ^js SafeAreaInsetsContext)))
+
+(defn hw-back-add-listener [callback]
+  (.addEventListener BackHandler "hardwareBackPress" callback))
+
+(defn hw-back-remove-listener [callback]
+  (.removeEventListener BackHandler "hardwareBackPress" callback))

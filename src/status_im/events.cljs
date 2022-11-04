@@ -2,7 +2,6 @@
   (:require clojure.set
             [re-frame.core :as re-frame]
             status-im.add-new.core
-            [status-im.anon-metrics.core :as anon-metrics]
             [status-im.async-storage.core :as async-storage]
             status-im.backup.core
             status-im.bootnodes.core
@@ -37,8 +36,9 @@
             [status-im.native-module.core :as status]
             [status-im.navigation :as navigation]
             status-im.notifications-center.core
+            status-im.activity-center.core
             status-im.pairing.core
-            status-im.popover.core
+            [status-im.popover.core :as popover]
             status-im.profile.core
             status-im.search.core
             status-im.signals.core
@@ -52,7 +52,7 @@
             status-im.utils.logging.core
             [status-im.utils.universal-links.core :as universal-links]
             [status-im.utils.utils :as utils]
-            status-im.visibility-status-popover.core
+            [status-im.visibility-status-popover.core :as visibility-status-popover]
             status-im.visibility-status-updates.core
             status-im.waku.core
             status-im.wallet.accounts.core
@@ -60,7 +60,12 @@
             [status-im.wallet.core :as wallet]
             status-im.wallet.custom-tokens.core
             [status-im.navigation.core :as navigation.core]
-            [status-im.multiaccounts.login.core :as login.core]))
+            [status-im.navigation.state :as navigation.state]
+            [status-im.signing.core :as signing]
+            status-im.wallet-connect.core
+            status-im.wallet-connect-legacy.core
+            status-im.navigation2
+            status-im.navigation2.core))
 
 (re-frame/reg-fx
  :dismiss-keyboard
@@ -115,32 +120,53 @@
 (fx/defn system-theme-mode-changed
   {:events [:system-theme-mode-changed]}
   [{:keys [db] :as cofx} theme]
-  (let [cur-theme     (get-in db [:multiaccount :appearance])
-        current-tab   (get db :current-tab :chat)
-        view-id       (:view-id db)
-        screen-params (get-in db [:navigation/screen-params view-id])
-        root-id       @navigation.core/root-id]
-    (navigation.core/dismiss-all-modals)
-    (when (or (nil? cur-theme) (zero? cur-theme))
+  (let [cur-theme        (get-in db [:multiaccount :appearance])
+        current-tab      (get db :current-tab :chat)
+        view-id          (:view-id db)
+        screen-params    (get-in db [:navigation/screen-params view-id])
+        root-id          @navigation.state/root-id
+        key-uid          (get-in db [:multiaccounts/login :key-uid])
+        keycard-account? (boolean (get-in db [:multiaccounts/multiaccounts
+                                              key-uid
+                                              :keycard-pairing]))
+        dispatch-later   (cond-> []
+                           (= view-id :chat)
+                           (conj {:ms       1000
+                                  :dispatch [:chat.ui/navigate-to-chat (:current-chat-id db)]})
+
+                           (and
+                            (= root-id :chat-stack)
+                            (not-any? #(= view-id %) '(:home :empty-tab :wallet :status :my-profile :chat)))
+                           (conj {:ms       1000
+                                  :dispatch [:navigate-to view-id screen-params]})
+
+                           (some #(= view-id %) navigation.core/community-screens)
+                           (conj {:ms 800 :dispatch
+                                  [:navigate-to :community
+                                   (get-in db [:navigation/screen-params :community])]})
+
+                           (= view-id :community-emoji-thumbnail-picker)
+                           (conj {:ms 900 :dispatch
+                                  [:navigate-to :create-community-channel
+                                   (get-in db [:navigation/screen-params :create-community-channel])]}))]
+    (when (and (some? root-id) (or (nil? cur-theme) (zero? cur-theme)))
+      (navigation.core/dismiss-all-modals)
       (fx/merge cofx
-                {::multiaccounts/switch-theme (if (= :dark theme) 2 1)
-                 :utils/dispatch-later
-                 (cond-> [{:ms 2000 :dispatch
-                           (if (= view-id :chat)
-                             [:chat.ui/navigate-to-chat (:current-chat-id db)]
-                             [:navigate-to view-id screen-params])}]
-
-                   (some #(= view-id %) navigation.core/community-screens)
-                   (conj {:ms 1000 :dispatch
-                          [:navigate-to :community
-                           (get-in db [:navigation/screen-params :community])]})
-
-                   (= view-id :community-emoji-thumbnail-picker)
-                   (conj {:ms 1500 :dispatch
-                          [:navigate-to :create-community-channel
-                           (get-in db [:navigation/screen-params :create-community-channel])]}))}
-                (bottom-sheet/hide-bottom-sheet)
-                (navigation/init-root root-id)
+                (merge
+                 {::multiaccounts/switch-theme (if (= :dark theme) 2 1)}
+                 (when (seq dispatch-later)
+                   {:utils/dispatch-later dispatch-later}))
+                (when (get-in db [:bottom-sheet/show?])
+                  (bottom-sheet/hide-bottom-sheet))
+                (when (get-in db [:popover/popover])
+                  (popover/hide-popover))
+                (when (get-in db [:visibility-status-popover/popover])
+                  (visibility-status-popover/hide-visibility-status-popover))
+                (when (get-in db [:signing/tx])
+                  (signing/discard))
+                (if (and (= root-id :multiaccounts) keycard-account?)
+                  (navigation/init-root-with-component :multiaccounts-keycard :multiaccounts)
+                  (navigation/init-root root-id))
                 (when (= root-id :chat-stack)
                   (navigation/change-tab current-tab))))))
 
@@ -217,8 +243,7 @@
     (chat/preload-chat-data cofx constants/timeline-chat-id)))
 
 (fx/defn on-will-focus
-  {:events [:screens/on-will-focus]
-   :interceptors [anon-metrics/interceptor]}
+  {:events [:screens/on-will-focus]}
   [{:keys [db] :as cofx} view-id]
   (fx/merge cofx
             (cond
@@ -253,6 +278,11 @@
   {:events [:set]}
   [{:keys [db]} k v]
   {:db (assoc db k v)})
+
+(fx/defn set-view-id
+  {:events [:set-view-id]}
+  [{:keys [db]} view-id]
+  {:db (assoc db :view-id view-id)})
 
 ;;TODO :replace by named events
 (fx/defn set-once-event
@@ -294,3 +324,46 @@
    cofx
    (navigation/open-modal :buy-crypto nil)
    (wallet/keep-watching-history)))
+
+;; Information Box
+
+(def closable-information-boxes
+  "[{:id      information box id
+     :global? true/false (close information box across all profiles)}]"
+  [])
+
+(defn information-box-id-hash [id public-key global?]
+  (if global?
+    (hash id)
+    (hash (str public-key id))))
+
+(fx/defn close-information-box
+  {:events [:close-information-box]}
+  [{:keys [db]} id global?]
+  (let [public-key (get-in db [:multiaccount :public-key])
+        hash       (information-box-id-hash id public-key global?)]
+    {::async-storage/set! {hash true}
+     :db (assoc-in db [:information-box-states id] true)}))
+
+(fx/defn information-box-states-loaded
+  {:events [:information-box-states-loaded]}
+  [{:keys [db]} hashes states]
+  {:db (assoc db :information-box-states (reduce
+                                          (fn [acc [id hash]]
+                                            (assoc acc id (get states hash)))
+                                          {} hashes))})
+
+(fx/defn load-information-box-states
+  {:events [:load-information-box-states]}
+  [{:keys [db]}]
+  (let [public-key            (get-in db [:multiaccount :public-key])
+        {:keys [keys hashes]} (reduce (fn [acc {:keys [id global?]}]
+                                        (let [hash (information-box-id-hash
+                                                    id public-key global?)]
+                                          (-> acc
+                                              (assoc-in [:hashes id] hash)
+                                              (update :keys #(conj % hash)))))
+                                      {} closable-information-boxes)]
+    {::async-storage/get {:keys keys
+                          :cb   #(re-frame/dispatch
+                                  [:information-box-states-loaded hashes %])}}))

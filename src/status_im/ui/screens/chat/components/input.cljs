@@ -1,7 +1,7 @@
 (ns status-im.ui.screens.chat.components.input
   (:require [status-im.ui.components.icons.icons :as icons]
             [quo.react-native :as rn]
-            [quo.react :as react]
+            [quo.react :as quo.react]
             [quo.platform :as platform]
             [quo.components.text :as text]
             [quo.design-system.colors :as colors]
@@ -22,7 +22,7 @@
             [clojure.string :as string]))
 
 (defn input-focus [text-input-ref]
-  (some-> ^js (react/current-ref text-input-ref) .focus))
+  (some-> ^js (quo.react/current-ref text-input-ref) .focus))
 
 (def panel->icons {:extensions :main-icons/commands
                    :images     :main-icons/photo})
@@ -58,8 +58,9 @@
      :on-denied
      #(utils.utils/set-timeout
        (fn []
-         (utils.utils/show-popup (i18n/label :t/audio-recorder-error)
-                                 (i18n/label :t/audio-recorder-permissions-error)))
+         (utils.utils/show-popup
+          (i18n/label :t/audio-recorder-error)
+          (i18n/label :t/audio-recorder-permissions-error)))
        50)}]))
 
 (defn touchable-audio-icon [{:keys [panel active set-active accessibility-label input-focus]}]
@@ -73,13 +74,14 @@
       [icons/icon :main-icons/keyboard (styles/icon false)]
       [icons/icon :main-icons/speech (styles/icon false)])]])
 
-(defn send-button [on-send]
+(defn send-button [on-send contact-request]
   [rn/touchable-opacity {:on-press-in on-send}
    [rn/view {:style (styles/send-message-button)}
-    [icons/icon :main-icons/arrow-up
-     {:container-style     (styles/send-message-container)
-      :accessibility-label :send-message-button
-      :color               (styles/send-icon-color)}]]])
+    (when-not contact-request
+      [icons/icon :main-icons/arrow-up
+       {:container-style     (styles/send-message-container contact-request)
+        :accessibility-label :send-message-button
+        :color               (styles/send-icon-color)}])]])
 
 (defn on-selection-change [timeout-id last-text-change mentionable-users args]
   (let [selection (.-selection ^js (.-nativeEvent ^js args))
@@ -113,6 +115,13 @@
 (defonce mentions-enabled (reagent/atom {}))
 (defonce chat-input-key (reagent/atom 1))
 
+(re-frame/reg-fx
+ :chat.ui/clear-inputs-old
+ (fn []
+   (reset! input-texts {})
+   (reset! mentions-enabled {})
+   (reset! chat-input-key 1)))
+
 (defn force-text-input-update!
   "force-text-input-update! forces the
   input to re-render, necessary when we are setting value"
@@ -120,17 +129,21 @@
   (swap! chat-input-key inc))
 
 (defn show-send [{:keys [actions-ref send-ref sticker-ref]}]
-  (quo.react/set-native-props actions-ref #js {:width 0 :left -88})
+  (when actions-ref
+    (quo.react/set-native-props actions-ref #js {:width 0 :left -88}))
   (quo.react/set-native-props send-ref #js {:width nil :right nil})
-  (quo.react/set-native-props sticker-ref #js {:width 0 :right -100}))
+  (when sticker-ref
+    (quo.react/set-native-props sticker-ref #js {:width 0 :right -100})))
 
 (defn hide-send [{:keys [actions-ref send-ref sticker-ref]}]
-  (quo.react/set-native-props actions-ref #js {:width nil :left nil})
+  (when actions-ref
+    (quo.react/set-native-props actions-ref #js {:width nil :left nil}))
   (quo.react/set-native-props send-ref #js {:width 0 :right -100})
-  (quo.react/set-native-props sticker-ref #js {:width nil :right nil}))
+  (when sticker-ref
+    (quo.react/set-native-props sticker-ref #js {:width nil :right nil})))
 
 (defn reset-input [refs chat-id]
-  (some-> ^js (react/current-ref (:text-input-ref refs)) .clear)
+  (some-> ^js (quo.react/current-ref (:text-input-ref refs)) .clear)
   (swap! mentions-enabled update :render not)
   (swap! input-texts dissoc chat-id))
 
@@ -177,11 +190,11 @@
 (re-frame/reg-fx
  :set-input-text
  (fn [[chat-id text]]
-   ;; We enable mentions
+    ;; We enable mentions
    (swap! mentions-enabled assoc chat-id true)
    (on-text-change text chat-id)
-   ;; We update the key so that we force a refresh of the text input, as those
-   ;; are not ratoms
+    ;; We update the key so that we force a refresh of the text input, as those
+    ;; are not ratoms
    (force-text-input-update!)))
 
 (fx/defn set-input-text
@@ -189,16 +202,23 @@
   as arguments and returns new fx. Always clear all validation messages."
   {:events [:chat.ui.input/set-chat-input-text]}
   [{:keys [db] :as cofx} text chat-id]
-  (let [text-with-mentions (mentions/->input-field text)
-        contacts (:contacts db)
-        hydrated-mentions (map (fn [[t mention :as e]]
-                                 (if (= t :mention)
-                                   [:mention (str "@" (multiaccounts/displayed-name
-                                                       (or (get contacts mention)
-                                                           {:public-key mention})))]
-                                   e)) text-with-mentions)
-        info (mentions/->info hydrated-mentions)]
-    {:set-input-text [chat-id text]
+  (let [text-with-mentions   (mentions/->input-field text)
+        all-contacts         (:contacts/contacts db)
+        chat                 (get-in db [:chats chat-id])
+        current-multiaccount (:multiaccount db)
+        mentionable-users    (mentions/get-mentionable-users
+                              chat all-contacts current-multiaccount nil)
+        hydrated-mentions    (map
+                              (fn [[t mention :as e]]
+                                (if (= t :mention)
+                                  (let [mention (multiaccounts/displayed-name
+                                                 (get mentionable-users mention))]
+                                    [:mention (if (string/starts-with? mention "@")
+                                                mention (str "@" mention))])
+                                  e)) text-with-mentions)
+        info                 (mentions/->info hydrated-mentions)
+        new-text             (string/join (map second hydrated-mentions))]
+    {:set-input-text [chat-id new-text]
      :db
      (-> db
          (assoc-in [:chats/cursor chat-id] (:mention-end info))
@@ -228,14 +248,15 @@
       (re-frame/dispatch [::mentions/calculate-suggestions mentionable-users]))))
 
 (defn text-input [{:keys [set-active-panel refs chat-id sending-image]}]
-  (let [cooldown-enabled? @(re-frame/subscribe [:chats/cooldown-enabled?])
+  (let [cooldown-enabled? @(re-frame/subscribe [:chats/current-chat-cooldown-enabled?])
         mentionable-users @(re-frame/subscribe [:chats/mentionable-users])
         timeout-id (atom nil)
         last-text-change (atom nil)
-        mentions-enabled (get @mentions-enabled chat-id)]
+        mentions-enabled (get @mentions-enabled chat-id)
+        contact-request @(re-frame/subscribe [:chats/sending-contact-request])]
 
     [rn/text-input
-     {:style                    (styles/text-input)
+     {:style                    (styles/text-input contact-request)
       :ref                      (:text-input-ref refs)
       :max-font-size-multiplier 1
       :accessibility-label      :chat-message-input
@@ -327,8 +348,8 @@
     (when (seq sending-image)
       [reply/send-image sending-image])))
 
-(defn actions [extensions image show-send actions-ref active-panel set-active-panel]
-  [rn/view {:style (styles/actions-wrapper show-send)
+(defn actions [extensions image show-send actions-ref active-panel set-active-panel contact-request]
+  [rn/view {:style (styles/actions-wrapper (and (not contact-request) show-send))
             :ref   actions-ref}
    (when extensions
      [touchable-icon {:panel               :extensions
@@ -341,11 +362,12 @@
                       :active              active-panel
                       :set-active          set-active-panel}])])
 
-(defn chat-toolbar []
+(defn chat-toolbar [{:keys [chat-id]}]
   (let [actions-ref (quo.react/create-ref)
         send-ref (quo.react/create-ref)
         sticker-ref (quo.react/create-ref)
-        toolbar-options (re-frame/subscribe [:chats/chat-toolbar])]
+        toolbar-options (re-frame/subscribe [:chats/chat-toolbar])
+        show-send (seq (get @input-texts chat-id))]
     (fn [{:keys [active-panel set-active-panel text-input-ref chat-id]}]
       (let [;we want to control components on native level, so instead of RN state we set native props via reference
             ;we don't react on input text in this view, @input-texts below is a regular atom
@@ -354,12 +376,13 @@
                   :sticker-ref    sticker-ref
                   :text-input-ref text-input-ref}
             {:keys [send stickers image extensions audio sending-image]} @toolbar-options
-            show-send (or sending-image (seq (get @input-texts chat-id)))]
+            show-send (or show-send sending-image)
+            contact-request @(re-frame/subscribe [:chats/sending-contact-request])]
         [rn/view {:style     (styles/toolbar)
                   :on-layout on-chat-toolbar-layout}
-           ;;EXTENSIONS and IMAGE buttons
-         [actions extensions image show-send actions-ref active-panel set-active-panel]
-         [rn/view {:style (styles/input-container)}
+         ;;EXTENSIONS and IMAGE buttons
+         [actions extensions image show-send actions-ref active-panel set-active-panel contact-request]
+         [rn/view {:style (styles/input-container contact-request)}
           [send-image]
           [rn/view {:style styles/input-row}
            [text-input {:chat-id          chat-id
@@ -370,7 +393,8 @@
            [rn/view {:ref send-ref :style (when-not show-send {:width 0 :right -100})}
             (when send
               [send-button #(do (clear-input chat-id refs)
-                                (re-frame/dispatch [:chat.ui/send-current-message]))])]
+                                (re-frame/dispatch [:chat.ui/send-current-message]))
+               contact-request])]
 
            ;;STICKERS and AUDIO buttons
            (when-not @(re-frame/subscribe [:chats/edit-message])

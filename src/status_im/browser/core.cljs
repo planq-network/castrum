@@ -10,7 +10,6 @@
             [status-im.native-module.core :as status]
             [status-im.ui.components.list-selection :as list-selection]
             [status-im.navigation :as navigation]
-            [status-im.utils.contenthash :as contenthash]
             [status-im.utils.fx :as fx]
             [status-im.utils.http :as http]
             [status-im.utils.platform :as platform]
@@ -23,7 +22,9 @@
             [status-im.bottom-sheet.core :as bottom-sheet]
             [status-im.browser.webview-ref :as webview-ref]
             ["eth-phishing-detect" :as eth-phishing-detect]
-            [status-im.utils.debounce :as debounce]))
+            [status-im.utils.debounce :as debounce]
+            [status-im.browser.eip3085 :as eip3085]
+            [status-im.browser.eip3326 :as eip3326]))
 
 (fx/defn update-browser-option
   [{:keys [db]} option-key option-value]
@@ -51,7 +52,7 @@
   {:events [:browser.ui/remove-browser-pressed]}
   [{:keys [db]} browser-id]
   {:db            (update-in db [:browser/browsers] dissoc browser-id)
-   ::json-rpc/call [{:method "browsers_deleteBrowser"
+   ::json-rpc/call [{:method "wakuext_deleteBrowser"
                      :params [browser-id]
                      :on-success #()}]})
 
@@ -60,7 +61,7 @@
   [{:keys [db]}]
   {:db             (dissoc db :browser/browsers)
    ::json-rpc/call (for [browser-id (keys (get db :browser/browsers))]
-                     {:method     "browsers_deleteBrowser"
+                     {:method     "wakuext_deleteBrowser"
                       :params     [browser-id]
                       :on-success #()})})
 
@@ -97,7 +98,7 @@
     {:db            (update-in db
                                [:browser/browsers browser-id]
                                merge updated-browser)
-     ::json-rpc/call [{:method "browsers_addBrowser"
+     ::json-rpc/call [{:method "wakuext_addBrowser"
                        :params [(select-keys updated-browser [:browser-id :timestamp :name :dapp? :history :history-index])]
                        :on-success #()}]}))
 
@@ -106,14 +107,7 @@
   [{:keys [db]}
    {:keys [url] :as bookmark}]
   {:db            (assoc-in db [:bookmarks/bookmarks url] bookmark)
-   ::json-rpc/call [{:method "browsers_storeBookmark"
-                     :params [bookmark]
-                     :on-success #(re-frame/dispatch [:browser/sync-bookmark %1])}]})
-
-(fx/defn sync-bookmark
-  {:events [:browser/sync-bookmark]}
-  [_ bookmark]
-  {::json-rpc/call [{:method "wakuext_syncBookmark"
+   ::json-rpc/call [{:method "wakuext_addBookmark"
                      :params [bookmark]
                      :on-success #()}]})
 
@@ -124,9 +118,9 @@
   (let [old-bookmark (get-in db [:bookmarks/bookmarks url])
         new-bookmark (merge old-bookmark bookmark)]
     (fx/merge cofx {:db            (assoc-in db [:bookmarks/bookmarks url] new-bookmark)
-                    ::json-rpc/call [{:method "browsers_updateBookmark"
+                    ::json-rpc/call [{:method "wakuext_updateBookmark"
                                       :params [url bookmark]
-                                      :on-success #(re-frame/dispatch [:browser/sync-bookmark new-bookmark])}]})))
+                                      :on-success #()}]})))
 
 (fx/defn delete-bookmark
   {:events [:browser/delete-bookmark]}
@@ -135,9 +129,9 @@
   (let [old-bookmark (get-in db [:bookmarks/bookmarks url])
         removed-bookmark (merge old-bookmark {:removed true})]
     (fx/merge cofx {:db            (update db :bookmarks/bookmarks dissoc url)
-                    ::json-rpc/call [{:method "browsers_removeBookmark"
+                    ::json-rpc/call [{:method "wakuext_removeBookmark"
                                       :params [url]
-                                      :on-success #(re-frame/dispatch [:browser/sync-bookmark removed-bookmark])}]})))
+                                      :on-success #()}]})))
 
 (defn can-go-back? [{:keys [history-index]}]
   (pos? history-index))
@@ -181,20 +175,6 @@
                         (assoc browser
                                :history new-history
                                :history-index new-index))))))
-
-(defmulti storage-gateway :namespace)
-
-(defmethod storage-gateway :ipns
-  [{:keys [hash]}]
-  (str "https://" hash))
-
-(defmethod storage-gateway :ipfs
-  [{:keys [hash]}]
-  (contenthash/ipfs-url hash))
-
-(defmethod storage-gateway :swarm
-  [{:keys [hash]}]
-  (str "https://gateway.ethswarm.org/bzz/" hash))
 
 (fx/defn resolve-ens-multihash-success
   {:events [:browser.callback/resolve-ens-multihash-success]}
@@ -367,7 +347,7 @@
      constants/web3-eth-sign constants/web3-keycard-sign-typed-data} method))
 
 (fx/defn web3-send-async
-  [cofx {:keys [method params id] :as payload} message-id]
+  [cofx dapp-name {:keys [method params id] :as payload} message-id]
   (let [message?      (web3-sign-message? method)
         dapps-address (get-in cofx [:db :multiaccount :dapps-address])
         typed? (and (not= constants/web3-personal-sign method) (not= constants/web3-eth-sign method))]
@@ -393,25 +373,33 @@
                                               (dissoc :gasPrice))})
                               {:on-result [:browser.dapp/transaction-on-result message-id id]
                                :on-error  [:browser.dapp/transaction-on-error message-id]}))))
-      (if (#{"eth_accounts" "eth_coinbase"} method)
+      (cond
+        (#{"eth_accounts" "eth_coinbase"} method)
         (send-to-bridge cofx {:type      constants/web3-send-async-callback
                               :messageId message-id
                               :result    {:jsonrpc "2.0"
                                           :id      (int id)
                                           :result  (if (= method "eth_coinbase") dapps-address [dapps-address])}})
-        (if (= method "personal_ecRecover")
-          {:signing.fx/recover-message {:params       {:message (first params)
-                                                       :signature (second params)}
-                                        :on-completed #(re-frame/dispatch [:browser.callback/call-rpc
-                                                                           {:type      constants/web3-send-async-callback
-                                                                            :messageId message-id
-                                                                            :result    (types/json->clj %)}])}}
-          {:browser/call-rpc [payload
-                              #(re-frame/dispatch [:browser.callback/call-rpc
-                                                   {:type      constants/web3-send-async-callback
-                                                    :messageId message-id
-                                                    :error     %1
-                                                    :result    %2}])]})))))
+        (= method "personal_ecRecover")
+        {:signing.fx/recover-message {:params       {:message (first params)
+                                                     :signature (second params)}
+                                      :on-completed #(re-frame/dispatch [:browser.callback/call-rpc
+                                                                         {:type      constants/web3-send-async-callback
+                                                                          :messageId message-id
+                                                                          :result    (types/json->clj %)}])}}
+        (= method "wallet_switchEthereumChain")
+        (eip3326/handle-switch-ethereum-chain cofx dapp-name id message-id (first params))
+
+        (= method "wallet_addEthereumChain")
+        (eip3085/handle-add-ethereum-chain cofx dapp-name id message-id (first params))
+
+        :else
+        {:browser/call-rpc [payload
+                            #(re-frame/dispatch [:browser.callback/call-rpc
+                                                 {:type      constants/web3-send-async-callback
+                                                  :messageId message-id
+                                                  :error     %1
+                                                  :result    %2}])]}))))
 
 (fx/defn handle-no-permissions [cofx {:keys [method id]} message-id]
   (if (= method "eth_accounts")
@@ -441,7 +429,7 @@
   [{:keys [db] :as cofx} dapp-name {:keys [method] :as payload} message-id]
   (if (has-permissions? db dapp-name method)
     (handle-no-permissions cofx payload message-id)
-    (web3-send-async cofx payload message-id)))
+    (web3-send-async cofx dapp-name payload message-id)))
 
 (fx/defn handle-scanned-qr-code
   {:events [:browser.bridge.callback/qr-code-scanned]}

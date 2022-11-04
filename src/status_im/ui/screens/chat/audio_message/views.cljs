@@ -22,7 +22,6 @@
 ;; reference db levels
 (def total-silence-db -160)
 (def silence-db -35)
-(def max-db 0)
 
 ;; update interval for the pulsing rec button
 (def metering-interval 100)
@@ -47,9 +46,8 @@
                    {:filename (str base-filename default-format)
                     :meteringInterval metering-interval}))
 
-;; maximum 2 minutes of recordings time
-;; to keep data under 900k
-(def max-recording-ms (* 2 60 1000))
+;; maximum 1 minute of recordings time to keep data at certain size
+(def max-recording-ms (* 1 60 1000))
 
 ;; audio objects
 (defonce recorder-ref (atom nil))
@@ -227,13 +225,13 @@
       [react/animated-view {:style (styles/rec-outer-circle outer-scale)}]
       [react/animated-view {:style (styles/rec-inner-circle inner-scale inner-border-radius)}]]]))
 
-(defn- cancel-button [disabled? on-press]
+(defn- cancel-button [disabled? on-press contact-request]
   [pressable/pressable {:type     :scale
                         :disabled disabled?
                         :on-press on-press}
    [react/view {:style (input.style/send-message-button)}
     [icons/icon :main-icons/close
-     {:container-style     (merge (input.style/send-message-container) {:background-color colors/gray})
+     {:container-style     (merge (input.style/send-message-container contact-request) {:background-color colors/gray})
       :accessibility-label :cancel-message-button
       :color               colors/white-persist}]]])
 
@@ -272,13 +270,14 @@
                                (reset! on-background-cb nil))}
     (let [base-params {:rec-button-anim-value rec-button-anim-value
                        :ctrl-buttons-anim-value ctrl-buttons-anim-value
-                       :timer timer}]
+                       :timer timer}
+          contact-request @(re-frame/subscribe [:chats/sending-contact-request])]
       [react/view {:style styles/container}
        [react/text {:style styles/timer
                     :accessibility-label :audio-message-recorded-time} @timer]
        [react/view {:style styles/buttons-container}
         [react/animated-view {:style {:opacity ctrl-buttons-anim-value}}
-         [cancel-button (:cancel-disabled? @state) #(stop-recording base-params)]]
+         [cancel-button (:cancel-disabled? @state) #(stop-recording base-params) contact-request]]
         [rec-button-view (merge base-params {:state state})]
         [react/animated-view {:style {:opacity ctrl-buttons-anim-value}}
          [input/send-button (fn [] (cond

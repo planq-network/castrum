@@ -1,5 +1,5 @@
 from views.base_element import Button, EditBox, BaseElement
-from views.base_view import BaseView
+from views.base_view import BaseView, CheckBox, Text
 from views.home_view import ChatElement
 
 
@@ -42,8 +42,13 @@ class DappsView(BaseView):
         self.web_page = BaseElement(self.driver, xpath="(//android.webkit.WebView)[1]")
 
         # Ens dapp
+        self.get_started_ens = Button(self.driver, translation_id="get-started")
         self.ens_name_input = EditBox(self.driver, xpath="//android.widget.EditText")
         self.check_ens_name = Button(self.driver, xpath="(//android.widget.ImageView[@content-desc='icon'])[2]/../..")
+        self.agree_on_terms_ens = CheckBox(self.driver, accessibility_id=":checkbox-off")
+        self.register_ens_button = Button(self.driver, translation_id="ens-register")
+        self.ens_got_it = Button(self.driver, translation_id="ens-got-it")
+        self.registration_in_progress = Text(self.driver, translation_id="ens-registration-in-progress")
 
         # Options on long press
         self.delete_bookmark_button = Button(self.driver, accessibility_id="delete-bookmark")
@@ -58,11 +63,11 @@ class DappsView(BaseView):
         from views.web_views.base_web_view import BaseWebView
         web_view = BaseWebView(self.driver)
         if not self.enter_url_editbox.is_element_displayed():
-            web_view.open_tabs_button.wait_and_click()
-            web_view.open_new_tab_plus_button.click()
+            web_view.open_tabs_button.click_if_shown()
+            web_view.open_new_tab_plus_button.click_if_shown()
             self.enter_url_editbox.wait_for_visibility_of_element(20)
         self.enter_url_editbox.click()
-        self.enter_url_editbox.send_keys(url)
+        self.enter_url_editbox.set_value(url)
         self.confirm()
         from views.web_views.base_web_view import BaseWebView
         BaseWebView(self.driver).wait_for_d_aap_to_load()

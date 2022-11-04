@@ -4,12 +4,14 @@
             [status-im.multiaccounts.model :as multiaccounts.model]
             [status-im.chat.models.message-list :as message-list]
             [status-im.data-store.chats :as chats-store]
+            [status-im.mailserver.core :as mailserver]
             [status-im.data-store.contacts :as contacts-store]
             [status-im.ethereum.json-rpc :as json-rpc]
             [status-im.i18n.i18n :as i18n]
             [quo.design-system.colors :as colors]
             [status-im.constants :as constants]
             [status-im.navigation :as navigation]
+            [status-im.navigation2 :as navigation2]
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.fx :as fx]
             [status-im.utils.utils :as utils]
@@ -48,7 +50,7 @@
 
 (defn active-chat? [cofx chat-id]
   (let [chat (get-chat cofx chat-id)]
-    (not (nil? chat))))
+    (:active chat)))
 
 (defn foreground-chat?
   [{{:keys [current-chat-id view-id]} :db} chat-id]
@@ -115,11 +117,11 @@
   "Add chats to db and update"
   [{:keys [db] :as cofx} chats]
   (let [{:keys [all-chats chats-home-list removed-chats]}
-        (reduce (fn [acc {:keys [chat-id profile-public-key timeline? community-id active] :as chat}]
-                  (if (not active)
+        (reduce (fn [acc {:keys [chat-id profile-public-key timeline? community-id active muted] :as chat}]
+                  (if (not (or active muted))
                     (update acc :removed-chats conj chat-id)
                     (cond-> acc
-                      (and (not profile-public-key) (not timeline?) (not community-id))
+                      (and (not profile-public-key) (not timeline?) (not community-id) active)
                       (update :chats-home-list conj chat-id)
                       :always
                       (assoc-in [:all-chats chat-id] chat))))
@@ -135,7 +137,9 @@
                      (update :chats #(apply dissoc % removed-chats))
                      (update :chats-home-list set/difference removed-chats))}
             (when (not-empty removed-chats)
-              {:clear-multiple-message-notifications removed-chats}))
+              {:clear-message-notifications
+               [removed-chats
+                (get-in db [:multiaccount :remote-push-notifications-enabled?])]}))
      leave-removed-chat)))
 
 (fx/defn clear-history
@@ -172,18 +176,24 @@
                                :on-error #(log/error "failed to clear history " chat-id %)}]}
             (clear-history chat-id remove-chat?)))
 
+(fx/defn chat-deactivated
+  {:events [::chat-deactivated]}
+  [_ chat-id]
+  (log/debug "chat deactivated" chat-id))
+
 (fx/defn deactivate-chat
   "Deactivate chat in db, no side effects"
   [{:keys [db now] :as cofx} chat-id]
   (fx/merge
    cofx
-   {:db (-> db
-            (update :chats dissoc chat-id)
+   {:db (-> (if (get-in db [:chats chat-id :muted])
+              (assoc-in db [:chats chat-id :active] false)
+              (update db :chats dissoc chat-id))
             (update :chats-home-list disj chat-id)
-            (assoc-in [:current-chat-id] nil))
+            (assoc :current-chat-id nil))
     ::json-rpc/call [{:method "wakuext_deactivateChat"
                       :params [{:id chat-id}]
-                      :on-success #(log/debug "chat deactivated" chat-id)
+                      :on-success #(re-frame/dispatch [::chat-deactivated chat-id])
                       :on-error #(log/error "failed to create public chat" chat-id %)}]}
    (clear-history chat-id true)))
 
@@ -200,14 +210,11 @@
 (fx/defn close-chat
   {:events [:close-chat]}
   [{:keys [db] :as cofx}]
-  (let [chat-id (:current-chat-id db)
-        navigate-after-home-to-chat (:navigate-after-home-to-chat db)]
+  (when-let [chat-id (:current-chat-id db)]
     (chat.state/reset-visible-item)
-    (if navigate-after-home-to-chat
-      {:db (dissoc db :navigate-after-home-to-chat)}
-      (fx/merge cofx
-                {:db (dissoc db :current-chat-id)}
-                (offload-messages chat-id)))))
+    (fx/merge cofx
+              {:db (dissoc db :current-chat-id)}
+              (offload-messages chat-id))))
 
 (fx/defn force-close-chat
   [{:keys [db] :as cofx} chat-id]
@@ -222,10 +229,10 @@
   {:events [:chat.ui/remove-chat]}
   [{:keys [db now] :as cofx} chat-id]
   (fx/merge cofx
+            {:clear-message-notifications
+             [[chat-id] (get-in db [:multiaccount :remote-push-notifications-enabled?])]}
             (deactivate-chat chat-id)
-            (offload-messages chat-id)
-            (when (not (= (:view-id db) :home))
-              (navigation/pop-to-root-tab :chat-stack))))
+            (offload-messages chat-id)))
 
 (fx/defn show-more-chats
   {:events [:chat.ui/show-more-chats]}
@@ -243,20 +250,27 @@
   "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
   {:events [:chat.ui/navigate-to-chat]}
   [{db :db :as cofx} chat-id]
-  (let [home-view? (= (get db :view-id) :home)]
-    (fx/merge cofx
-              (close-chat)
-              (force-close-chat chat-id)
-              (fn [{:keys [db]}]
-                {:db (assoc db :current-chat-id chat-id :navigate-after-home-to-chat (not home-view?))})
-              (preload-chat-data chat-id)
-              #(when (group-chat? cofx chat-id)
-                 (loading/load-chat % chat-id))
-              #(when-not home-view?
-                 (navigation/change-tab % :chat))
-              #(when-not home-view?
-                 (navigation/pop-to-root-tab % :chat-stack))
-              (navigation/navigate-to-cofx :chat nil))))
+  (fx/merge cofx
+            {:dispatch [:navigate-to :chat]}
+            (navigation/change-tab :chat)
+            (navigation/pop-to-root-tab :chat-stack)
+            (close-chat)
+            (force-close-chat chat-id)
+            (fn [{:keys [db]}]
+              {:db (assoc db :current-chat-id chat-id)})
+            (preload-chat-data chat-id)
+            #(when (group-chat? cofx chat-id)
+               (loading/load-chat % chat-id))))
+
+(fx/defn navigate-to-chat-nav2
+  "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
+  {:events [:chat.ui/navigate-to-chat-nav2]}
+  [{db :db :as cofx} chat-id from-switcher?]
+  (fx/merge cofx
+            {:db (assoc db :current-chat-id chat-id)}
+            (offload-messages chat-id)
+            (preload-chat-data chat-id)
+            (navigation2/navigate-to-nav2 :chat chat-id nil from-switcher?)))
 
 (fx/defn handle-clear-history-response
   {:events [::history-cleared]}
@@ -304,29 +318,28 @@
 
 (fx/defn handle-public-chat-created
   {:events [::public-chat-created]}
-  [{:keys [db]} chat-id _ response]
+  [{:keys [db]} chat-id response]
   {:db (-> db
            (assoc-in [:chats chat-id] (chats-store/<-rpc (first (:chats response))))
            (update :chats-home-list conj chat-id))
    :dispatch [:chat.ui/navigate-to-chat chat-id]})
 
-(fx/defn create-public-chat-go [_ chat-id opts]
+(fx/defn create-public-chat-go [_ chat-id]
   {::json-rpc/call [{:method "wakuext_createPublicChat"
                      :params [{:id chat-id}]
-                     :on-success #(re-frame/dispatch [::public-chat-created chat-id opts %])
+                     :on-success #(re-frame/dispatch [::public-chat-created chat-id %])
                      :on-error #(log/error "failed to create public chat" chat-id %)}]})
 
 (fx/defn start-public-chat
   "Starts a new public chat"
   {:events [:chat.ui/start-public-chat]}
-  [cofx topic {:keys [profile-public-key] :as opts}]
-  (if (or (new-public-chat.db/valid-topic? topic) profile-public-key)
+  [cofx topic]
+  (if (new-public-chat.db/valid-topic? topic)
     (if (active-chat? cofx topic)
       (navigate-to-chat cofx topic)
       (create-public-chat-go
        cofx
-       topic
-       opts))
+       topic))
     {:utils/show-popup {:title   (i18n/label :t/cant-open-public-chat)
                         :content (i18n/label :t/invalid-public-chat-topic)}}))
 
@@ -375,15 +388,20 @@
   (log/error "mute chat failed" chat-id error)
   {:db (assoc-in db [:chats chat-id :muted] (not muted?))})
 
+(fx/defn mute-chat-toggled-successfully
+  {:events [::mute-chat-toggled-successfully]}
+  [_ chat-id]
+  (log/debug "muted chat successfully" chat-id))
+
 (fx/defn mute-chat
   {:events [::mute-chat-toggled]}
   [{:keys [db] :as cofx} chat-id muted?]
-  (let [method (if muted? "muteChat" "unmuteChat")]
+  (let [method (if muted? "wakuext_muteChat" "wakuext_unmuteChat")]
     {:db (assoc-in db [:chats chat-id :muted] muted?)
-     ::json-rpc/call [{:method (json-rpc/call-ext-method method)
+     ::json-rpc/call [{:method method
                        :params [chat-id]
                        :on-error #(re-frame/dispatch [::mute-chat-failed chat-id muted? %])
-                       :on-success #(log/debug "muted chat successfully")}]}))
+                       :on-success #(re-frame/dispatch [::mute-chat-toggled-successfully chat-id])}]}))
 
 (fx/defn show-profile
   {:events [:chat.ui/show-profile]}
@@ -457,12 +475,14 @@
 (fx/defn chat-ui-fill-gaps
   {:events [:chat.ui/fill-gaps]}
   [{:keys [db] :as cofx} chat-id gap-ids]
-  (log/info "filling gaps" chat-id gap-ids)
-  (fx/merge cofx
-            {:db (assoc db :mailserver/fetching-gaps-in-progress gap-ids)}
-            (if (= gap-ids #{:first-gap})
-              (sync-chat-from-sync-from chat-id)
-              (fill-gaps chat-id gap-ids))))
+  (let [use-status-nodes? (mailserver/fetch-use-mailservers? {:db db})]
+    (log/info "filling gaps if use-status-nodes = true" chat-id gap-ids)
+    (when use-status-nodes?
+      (fx/merge cofx
+                {:db (assoc db :mailserver/fetching-gaps-in-progress gap-ids)}
+                (if (= gap-ids #{:first-gap})
+                  (sync-chat-from-sync-from chat-id)
+                  (fill-gaps chat-id gap-ids))))))
 
 (fx/defn chat-ui-remove-chat-pressed
   {:events [:chat.ui/remove-chat-pressed]}

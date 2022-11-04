@@ -4,13 +4,15 @@
             [reagent.core :as reagent]
             [goog.string :as gstring]
             [status-im.audio.core :as audio]
-            [status-im.utils.fx :as fx]
             [status-im.ui.screens.chat.styles.message.audio :as style]
             [status-im.ui.components.animation :as anim]
             [quo.design-system.colors :as colors]
             [status-im.ui.components.icons.icons :as icons]
             [status-im.ui.components.react :as react]
-            [status-im.ui.components.slider :as slider]))
+            [status-im.ui.components.slider :as slider]
+            ["react-native-blob-util" :default ReactNativeBlobUtil]
+            [status-im.utils.platform :as platform]
+            [taoensso.timbre :as log]))
 
 (defonce player-ref (atom nil))
 (defonce current-player-message-id (atom nil))
@@ -110,25 +112,34 @@
          #(update-state (merge params {:error (:message %)}))))))
   (update-state (merge params {:seek-to-ms value})))
 
-(defn reload-player [{:keys [message-id state-ref] :as params} base64-data on-success]
+(defn download-audio-http [base64-uri on-success]
+  (-> (.config ReactNativeBlobUtil (clj->js {:trusty platform/ios?}))
+      (.fetch "GET" (str base64-uri))
+      (.then #(on-success (.base64 ^js %)))
+      (.catch #(log/error "could not fetch audio"))))
+
+(defn reload-player [{:keys [message-id state-ref] :as params} audio-url on-success]
   ;; to avoid reloading player while is initializing,
   ;; we go ahead only if there is no player or
   ;; if it is already prepared
   (when (or (nil? @player-ref) (audio/can-play? @player-ref))
     (when @player-ref
       (destroy-player (merge params {:reloading? true})))
-    (reset! player-ref (audio/new-player
-                        base64-data
-                        {:autoDestroy false
-                         :continuesToPlayInBackground false}
-                        #(seek params 0 true nil)))
-    (audio/prepare-player
-     @player-ref
-     #(when on-success (on-success))
-     #(update-state (merge params {:error (:message %)})))
-    (reset! current-player-message-id message-id)
-    (reset! current-active-state-ref-ref state-ref)
-    (update-state params)))
+    (download-audio-http
+     audio-url
+     (fn [base64-data]
+       (reset! player-ref (audio/new-player
+                           (str "data:audio/acc;base64," base64-data)
+                           {:autoDestroy false
+                            :continuesToPlayInBackground false}
+                           #(seek params 0 true nil)))
+       (audio/prepare-player
+        @player-ref
+        #(when on-success (on-success))
+        #(update-state (merge params {:error (:message %)})))
+       (reset! current-player-message-id message-id)
+       (reset! current-active-state-ref-ref state-ref)
+       (update-state params)))))
 
 (defn play-pause [{:keys [message-id state-ref] :as params} audio]
   (if (not= message-id @current-player-message-id)
@@ -159,29 +170,20 @@
           (update-state params))
        #(update-state (merge params {:error (:message %)}))))))
 
-(defn- play-pause-button [state-ref outgoing on-press]
-  (let [color (if outgoing colors/blue colors/white-persist)]
+(defn- play-pause-button [state-ref on-press]
+  (let [color colors/blue]
     (if  (= (:general @state-ref) :preparing)
-      [react/view {:style  (style/play-pause-container outgoing true)}
+      [react/view {:style  (style/play-pause-container true)}
        [react/small-loading-indicator color]]
       [react/touchable-highlight {:on-press on-press}
        [icons/icon (case (:general @state-ref)
                      :playing :main-icons/pause
                      :main-icons/play)
-        {:container-style     (style/play-pause-container outgoing false)
+        {:container-style     (style/play-pause-container false)
          :accessibility-label :play-pause-audio-message-button
          :color               color}]])))
 
-(fx/defn on-background
-  {:events [:audio-message/on-background]}
-  [_]
-  (when (and @current-active-state-ref-ref
-             @@current-active-state-ref-ref)
-    (update-state {:state-ref @current-active-state-ref-ref
-                   :message-id @current-player-message-id}))
-  nil)
-
-(defview message-content [{:keys [audio audio-duration-ms message-id outgoing]}]
+(defview message-content [{:keys [audio audio-duration-ms message-id]}]
   (letsubs [state        (reagent/atom nil)
             progress     (reagent/atom 0)
             progress-anim (anim/create-value 0)
@@ -206,9 +208,9 @@
                              :margin-bottom 16}} (:error-msg @state)]
         [react/view (style/container width)
          [react/view style/play-pause-slider-container
-          [play-pause-button state outgoing #(play-pause base-params audio)]
+          [play-pause-button state #(play-pause base-params audio)]
           [react/view style/slider-container
-           [slider/animated-slider (merge (style/slider outgoing)
+           [slider/animated-slider (merge (style/slider)
                                           {:minimum-value 0
                                            :maximum-value  (:duration @state)
                                            :value progress-anim
@@ -217,7 +219,7 @@
                                            :on-sliding-complete #(seek (merge base-params {:slider-new-state-seeking? false}) % true nil)})]]]
 
          [react/view style/times-container
-          [react/text {:style  (style/timestamp outgoing)}
+          [react/text {:style  (style/timestamp)}
            (let [time (cond
                         (or (:slider-seeking @state) (> (:seek-to-ms @state) 0)) (:seek-to-ms @state)
                         (#{:playing :paused :seeking}  (:general @state)) @progress

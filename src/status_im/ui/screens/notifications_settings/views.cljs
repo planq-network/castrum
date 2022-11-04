@@ -5,7 +5,6 @@
             [status-im.i18n.i18n :as i18n]
             [quo.core :as quo]
             [quo.platform :as platform]
-            [status-im.utils.config :as config]
             [quo.design-system.colors :as quo-colors]
             [status-im.notifications.core :as notifications]
             [status-im.ui.components.react :as react]))
@@ -13,8 +12,8 @@
 (defonce server (reagent/atom ""))
 
 (defn local-notifications []
-  [:<>
-   (let [{:keys [enabled]} @(re-frame/subscribe [:notifications/wallet-transactions])]
+  (let [{:keys [enabled]} @(re-frame/subscribe [:notifications/wallet-transactions])]
+    [:<>
      [quo/separator {:color (:ui-02 @quo-colors/theme)
                      :style {:margin-vertical 8}}]
      [quo/list-header (i18n/label :t/local-notifications)]
@@ -25,7 +24,7 @@
        :active              enabled
        :on-press            #(re-frame/dispatch
                               [::notifications/switch-transaction-notifications enabled])
-       :accessory           :switch}])])
+       :accessory           :switch}]]))
 
 (defn notifications-settings-ios []
   (let [{:keys [remote-push-notifications-enabled?
@@ -64,8 +63,7 @@
      [local-notifications]]))
 
 (defn notifications-settings-android []
-  (let [{:keys [notifications-enabled? remote-push-notifications-enabled?]}
-        @(re-frame/subscribe [:multiaccount])]
+  (let [{:keys [notifications-enabled?]} @(re-frame/subscribe [:multiaccount])]
     [:<>
      [quo/list-item
       {:title               (i18n/label :t/local-notifications)
@@ -75,16 +73,6 @@
        :on-press            #(re-frame/dispatch
                               [::notifications/switch (not notifications-enabled?) false])
        :accessory           :switch}]
-     (when (and platform/android? (not config/google-free))
-       [quo/list-item
-        {:title               (i18n/label :t/remote-notifications)
-         :accessibility-label :remote-notifications-settings-button
-         :subtitle            (i18n/label :t/remote-notifications-subtitle)
-         :active              remote-push-notifications-enabled?
-         :on-press            #(re-frame/dispatch
-                                [::notifications/switch
-                                 (not remote-push-notifications-enabled?) true])
-         :accessory           :switch}])
      [local-notifications]]))
 
 (defn notifications-settings []

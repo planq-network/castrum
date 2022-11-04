@@ -28,9 +28,9 @@ Generating scripts:
 Finally we have the Nix derivation in `default.nix` which produces a derivation with all of the Gradle project dependencies:
 ```
  $ nix-build --no-out-link --attr pkgs.deps.gradle default.nix       
-/nix/store/57g95ik19k6gs5w68yid3hzhsax60i3m-status-react-maven-deps
+/nix/store/57g95ik19k6gs5w68yid3hzhsax60i3m-status-mobile-maven-deps
 
- $ ls -l /nix/store/57g95ik19k6gs5w68yid3hzhsax60i3m-status-react-maven-deps | head -n 5 
+ $ ls -l /nix/store/57g95ik19k6gs5w68yid3hzhsax60i3m-status-mobile-maven-deps | head -n 5 
 total 32
 dr-xr-xr-x  3 root root  3 Jan  1  1970 android
 dr-xr-xr-x 35 root root 35 Jan  1  1970 androidx
@@ -45,7 +45,7 @@ One dependency these scripts require is the [go-maven-resolver](https://github.c
 
 # Known Issues
 
-One edge case that is currently not handled by this setup is an addition of a new dependency that requires a version of Gradle we don't have. In that case running `make nix-update-gradle` would fail with:
+One edge case that is currently not automatically handled by this setup is an addition of a new dependency that requires a version of Gradle we don't have. In that case running `make nix-update-gradle` would fail with:
 ```
 AILURE: Build failed with an exception.
 
@@ -54,23 +54,21 @@ A problem occurred configuring project ':react-native-example-project'.
 > Could not resolve all artifacts for configuration ':react-native-example-project:classpath'.
    > Could not find com.android.tools.build:gradle:3.4.0.
      Searched in the following locations:
-       - file:/nix/store/34a4qd5qhg2a9kq6a0q9lp7hgmi48q4x-status-react-maven-deps/com/android/tools/build/gradle/3.4.0/gradle-3.4.0.pom
-       - file:/nix/store/34a4qd5qhg2a9kq6a0q9lp7hgmi48q4x-status-react-maven-deps/com/android/tools/build/gradle/3.4.0/gradle-3.4.0.jar
+       - file:/nix/store/34a4qd5qhg2a9kq6a0q9lp7hgmi48q4x-status-mobile-maven-deps/com/android/tools/build/gradle/3.4.0/gradle-3.4.0.pom
+       - file:/nix/store/34a4qd5qhg2a9kq6a0q9lp7hgmi48q4x-status-mobile-maven-deps/com/android/tools/build/gradle/3.4.0/gradle-3.4.0.jar
      Required by:
          project :react-native-example-project
 ```
 This happens because `get_projects.sh` and `get_deps.sh` depend on running Gradle to generate their output, and that will not work because Gradle cannot find the matching JAR for the new dependency.
 
-A manual solution would involve adding that specific Gradle version into `deps.urls`:
+You can use the `add_package.sh` script to add missing Gradle dependencies:
 ```
-echo com.android.tools.build:gradle:3.4.0 | go-maven-resolver >> nix/deps/gradle/deps.urls
+ > make shell TARGET=gradle
+Configuring Nix shell for target 'gradle'...
+
+[nix-shell:~/status-mobile]$ nix/deps/gradle/add_package.sh com.android.tools.build:gradle:3.4.0
+Regenerating Nix files...
+Found 548 direct dependencies...
+Successfully added: com.android.tools.build:gradle:3.4.0
 ```
-Then you'll need to remove duplicates and sort `deps.urls`:
-```
-sort -uo nix/deps/gradle/deps.urls nix/deps/gradle/deps.urls
-```
-And finally generate the `deps.json` for Nix using:
-```
-nix/deps/gradle/generate.sh gen_deps_json
-```
-After run `make nix-update-gradle` and it should work just fine.
+This may take a bit longer than normal `make nix-update-gradle` but should add the missing package.

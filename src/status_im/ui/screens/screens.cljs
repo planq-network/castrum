@@ -3,14 +3,11 @@
             [quo.previews.main :as quo.preview]
             [status-im.add-new.core :as new-chat.events]
             [status-im.i18n.i18n :as i18n]
-            [status-im.keycard.core :as keycard.core]
             [status-im.ui.components.icons.icons :as icons]
-            [status-im.ui.components.invite.views :as invite]
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.ui.screens.add-new.new-chat.views :as new-chat]
             [status-im.ui.screens.add-new.new-public-chat.view :as new-public-chat]
             [status-im.ui.screens.advanced-settings.views :as advanced-settings]
-            [status-im.ui.screens.anonymous-metrics-settings.views :as anonymous-metrics-settings]
             [status-im.ui.screens.appearance.views :as appearance]
             [status-im.ui.screens.bootnodes-settings.edit-bootnode.views
              :as
@@ -23,6 +20,7 @@
             [status-im.ui.screens.bug-report :as bug-report]
             [status-im.ui.screens.chat.pinned-messages :as pin-messages]
             [status-im.ui.screens.chat.views :as chat]
+            [status-im.ui.screens.communities.community-overview-redesign :as community-overview]
             [status-im.ui.screens.communities.channel-details :as communities.channel-details]
             [status-im.ui.screens.communities.community :as community]
             [status-im.ui.screens.communities.community-emoji-thumbnail-picker :as community-emoji-thumbnail-picker]
@@ -60,7 +58,8 @@
             [status-im.ui.screens.glossary.view :as glossary]
             [status-im.ui.screens.group.views :as group-chat]
             [status-im.ui.screens.help-center.views :as help-center]
-            [status-im.ui.screens.home.views :as home]
+            [status-im.ui.screens.home.views :as old-chat.home]
+            [status-im.ui2.screens.chat.home :as chat.home]
             [status-im.ui.screens.keycard.authentication-method.views :as keycard.authentication]
             [status-im.ui.screens.keycard.onboarding.views :as keycard.onboarding]
             [status-im.ui.screens.keycard.pairing.views :as keycard.pairing]
@@ -81,6 +80,7 @@
             [status-im.ui.screens.network.network-details.views :as network-details]
             [status-im.ui.screens.network.views :as network]
             [status-im.ui.screens.notifications-center.views :as notifications-center]
+            [status-im.ui.screens.activity-center.views :as activity-center]
             [status-im.ui.screens.notifications-settings.views :as notifications-settings]
             [status-im.ui.screens.offline-messaging-settings.edit-mailserver.views
              :as
@@ -104,7 +104,6 @@
             [status-im.ui.screens.profile.seed.views :as profile.seed]
             [status-im.ui.screens.progress.views :as progress]
             [status-im.ui.screens.qr-scanner.views :as qr-scanner]
-            [status-im.ui.screens.referrals.public-chat :as referrals.public-chat]
             [status-im.ui.screens.backup-settings.view :as backup-settings]
             [status-im.ui.screens.reset-password.views :as reset-password]
             [status-im.ui.screens.rpc-usage-info :as rpc-usage-info]
@@ -119,20 +118,24 @@
             [status-im.ui.screens.wallet.accounts-manage.views :as accounts-manage]
             [status-im.ui.screens.wallet.buy-crypto.views :as wallet.buy-crypto]
             [status-im.ui.screens.wallet.recipient.views :as recipient]
-            [status-im.ui.screens.wallet.send.views :as wallet.send]))
+            [status-im.ui.screens.wallet.send.views :as wallet.send]
+            [quo2.screens.main :as quo2.preview]
+            [status-im.utils.config :as config]
+            [status-im.ui.screens.wallet.manage-connections.views :as manage-all-connections]
+            [status-im.navigation2.screens :as navigation2.screens]))
+            ;[quo2.foundations.colors :as quo2.colors]))
 
 (def components
-  [{:name      :chat-toolbar
-    :component chat/topbar}])
+  [])
 
 (defn right-button-options [id icon]
   {:id   id
    :icon (icons/icon-source icon)})
 
-(def screens
+(defn screens []
   (concat [;;INTRO, ONBOARDING, LOGIN
 
-           ;Multiaccounts
+                                        ;Multiaccounts
            {:name          :multiaccounts
             :insets        {:bottom true}
             :options       {:topBar {:title        {:text (i18n/label :t/your-keys)}
@@ -140,7 +143,7 @@
             :right-handler multiaccounts/topbar-button
             :component     multiaccounts/multiaccounts}
 
-           ;Login
+                                        ;Login
            {:name          :login
             :insets        {:bottom true}
             :options       {:topBar {:rightButtons (right-button-options :login :more)}}
@@ -150,17 +153,17 @@
            {:name      :progress
             :component progress/progress}
 
-           ;[Onboarding]
+                                        ;[Onboarding]
            {:name      :intro
             :insets    {:bottom true}
             :component onboarding.intro/intro}
 
-           ;[Onboarding]
+                                        ;[Onboarding]
            {:name      :get-your-keys
             :insets    {:bottom true}
             :component onboarding.keys/get-your-keys}
 
-           ;[Onboarding]
+                                        ;[Onboarding]
            {:name      :choose-name
             :options   {:topBar             {:visible false}
                         :popGesture         false
@@ -169,7 +172,7 @@
             :insets    {:bottom true}
             :component onboarding.keys/choose-a-chat-name}
 
-           ;[Onboarding]
+                                        ;[Onboarding]
            {:name      :select-key-storage
             :insets    {:bottom true}
             :options   {:popGesture         false
@@ -177,7 +180,7 @@
                                              :popStackOnPress     false}}
             :component onboarding.storage/select-key-storage}
 
-           ;[Onboarding] Create Password
+                                        ;[Onboarding] Create Password
            {:name      :create-password
             :options   {:popGesture         false
                         :hardwareBackButton {:dismissModalOnPress false
@@ -185,7 +188,7 @@
             :insets    {:bottom true}
             :component onboarding.password/screen}
 
-           ;[Onboarding] Welcome
+                                        ;[Onboarding] Welcome
            {:name      :welcome
             :options   {:popGesture         false
                         :hardwareBackButton {:dismissModalOnPress false
@@ -193,7 +196,7 @@
             :insets    {:bottom true}
             :component onboarding.welcome/welcome}
 
-           ;[Onboarding] Notification
+                                        ;[Onboarding] Notification
            {:name      :onboarding-notification
             :options   {:popGesture         false
                         :hardwareBackButton {:dismissModalOnPress false
@@ -201,7 +204,7 @@
             :insets    {:bottom true}
             :component onboarding.notifications/notifications-onboarding}
 
-           ;[Onboarding] Recovery
+                                        ;[Onboarding] Recovery
            {:name      :recover-multiaccount-enter-phrase
             :insets    {:bottom true}
             :component onboarding.phrase/enter-phrase}
@@ -214,20 +217,19 @@
 
            ;;CHAT
 
-           ;Home
+                                        ;Home
            {:name      :home
-            :component home/home}
+            :component (if  config/new-ui-enabled? chat.home/home old-chat.home/home-old)}
 
-           ;Chat
+                                        ;Chat
            {:name          :chat
             :options       {:popGesture false
-                            :topBar     {:title        {:component {:name :chat-toolbar :id :chat-toolbar}
-                                                        :alignment :fill}
-                                         :rightButtons (right-button-options :chat :more)}}
-            :right-handler chat/topbar-button
+                            :hardwareBackButton {:dismissModalOnPress false
+                                                 :popStackOnPress     false}
+                            :topBar             {:visible false}}
             :component     chat/chat}
 
-           ;Pinned messages
+                                        ;Pinned messages
            {:name      :chat-pinned-messages
                                         ;TODO custom subtitle
             :options   {:topBar {:visible false}}
@@ -254,6 +256,9 @@
             ;;TODO custom nav
             :options   {:topBar {:visible false}}
             :component notifications-center/center}
+           {:name      :activity-center
+            :options   {:topBar {:visible false}}
+            :component activity-center/activity-center}
            ;; Community
            {:name      :community
             ;;TODO custom
@@ -310,10 +315,6 @@
             :options   {:topBar {:visible false}}
             ;;TODO custom subtitle
             :component group-chat/new-group}
-           {:name      :referral-enclav
-            ;;TODO custom content
-            :options   {:topBar {:visible false}}
-            :component referrals.public-chat/view}
            {:name      :communities
             ;;TODO custom
             :options   {:topBar {:visible false}}
@@ -330,7 +331,9 @@
            {:name      :community-membership
             :options   {:topBar {:title {:text (i18n/label :t/membership-title)}}}
             :component membership/membership}
-
+           {:name      :community-overview
+            :options   {:topBar {:visible false}}
+            :component community-overview/overview}
            ;;BROWSER
 
            {:name      :empty-tab
@@ -355,9 +358,11 @@
            {:name      :wallet
             :insets    {:top false}
             :on-focus  [:wallet/tab-opened]
-            :component wallet.accounts/accounts-overview}
+            ;;TODO wallet redesign
+            ;;:options   {:statusBar {:backgroundColor quo2.colors/neutral-5}}
+            :component wallet.accounts/accounts-overview-old}
            {:name      :wallet-account
-            ;;TODO dynamic title
+            ;;TODO dynamic titleaccounts-overview
             :options   {:topBar {:visible false}}
             :component wallet.account/account}
            {:name      :add-new-account
@@ -586,50 +591,41 @@
            {:name      :default-sync-period-settings
             :options   {:topBar {:title {:text (i18n/label :t/default-sync-period)}}}
             :component default-sync-period-settings/default-sync-period-settings}
-           {:name      :anonymous-metrics-settings
-            :component anonymous-metrics-settings/settings}
-           {:name      :anon-metrics-learn-more
-            :component anonymous-metrics-settings/learn-more}
-           {:name      :anon-metrics-view-data
-            :component anonymous-metrics-settings/view-data}
-           {:name         :anon-metrics-opt-in
-            :back-handler :noop
-            :component    anonymous-metrics-settings/new-account-opt-in}
 
            ;;MODALS
 
-           ;[Chat] New Chat
+                                        ;[Chat] New Chat
            {:name      :new-chat
             :on-focus  [::new-chat.events/new-chat-focus]
             ;;TODO accessories
             :options   {:topBar {:visible false}}
             :component new-chat/new-chat}
 
-           ;[Chat] New Public chat
+                                        ;[Chat] New Public chat
            {:name      :new-public-chat
             :insets    {:bottom true}
             :options   {:topBar {:title {:text (i18n/label :t/new-public-group-chat)}}}
             :component new-public-chat/new-public-chat}
 
-           ;[Chat] Link preview settings
+                                        ;[Chat] Link preview settings
            {:name      :link-preview-settings
             :options   {:topBar {:title {:text (i18n/label :t/chat-link-previews)}}}
             :component link-previews-settings/link-previews-settings}
 
-           ;[Chat] Edit nickname
+                                        ;[Chat] Edit nickname
            {:name      :nickname
             :insets    {:bottom true}
             ;;TODO dyn subtitle
             :options   {:topBar {:visible false}}
             :component contact/nickname}
 
-           ;[Group chat] Edit group chat name
+                                        ;[Group chat] Edit group chat name
            {:name      :edit-group-chat-name
             :insets    {:bottom true}
             :options   {:topBar {:title {:text (i18n/label :t/edit-group)}}}
             :component group-chat/edit-group-chat-name}
 
-           ;[Group chat] Add participants
+                                        ;[Group chat] Add participants
            {:name      :add-participants-toggle-list
             :on-focus  [:group/add-participants-toggle-list]
             :insets    {:bottom true}
@@ -637,40 +633,34 @@
             :options   {:topBar {:visible false}}
             :component group-chat/add-participants-toggle-list}
 
-           ;[Communities] Invite people
+                                        ;[Communities] Invite people
            {:name      :invite-people-community
             ;;TODO dyn title
             :options   {:topBar {:visible false}}
             :component communities.invite/invite
             :insets    {:bottom true}}
 
-           ;New Contact
+                                        ;New Contact
            {:name      :new-contact
             :on-focus  [::new-chat.events/new-chat-focus]
             ;;TODO accessories
             :options   {:topBar {:visible false}}
             :component new-chat/new-contact}
 
-           ;Refferal invite
-           {:name      :referral-invite
-            :insets    {:bottom true}
-            :options   {:topBar {:title {:text (i18n/label :t/invite-friends)}}}
-            :component invite/referral-invite}
-
-           ;[Wallet] Recipient
+                                        ;[Wallet] Recipient
            {:name      :recipient
             :insets    {:bottom true}
             ;;TODO accessories
             :options   {:topBar {:visible false}}
             :component recipient/recipient}
 
-           ;[Wallet] New favourite
+                                        ;[Wallet] New favourite
            {:name      :new-favourite
             :insets    {:bottom true}
             :options   {:topBar {:title {:text (i18n/label :t/new-favourite)}}}
             :component recipient/new-favourite}
 
-           ;QR Scanner
+                                        ;QR Scanner
            {:name      :qr-scanner
             :insets    {:top false :bottom false}
             ;;TODO custom topbar
@@ -681,7 +671,7 @@
             :component qr-scanner/qr-scanner}
 
            ;;TODO WHY MODAL?
-           ;[Profile] Notifications settings
+                                        ;[Profile] Notifications settings
            {:name      :notifications-settings
             :options   {:topBar             {:title {:text (i18n/label :t/notification-settings)}}
                         :popGesture         false
@@ -691,7 +681,7 @@
             :component notifications-settings/notifications-settings}
 
            ;;TODO WHY MODAL?
-           ;[Profile] Notifications Advanced settings
+                                        ;[Profile] Notifications Advanced settings
            {:name      :notifications-advanced-settings
             :options   {:topBar             {:title {:text (i18n/label :t/notification-settings)}}
                         :popGesture         false
@@ -700,7 +690,7 @@
             :insets    {:bottom true}
             :component notifications-settings/notifications-advanced-settings}
 
-           ;[Wallet] Prepare Transaction
+                                        ;[Wallet] Prepare Transaction
            {:name        :prepare-send-transaction
             :insets      {:bottom true}
             :on-dissmiss [:wallet/cancel-transaction-command]
@@ -709,7 +699,7 @@
                           :hardwareBackButton {:dismissModalOnPress false}}
             :component   wallet.send/prepare-send-transaction}
 
-           ;[Wallet] Request Transaction
+                                        ;[Wallet] Request Transaction
            {:name        :request-transaction
             :insets      {:bottom true}
             :on-dissmiss [:wallet/cancel-transaction-command]
@@ -718,12 +708,12 @@
                           :hardwareBackButton {:dismissModalOnPress false}}
             :component   wallet.send/request-transaction}
 
-           ;[Wallet] Buy crypto
+                                        ;[Wallet] Buy crypto
            {:name      :buy-crypto
             :insets    {:bottom true}
             :component wallet.buy-crypto/container}
 
-           ;[Wallet] Buy crypto website
+                                        ;[Wallet] Buy crypto website
            {:name      :buy-crypto-website
             :insets    {:bottom true}
             ;;TODO subtitle
@@ -736,30 +726,33 @@
             :options   {:topBar {:visible false}}
             :component wallet.collectibles/nft-details-modal}
 
-           ;My Status
+                                        ;My Status
            {:name      :my-status
             :insets    {:bottom true}
             :options   {:topBar {:title {:text (i18n/label :t/my-status)}}}
             :component status.new/my-status}
 
-           ;[Browser] New bookmark
+                                        ;[Browser] New bookmark
            {:name      :new-bookmark
             :insets    {:bottom true}
             ;;TODO dynamic title
             :options   {:topBar {:visible false}}
             :component bookmarks/new-bookmark}
 
-           ;Profile
+                                        ;Profile
            {:name      :profile
             :insets    {:bottom true}
             ;;TODO custom toolbar
             :options   {:topBar {:visible false}}
             :component contact/profile}
 
-           ;KEYCARD
+                                        ;KEYCARD
            {:name         :keycard-onboarding-intro
             :insets       {:bottom true}
-            :back-handler keycard.core/onboarding-intro-back-handler
+            :options      {:topBar             {:visible false}
+                           :popGesture         false
+                           :hardwareBackButton {:dismissModalOnPress false
+                                                :popStackOnPress     false}}
             :component    keycard.onboarding/intro}
            {:name      :keycard-onboarding-puk-code
             :insets    {:bottom true}
@@ -898,12 +891,24 @@
             ;;TODO move to popover?
             :component key-storage.views/storage}
 
+           {:name      :show-all-connections
+            :insets    {:bottom true}
+            :options   {:topBar {:title {:text (i18n/label :all-connections)}}}
+            :component manage-all-connections/views}
+
            ;; BUG REPORT
            {:name      :bug-report
             :options   {:topBar {:visible false}}
             :component bug-report/bug-report}]
 
-          (when js/goog.DEBUG
+          navigation2.screens/screens
+          (when config/quo-preview-enabled?
             quo.preview/screens)
-          (when js/goog.DEBUG
-            quo.preview/main-screens)))
+          (when config/quo-preview-enabled?
+            quo.preview/main-screens)
+          (when config/quo-preview-enabled?
+            quo2.preview/screens)
+          (when config/new-ui-enabled?
+            navigation2.screens/screen-overwrites)
+          (when config/quo-preview-enabled?
+            quo2.preview/main-screens)))

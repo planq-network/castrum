@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# This script is a wrapper around nix-build with some niceties.
 set -e
 
 GIT_ROOT=$(cd "${BASH_SOURCE%/*}" && git rev-parse --show-toplevel)
@@ -8,7 +8,7 @@ source "${GIT_ROOT}/scripts/colors.sh"
 source "${GIT_ROOT}/nix/scripts/source.sh"
 
 # cleanup for artifacts created during builds
-function cleanup() {
+cleanup() {
   # clear trapped signals
   trap - EXIT ERR INT QUIT
   # do the actual cleanup, ignore failure
@@ -29,7 +29,7 @@ if [[ -n "${_NIX_CLEAN}" ]]; then
 fi
 
 # build output will end up under /nix, we have to extract it
-function extractResults() {
+extractResults() {
   local nixResultPath="$1"
   mkdir -p "${resultPath}"
   cp -vfr ${nixResultPath}/* "${resultPath}" | sed 's#'${PWD}'#.#'
@@ -55,10 +55,10 @@ nixOpts=(
 )
 
 # Save derivation from being garbage collected
-${GIT_ROOT}/nix/scripts/gcroots.sh "${TARGET}" "${@}"
+"${GIT_ROOT}/nix/scripts/gcroots.sh" "${TARGET}" "${@}"
 
 # Run the actual build
-echo "Running: nix-build "${nixOpts[@]}" "${@}" default.nix"
+echo -e "${GRN}Running:${RST} ${BLD}nix-build "${nixOpts[@]}" ${@}${RST}"
 nixResultPath=$(nix-build "${nixOpts[@]}" "${@}" default.nix)
 
 echo -e "\n${YLW}Extracting result${RST}: ${BLD}${nixResultPath}${RST}"

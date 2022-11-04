@@ -6,13 +6,13 @@
             [quo.react-native :as rn]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
+            [status-im.constants :as constants]
             [status-im.ui.components.animation :as anim]
             [status-im.ui.components.react :as react]
-            [status-im.utils.platform :as platform]
-            [status-im.utils.handlers :refer [<sub]]
-            [status-im.constants :as constants]
             [status-im.ui.screens.profile.visibility-status.styles :as styles]
-            [status-im.ui.screens.profile.visibility-status.utils :as utils]))
+            [status-im.ui.screens.profile.visibility-status.utils :as utils]
+            [status-im.utils.handlers :refer [<sub]]
+            [status-im.utils.platform :as platform]))
 
 ;; === Code Related to visibility-status-button ===
 
@@ -25,21 +25,37 @@
   (re-frame/dispatch
    [:visibility-status-updates/delayed-visibility-status-update status-type]))
 
+;; In new ui, we are allowing switcher to overlap status-bar (draw over status bar)
+;; that's why the measure will return height including, the height of the status bar in android
+;; for calculating the correct position of the button on the profile screen, we have to decrease this height
 (defn calculate-button-height-and-dispatch-popover []
-  (.measure @button-ref
-            (fn  [_ _ _ _ _ py]
-              (dispatch-popover py))))
+  (.measure
+   @button-ref
+   (fn  [_ _ _ _ _ py]
+     (dispatch-popover
+      (if (and platform/android? true)
+        (- py (:status-bar-height @rn/navigation-const))
+        py)))))
 
 (defn profile-visibility-status-dot [status-type color]
   (let [automatic?                      (= status-type
                                            constants/visibility-status-automatic)
-        [border-width margin-left size] (if automatic? [1 -10 12] [0 6 10])]
+        [border-width margin-left size] (if automatic? [1 -10 12] [0 6 10])
+        new-ui?                         true]
     [:<>
      (when automatic?
        [rn/view {:style (styles/visibility-status-profile-dot
-                         colors/color-inactive size border-width 6)}])
+                         {:color        colors/color-inactive
+                          :size         size
+                          :border-width border-width
+                          :margin-left  6
+                          :new-ui?      new-ui?})}])
      [rn/view {:style (styles/visibility-status-profile-dot
-                       color size border-width margin-left)}]]))
+                       {:color        color
+                        :size         size
+                        :border-width border-width
+                        :margin-left  margin-left
+                        :new-ui?      new-ui?})}]]))
 
 (defn visibility-status-button [on-press props]
   (let [logged-in?            (<sub [:multiaccount/logged-in?])
@@ -50,7 +66,7 @@
                                    constants/visibility-status-automatic)
                                   constants/visibility-status-automatic)
                                 status-type)
-        {:keys [color title]} (get utils/visibility-status-type-data status-type)]
+        {:keys [color title]} (get utils/visibility-status-type-data-old status-type)]
     [rn/touchable-opacity
      (merge
       {:on-press             on-press
@@ -97,7 +113,7 @@
 
 (defn status-option [{:keys [request-close status-type]}]
   (let [{:keys [color title subtitle]}
-        (get utils/visibility-status-type-data status-type)]
+        (get utils/visibility-status-type-data-old status-type)]
     [rn/touchable-opacity {:style               {:padding 6}
                            :accessibility-label :visibility-status-option
                            :on-press            #(status-option-pressed

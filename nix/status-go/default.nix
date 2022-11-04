@@ -1,9 +1,7 @@
-{ lib, callPackage, mkShell, openjdk, androidPkgs }:
+{ lib, callPackage, mkShell }:
 
 let
-  inherit (lib)
-    catAttrs concatStrings concatStringsSep fileContents makeBinPath
-    getConfig optional attrValues mapAttrs attrByPath;
+  inherit (lib) getConfig attrValues mapAttrs;
 
   # Metadata common to all builds of status-go
   meta = {
@@ -19,6 +17,8 @@ let
   goBuildParams = {
     GitCommit = source.rev;
     Version = source.cleanVersion;
+    # FIXME: This should be moved to status-go config.
+    IpfsGatewayURL = getConfig "status-go.ipfs-gateway-url" "https://ipfs.status.im/";
   };
 
   # These are necessary for status-go to show correct version
@@ -30,12 +30,13 @@ let
     "-s" # -s disabled symbol table
     "-w" # -w disables DWARF debugging information
   ];
-
-  goBuildFlags = [ "-v" ];
-
 in rec {
   mobile = callPackage ./mobile {
-    inherit meta source goBuildFlags goBuildLdFlags;
+    inherit meta source goBuildLdFlags;
+  };
+
+  library = callPackage ./library {
+    inherit meta source;
   };
 
   shell = mkShell {

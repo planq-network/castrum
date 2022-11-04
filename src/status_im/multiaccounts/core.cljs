@@ -3,7 +3,6 @@
             [status-im.ethereum.stateofus :as stateofus]
             [status-im.multiaccounts.update.core :as multiaccounts.update]
             [status-im.bottom-sheet.core :as bottom-sheet]
-            [status-im.anon-metrics.core :as anon-metrics]
             [status-im.native-module.core :as native-module]
             [status-im.ethereum.json-rpc :as json-rpc]
             [status-im.utils.fx :as fx]
@@ -29,7 +28,7 @@
                      name)]
     (cond-> {:nickname         nickname
              :three-words-name (or alias (gfycat/generate-gfy public-key))}
-      ;; Preferred name is our own otherwise we make sure it's verified
+            ;; Preferred name is our own otherwise we make sure it's verified
       (or preferred-name (and ens-verified name))
       (assoc :ens-name (str "@" (or (stateofus/username ens-name) ens-name))))))
 
@@ -149,17 +148,6 @@
    cofx
    :default-sync-period value
    {}))
-
-(fx/defn switch-share-anonymous-usage-data
-  {:events [:multiaccounts.ui/share-anonymous-usage-data-switched]}
-  [cofx opted-in?]
-  (fx/merge cofx
-            (multiaccounts.update/multiaccount-update
-             :anon-metrics/should-send? (boolean opted-in?)
-             {})
-            (if opted-in?
-              (anon-metrics/start-transferring)
-              (anon-metrics/stop-transferring))))
 
 (fx/defn switch-preview-privacy-mode-flag
   [{:keys [db]}]

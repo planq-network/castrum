@@ -1,5 +1,5 @@
 (ns status-im.ethereum.eip681-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require [cljs.test :refer-macros [deftest is] :as test]
             [status-im.ethereum.eip681 :as eip681]
             [status-im.utils.money :as money]))
 
@@ -11,7 +11,6 @@
   (is (= nil (eip681/parse-uri "ethereum:?value=1")))
   (is (= nil (eip681/parse-uri "bitcoin:0x1234")))
   (is (= nil (eip681/parse-uri "ethereum:0x1234")))
-  (is (= nil (eip681/parse-uri "ethereum:gimme.eth?value=1e18")))
   (is (= nil (eip681/parse-uri "ethereum:gimme.ether?value=1e18")))
   (is (= nil (eip681/parse-uri "ethereum:pay-gimme.ether?value=1e18")))
   (is (= nil (eip681/parse-uri "ethereum:pay-snt.thetoken.ether/transfer?address=gimme.eth&uint256=1&gas=100")))
@@ -75,6 +74,10 @@
 
   (is (= (eip681/parse-uri "ethereum:pay-snt.thetoken.eth/transfer?address=gimme.eth&uint256=1&gas=100")
          {:address "snt.thetoken.eth" :chain-id 1 :gas "100"
+          :function-name "transfer" :function-arguments {:address "gimme.eth" :uint256 "1"}}))
+
+  (is (= (eip681/parse-uri "ethereum:snt.thetoken.eth/transfer?address=gimme.eth&uint256=1&gas=100")
+         {:address "snt.thetoken.eth" :chain-id 1 :gas "100"
           :function-name "transfer" :function-arguments {:address "gimme.eth" :uint256 "1"}})))
 
 (def all-tokens
@@ -82,7 +85,7 @@
                                                            :name     "Status Network Token"
                                                            :symbol   :SNT
                                                            :decimals 18}}
-   :testnet {"0xc55cf4b03948d7ebc8b9e8bad92643703811d162" {:address  "0xc55cf4b03948d7ebc8b9e8bad92643703811d162"
+   :goerli  {"0x3d6afaa395c31fcd391fe3d562e75fe9e8ec7e6a" {:address  "0x3d6afaa395c31fcd391fe3d562e75fe9e8ec7e6a"
                                                            :name     "Status Test Token"
                                                            :symbol   :STT
                                                            :decimals  18}}})
@@ -94,9 +97,7 @@
   (is (= "ethereum:0x744d70fdbe2ba4cf95131626614a1763df805b9e/transfer?uint256=5&address=0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7&gas=10000&gasPrice=10000"
          (eip681/generate-erc20-uri "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" {:symbol :SNT :value 5 :gas 10000 :gasPrice 10000} (:mainnet all-tokens))))
   (is (= "ethereum:0x744d70fdbe2ba4cf95131626614a1763df805b9e/transfer?uint256=5&address=0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"
-         (eip681/generate-erc20-uri "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" {:symbol :SNT :chain-id 1 :value 5} (:mainnet all-tokens))))
-  (is (= "ethereum:0xc55cf4b03948d7ebc8b9e8bad92643703811d162@3/transfer?uint256=5&address=0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"
-         (eip681/generate-erc20-uri "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" {:symbol :STT :chain-id 3 :value 5} (:testnet all-tokens)))))
+         (eip681/generate-erc20-uri "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" {:symbol :SNT :chain-id 1 :value 5} (:mainnet all-tokens)))))
 
 (deftest generate-uri
   (is (= nil (eip681/generate-uri nil nil)))
@@ -135,14 +136,16 @@
     (is (.equals (money/ether->wei (money/bignumber 1)) value))
     (is (= :ETH symbol))
     (is (= "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" address)))
-  (is (= (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"}
-                                         {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"})))
-  (let [{:keys [value symbol address]} (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1
-                                                                        :function-name "transfer" :function-arguments {:uint256 1000 :address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"}}
-                                                                       {"0x744d70fdbe2ba4cf95131626614a1763df805b9e" {:address  "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
-                                                                                                                      :name     "Status Network Token"
-                                                                                                                      :symbol   :SNT
-                                                                                                                      :decimals 18}})]
+  (is (= (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"} {})
+         {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"}))
+  (let [{:keys [value symbol address]}
+        (eip681/extract-request-details
+         {:address       "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id           1
+          :function-name "transfer"                                   :function-arguments {:uint256 1000 :address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"}}
+         {"0x744d70fdbe2ba4cf95131626614a1763df805b9e" {:address  "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
+                                                        :name     "Status Network Token"
+                                                        :symbol   :SNT
+                                                        :decimals 18}})]
     (is (.equals (money/bignumber 1000) value))
     (is (= :SNT symbol))
     (is (= "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" address))))

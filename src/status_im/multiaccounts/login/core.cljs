@@ -1,6 +1,5 @@
 (ns status-im.multiaccounts.login.core
   (:require [re-frame.core :as re-frame]
-            [status-im.anon-metrics.core :as anon-metrics]
             [status-im.contact.core :as contact]
             [status-im.utils.config :as config]
             [status-im.data-store.settings :as data-store.settings]
@@ -18,7 +17,6 @@
             [status-im.popover.core :as popover]
             [status-im.communities.core :as communities]
             [status-im.transport.core :as transport]
-            [status-im.stickers.core :as stickers]
             [status-im.mobile-sync-settings.core :as mobile-network]
             [status-im.utils.fx :as fx]
             [status-im.utils.keychain.core :as keychain]
@@ -27,8 +25,8 @@
             [status-im.utils.types :as types]
             [status-im.utils.utils :as utils]
             [status-im.wallet.core :as wallet]
+            [status-im.wallet-connect-legacy.core :as wallet-connect-legacy]
             [status-im.wallet.prices :as prices]
-            [status-im.acquisition.core :as acquisition]
             [taoensso.timbre :as log]
             [status-im.data-store.invitations :as data-store.invitations]
             [status-im.chat.models.link-preview :as link-preview]
@@ -42,7 +40,9 @@
             [status-im.ui.components.react :as react]
             [status-im.utils.platform :as platform]
             [status-im.ethereum.tokens :as tokens]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [status-im.utils.wallet-connect :as wallet-connect]
+            [status-im.node.core :as node]))
 
 (re-frame/reg-fx
  ::initialize-communities-enabled
@@ -65,7 +65,7 @@
 (re-frame/reg-fx
  ::login
  (fn [[key-uid account-data hashed-password]]
-   (status/login key-uid account-data hashed-password)))
+   (status/login-with-config key-uid account-data hashed-password node/login-node-config)))
 
 (re-frame/reg-fx
  ::export-db
@@ -81,6 +81,13 @@
  ::enable-local-notifications
  (fn []
    (status/start-local-notifications)))
+
+(re-frame/reg-fx
+ ::initialize-wallet-connect
+ (fn []
+   (wallet-connect/init
+    #(re-frame/dispatch [:wallet-connect/client-init %])
+    #(log/error "[wallet-connect]" %))))
 
 (defn rpc->accounts [accounts]
   (reduce (fn [acc {:keys [chat type wallet] :as account}]
@@ -128,13 +135,13 @@
   {:events [::initialize-wallet]}
   [{:keys [db] :as cofx} accounts tokens custom-tokens
    favourites scan-all-tokens? new-account?]
-  (check-invalid-ens cofx)
   (fx/merge
    cofx
    {:db                          (assoc db :multiaccount/accounts
                                         (rpc->accounts accounts))
     ;; NOTE: Local notifications should be enabled only after wallet was started
     ::enable-local-notifications nil}
+   (check-invalid-ens)
    (wallet/initialize-tokens tokens custom-tokens)
    (wallet/initialize-favourites favourites)
    (wallet/get-pending-transactions)
@@ -156,7 +163,8 @@
      (transactions/get-fetched-transfers))
    (when (ethereum/binance-chain? db)
      (wallet/request-current-block-update))
-   (prices/update-prices)))
+   (prices/update-prices)
+   (wallet-connect-legacy/get-connector-session-from-db)))
 
 (fx/defn login
   {:events [:multiaccounts.login.ui/password-input-submitted]}
@@ -252,7 +260,7 @@
    [{:method "net_version"
      :on-success
      (fn [fetched-network-id]
-       (when (not= network-id fetched-network-id)
+       (when (not= network-id (str (int fetched-network-id)))
          ;;TODO: this shouldn't happen but in case it does
          ;;we probably want a better error message
          (utils/show-popup
@@ -307,20 +315,20 @@
                              :on-error reject})))
           (js/Promise.
            (fn [resolve reject]
-             (json-rpc/call {:method "wallet_getFavourites"
+             (json-rpc/call {:method "wallet_getSavedAddresses"
                              :on-success resolve
                              :on-error reject})))]))
        (.then (fn [[accounts tokens custom-tokens favourites]]
                 (callback accounts
                           (normalize-tokens network-id tokens)
                           (mapv #(update % :symbol keyword) custom-tokens)
-                          favourites)))
+                          (filter :favourite favourites))))
        (.catch (fn [_]
                  (log/error "Failed to initialize wallet"))))))
 
 (fx/defn initialize-browser [_]
   {::json-rpc/call
-   [{:method     "browsers_getBrowsers"
+   [{:method     "wakuext_getBrowsers"
      :on-success #(re-frame/dispatch [::initialize-browsers %])}
     {:method     "browsers_getBookmarks"
      :on-success #(re-frame/dispatch [::initialize-bookmarks %])}
@@ -332,7 +340,7 @@
 
 (fx/defn get-group-chat-invitations [_]
   {::json-rpc/call
-   [{:method     (json-rpc/call-ext-method "getGroupChatInvitations")
+   [{:method     "wakuext_getGroupChatInvitations"
      :on-success #(re-frame/dispatch [::initialize-invitations %])}]})
 
 (fx/defn initialize-communities-enabled
@@ -342,6 +350,10 @@
 (fx/defn initialize-transactions-management-enabled
   [cofx]
   {::initialize-transactions-management-enabled nil})
+
+(fx/defn initialize-wallet-connect
+  [cofx]
+  {::initialize-wallet-connect nil})
 
 (fx/defn get-node-config-callback
   {:events [::get-node-config-callback]}
@@ -374,9 +386,9 @@
                {:on-success
                 #(do (re-frame/dispatch [:chats-list/load-success %])
                      (re-frame/dispatch [::get-chats-callback]))})
-              (acquisition/login)
               (initialize-appearance)
               (initialize-communities-enabled)
+              (initialize-wallet-connect)
               (get-node-config)
               (communities/fetch)
               (logging/set-log-level (:log-level multiaccount))
@@ -394,6 +406,22 @@
          (fn [stored-key-uid]
            (when (= stored-key-uid key-uid)
              (re-frame/dispatch [:chat.ui/navigate-to-chat chat-id])))))))))
+
+(fx/defn check-last-chat
+  {:events [::check-last-chat]}
+  [{:keys [db]}]
+  {::open-last-chat (get-in db [:multiaccount :key-uid])})
+
+(fx/defn update-wallet-accounts
+  [{:keys [db]} accounts]
+  (let [existing-accounts (into {} (map #(vector (:address %1) %1) (:multiaccount/accounts db)))
+        reduce-fn (fn [existing-accs new-acc]
+                    (let [address (:address new-acc)]
+                      (if (:removed new-acc)
+                        (dissoc existing-accs address)
+                        (assoc existing-accs address new-acc))))
+        new-accounts (reduce reduce-fn existing-accounts (rpc->accounts accounts))]
+    {:db (assoc db :multiaccount/accounts (vals new-accounts))}))
 
 (fx/defn get-chats-callback
   {:events [::get-chats-callback]}
@@ -420,7 +448,6 @@
               (initialize-transactions-management-enabled)
               (check-network-version network-id)
               (contact/initialize-contacts)
-              (stickers/init-stickers-packs)
               (initialize-browser)
               (mobile-network/on-network-status-change)
               (get-group-chat-invitations)
@@ -440,22 +467,9 @@
 (defn redirect-to-root
   "Decides which root should be initialised depending on user and app state"
   [db]
-  (let [tos-accepted?                    (get db :tos/accepted?)
-        metrics-opt-in-screen-displayed? (get db :anon-metrics/opt-in-screen-displayed?)]
-    ;; There is a race condition to show metrics opt-in and
-    ;; tos opt-in. Tos is more important and is displayed first.
-    ;; Metrics opt-in is diplayed the next time the user logs in
-    (cond
-      (not tos-accepted?)
-      (re-frame/dispatch [:init-root :tos])
-
-      ;; TODO <shivekkhurana>: This needs work post new navigation
-      (and tos-accepted?
-           (not metrics-opt-in-screen-displayed?)
-           config/metrics-enabled?)
-      (navigation/navigate-to :anon-metrics-opt-in {})
-
-      :else  (re-frame/dispatch [:init-root :chat-stack]))))
+  (if (get db :tos/accepted?)
+    (re-frame/dispatch [:init-root (if config/new-ui-enabled? :shell-stack :chat-stack)])
+    (re-frame/dispatch [:init-root :tos])))
 
 (fx/defn login-only-events
   [{:keys [db] :as cofx} key-uid password save-password?]
@@ -501,11 +515,14 @@
               (multiaccounts/switch-preview-privacy-mode-flag)
               (link-preview/request-link-preview-whitelist)
               (logging/set-log-level (:log-level multiaccount))
-              ;; if it's a first account, the ToS will be accepted at welcome carousel
-              ;; if not a first account, the ToS might have been accepted by other account logins
-              (if (or first-account? tos-accepted?)
-                (navigation/init-root :onboarding-notification)
-                (navigation/init-root :tos)))))
+
+              (if config/new-ui-enabled?
+                (navigation/init-root :shell-stack)
+                ;; if it's a first account, the ToS will be accepted at welcome carousel
+                ;; if not a first account, the ToS might have been accepted by other account logins
+                (if (or first-account? tos-accepted?)
+                  (navigation/init-root :onboarding-notification)
+                  (navigation/init-root :tos))))))
 
 (defn- keycard-setup? [cofx]
   (boolean (get-in cofx [:db :keycard :flow])))
@@ -537,8 +554,7 @@
                                       recovered-account?
                                       (keycard-setup? cofx)))
         from-migration?      (get-in db [:keycard :from-key-storage-and-migration?])
-        nodes                nil
-        should-send-metrics? (get-in db [:multiaccount :anon-metrics/should-send?])]
+        nodes                nil]
     (log/debug "[multiaccount] multiaccount-login-success"
                "login-only?" login-only?
                "recovered-account?" recovered-account?)
@@ -547,9 +563,6 @@
                ::json-rpc/call
                [{:method     "web3_clientVersion"
                  :on-success #(re-frame/dispatch [::initialize-web3-client-version %])}]}
-              ;; Start tasks to save usage data locally
-              (when should-send-metrics?
-                (anon-metrics/start-transferring))
               ;;FIXME
               (when nodes
                 (fleet/set-nodes :eth.contract nodes))
@@ -688,14 +701,8 @@
 
 (fx/defn welcome-lets-go
   {:events [:welcome-lets-go]}
-  [cofx]
-  (let [first-account? (get-in cofx [:db :multiaccount :multiaccounts/first-account])]
-    (fx/merge cofx
-              {:init-root-fx :chat-stack}
-              (when first-account?
-                (acquisition/create))
-              (when config/metrics-enabled?
-                {:dispatch [:navigate-to :anon-metrics-opt-in]}))))
+  [_]
+  {:init-root-fx :chat-stack})
 
 (fx/defn multiaccount-selected
   {:events [:multiaccounts.login.ui/multiaccount-selected]}
@@ -733,7 +740,7 @@
   {:db (assoc db :tos/accepted? new-terms-of-service-accepted)})
 
 (fx/defn get-opted-in-to-new-terms-of-service
-  "New TOS sprint https://github.com/status-im/status-react/pull/12240"
+  "New TOS sprint https://github.com/status-im/status-mobile/pull/12240"
   {:events [:get-opted-in-to-new-terms-of-service]}
   [{:keys [db]}]
   {::async-storage/get {:keys [:new-terms-of-service-accepted]

@@ -1,9 +1,11 @@
 (ns ^{:doc "Definition of the StatusMessage protocol"}
  status-im.transport.message.core
-  (:require [status-im.chat.models.message :as models.message]
+  (:require [status-im.activity-center.core :as activity-center]
+            [status-im.chat.models.message :as models.message]
             [status-im.chat.models.pin-message :as models.pin-message]
             [status-im.chat.models :as models.chat]
             [status-im.chat.models.reactions :as models.reactions]
+            [status-im.utils.config :as config]
             [status-im.contact.core :as models.contact]
             [status-im.communities.core :as models.communities]
             [status-im.pairing.core :as models.pairing]
@@ -14,10 +16,12 @@
             [status-im.data-store.activities :as data-store.activities]
             [status-im.data-store.messages :as data-store.messages]
             [status-im.group-chats.core :as models.group]
+            [status-im.multiaccounts.update.core :as update.core]
             [status-im.utils.fx :as fx]
             [status-im.utils.types :as types]
             [status-im.constants :as constants]
             [status-im.multiaccounts.model :as multiaccounts.model]
+            [status-im.multiaccounts.login.core :as multiaccounts.login]
             [status-im.notifications-center.core :as notifications-center]
             [status-im.visibility-status-updates.core :as models.visibility-status-updates]
             [status-im.browser.core :as browser]
@@ -47,7 +51,10 @@
         ^js visibility-status-updates  (.-statusUpdates response-js)
         ^js current-visibility-status  (.-currentStatus response-js)
         ^js bookmarks                  (.-bookmarks response-js)
+        ^js settings                   (.-settings response-js)
         ^js cleared-histories          (.-clearedHistories response-js)
+        ^js identity-images            (.-identityImages response-js)
+        ^js accounts                   (.-accounts response-js)
         sync-handler                   (when-not process-async process-response)]
     (cond
 
@@ -65,8 +72,13 @@
       (do
         (js-delete response-js "activityCenterNotifications")
         (fx/merge cofx
-                  (notifications-center/handle-activities (map data-store.activities/<-rpc
-                                                               (types/js->clj activity-notifications)))
+                  (if config/new-activity-center-enabled?
+                    (->> activity-notifications
+                         types/js->clj
+                         (map data-store.activities/<-rpc)
+                         activity-center/notifications-reconcile)
+                    (notifications-center/handle-activities (map data-store.activities/<-rpc
+                                                                 (types/js->clj activity-notifications))))
                   (process-next response-js sync-handler)))
 
       (seq installations)
@@ -98,7 +110,7 @@
         (js-delete response-js "bookmarks")
         (fx/merge cofx
                   (process-next response-js sync-handler)
-                  (browser/handle-bookmarks cofx bookmarks-clj)))
+                  (browser/handle-bookmarks bookmarks-clj)))
 
       (seq pin-messages)
       (let [pin-messages (types/js->clj pin-messages)]
@@ -155,6 +167,27 @@
                   (process-next response-js sync-handler)
                   (models.visibility-status-updates/handle-visibility-status-updates
                    visibility-status-updates-clj)))
+
+      (seq accounts)
+      (do
+        (js-delete response-js "accounts")
+        (fx/merge cofx
+                  (process-next response-js sync-handler)
+                  (multiaccounts.login/update-wallet-accounts (types/js->clj accounts))))
+
+      (seq settings)
+      (do
+        (js-delete response-js "settings")
+        (fx/merge cofx
+                  (process-next response-js sync-handler)
+                  (update.core/set-many-js settings)))
+
+      (seq identity-images)
+      (let [images-clj (map types/js->clj identity-images)]
+        (js-delete response-js "identityImages")
+        (fx/merge cofx
+                  (process-next response-js sync-handler)
+                  (update.core/optimistic :images images-clj)))
 
       (some? current-visibility-status)
       (let [current-visibility-status-clj (types/js->clj current-visibility-status)]

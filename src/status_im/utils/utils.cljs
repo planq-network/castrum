@@ -82,7 +82,7 @@
   and adds unicode ellipsis in between"
   [address]
   (when address
-    (str (subs address 0 6) "\u2026" (subs address (- (count address) 4) (count address)))))
+    (str (subs address 0 6) "\u2026" (subs address (- (count address) 3) (count address)))))
 
 (defn get-shortened-checksum-address [address]
   (when address
@@ -131,3 +131,9 @@
 (defn safe-replace [s m r]
   (when (string? s)
     (string/replace s m r)))
+
+(defn svg? [some-string]
+  (string/ends-with? some-string ".svg"))
+
+(defn exclude-svg-resources [lst]
+  (remove svg? lst))

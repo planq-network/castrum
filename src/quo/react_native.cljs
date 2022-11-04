@@ -5,8 +5,11 @@
             ["react-native" :as rn]
             ["@react-native-community/hooks" :as hooks]
             ["react-native-navigation" :refer (Navigation)]
+            ["react-native-hole-view" :refer (RNHoleView)]
             ["rn-emoji-keyboard" :refer (EmojiKeyboard)]
             ["react-native-draggable-flatlist" :default DraggableFlatList]))
+
+(def hole-view (reagent/adapt-react-class RNHoleView))
 
 (def rn-draggable-flatlist (reagent/adapt-react-class DraggableFlatList))
 
@@ -52,6 +55,8 @@
                   props
                   {:keyboardVerticalOffset (+ 44 (:status-bar-height @navigation-const))})]
           (reagent/children this))))
+
+(def status-bar (.-StatusBar ^js rn))
 
 (def keyboard (.-Keyboard ^js rn))
 
@@ -102,6 +107,10 @@
                                                               :property (:opacity layout-animation-properties)}
                                                :delete   #js {:type     (:ease-in-ease-out layout-animation-types)
                                                               :property (:opacity layout-animation-properties)}}})
+
+(defonce enable-layout-animations
+  (when platform/android?
+    (.setLayoutAnimationEnabledExperimental ^js ui-manager true)))
 
 (def activity-indicator (reagent/adapt-react-class (.-ActivityIndicator ^js rn)))
 

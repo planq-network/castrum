@@ -2,7 +2,6 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [status-im.constants :as constants]
-            [status-im.ethereum.abi-spec :as abi-spec]
             [status-im.ethereum.core :as ethereum]
             [status-im.ethereum.eip55 :as eip55]
             [status-im.ethereum.json-rpc :as json-rpc]
@@ -105,16 +104,16 @@
       (sign-message cofx)
       (let [tx-obj-to-send (merge tx-obj
                                   (when gas
-                                    {:gas (str "0x" (abi-spec/number-to-hex gas))})
+                                    {:gas (str "0x" (status/number-to-hex gas))})
                                   (when gasPrice
-                                    {:gasPrice (str "0x" (abi-spec/number-to-hex gasPrice))})
+                                    {:gasPrice (str "0x" (status/number-to-hex gasPrice))})
                                   (when nonce
-                                    {:nonce (str "0x" (abi-spec/number-to-hex nonce))})
+                                    {:nonce (str "0x" (status/number-to-hex nonce))})
                                   (when maxPriorityFeePerGas
-                                    {:maxPriorityFeePerGas (str "0x" (abi-spec/number-to-hex
+                                    {:maxPriorityFeePerGas (str "0x" (status/number-to-hex
                                                                       (js/parseInt maxPriorityFeePerGas)))})
                                   (when maxFeePerGas
-                                    {:maxFeePerGas (str "0x" (abi-spec/number-to-hex
+                                    {:maxFeePerGas (str "0x" (status/number-to-hex
                                                               (js/parseInt maxFeePerGas)))}))]
         (when-not in-progress?
           {:db                          (update db :signing/sign assoc :error nil :in-progress? true)
@@ -159,7 +158,7 @@
                                                 :gasLimit (money/to-fixed (money/bignumber gas)))
                                          clj->js)]
                        :on-success #(log/info "pending transfer is saved")
-                       :on-failure #(log/info "pending transfer was not saved" %)}]}))
+                       :on-error #(log/info "pending transfer was not saved" %)}]}))
 
 (defn get-method-type [data]
   (cond
@@ -174,7 +173,7 @@
   (let [{:keys [symbol decimals] :as token} (tokens/address->token (:wallet/all-tokens db) to)]
     (when (and token data (string? data))
       (when-let [type (get-method-type data)]
-        (let [[address value _] (abi-spec/decode
+        (let [[address value _] (status/decode-parameters
                                  (str "0x" (subs data 10))
                                  (if (= type :approve-and-call) ["address" "uint256" "bytes"] ["address" "uint256"]))]
           (when (and address value)
@@ -288,7 +287,7 @@
 (fx/defn send-transaction-message
   {:events [:sign/send-transaction-message]}
   [cofx chat-id value contract transaction-hash signature]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "sendTransaction")
+  {::json-rpc/call [{:method "wakuext_sendTransaction"
                      ;; We make sure `value` is serialized as string, and not
                      ;; as an integer or big-int
                      :params [chat-id (str value) contract transaction-hash
@@ -301,7 +300,7 @@
 (fx/defn send-accept-request-transaction-message
   {:events [:sign/send-accept-transaction-message]}
   [cofx message-id transaction-hash signature]
-  {::json-rpc/call [{:method (json-rpc/call-ext-method "acceptRequestTransaction")
+  {::json-rpc/call [{:method "wakuext_acceptRequestTransaction"
                      :params [transaction-hash message-id
                               (or (:result (types/json->clj signature))
                                   (ethereum/normalized-hex signature))]
@@ -445,20 +444,11 @@
             {:db (update db :signing/queue conj (normalize-tx-obj db tx))}
             (check-queue)))
 
-(fx/defn eth-transaction-call
-  "Prepares tx-obj for contract call and show signing sheet"
-  [cofx {:keys [contract method params on-result on-error from]}]
-  (sign cofx {:tx-obj    {:to   contract
-                          :data (abi-spec/encode method params)
-                          :from from}
-              :on-result on-result
-              :on-error  on-error}))
-
 (fx/defn sign-transaction-button-clicked-from-chat
   {:events  [:wallet.ui/sign-transaction-button-clicked-from-chat]}
   [{:keys [db] :as cofx} {:keys [to amount from token]}]
   (let [{:keys [symbol address]} token
-        amount-hex (str "0x" (abi-spec/number-to-hex amount))
+        amount-hex (str "0x" (status/number-to-hex amount))
         to-norm (ethereum/normalized-hex (if (string? to) to (:address to)))
         from-address (:address from)
         identity (:current-chat-id db)
@@ -477,12 +467,10 @@
                          :from     from-address
                          :chat-id  identity
                          :command? true
-                         :data     (abi-spec/encode
-                                    "transfer(address,uint256)"
-                                    [to-norm amount-hex])})}))
+                         :data     (status/encode-transfer to-norm amount-hex)})}))
       {:db db
        ::json-rpc/call
-       [{:method (json-rpc/call-ext-method "requestAddressForTransaction")
+       [{:method "wakuext_requestAddressForTransaction"
          :params [(:current-chat-id db)
                   from-address
                   amount
@@ -496,7 +484,7 @@
   [{:keys [db] :as cofx} {:keys [amount from token]}]
   (let [{:keys [request-parameters chat-id]} (:wallet/prepare-transaction db)
         {:keys [symbol address]} token
-        amount-hex (str "0x" (abi-spec/number-to-hex amount))
+        amount-hex (str "0x" (status/number-to-hex amount))
         to-norm (:address request-parameters)
         from-address (:address from)]
     (fx/merge cofx
@@ -516,15 +504,13 @@
                              :command? true
                              :message-id (:id request-parameters)
                              :chat-id chat-id
-                             :data     (abi-spec/encode
-                                        "transfer(address,uint256)"
-                                        [to-norm amount-hex])})})))))
+                             :data     (status/encode-transfer to-norm amount-hex)})})))))
 
 (fx/defn sign-transaction-button-clicked
   {:events [:wallet.ui/sign-transaction-button-clicked]}
   [{:keys [db] :as cofx} {:keys [to amount from token gas gasPrice maxFeePerGas maxPriorityFeePerGas]}]
   (let [{:keys [symbol address]} token
-        amount-hex   (str "0x" (abi-spec/number-to-hex amount))
+        amount-hex   (str "0x" (status/number-to-hex amount))
         to-norm      (ethereum/normalized-hex (if (string? to) to (:address to)))
         from-address (:address from)]
     (fx/merge cofx
@@ -544,9 +530,7 @@
                                  {:to    to-norm
                                   :value amount-hex}
                                  {:to   (ethereum/normalized-hex address)
-                                  :data (abi-spec/encode
-                                         "transfer(address,uint256)"
-                                         [to-norm amount-hex])}))}))))
+                                  :data (status/encode-transfer to-norm amount-hex)}))}))))
 
 (re-frame/reg-fx
  :signing/get-transaction-by-hash-fx

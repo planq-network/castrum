@@ -470,7 +470,7 @@
               (when (= flow :import)
                 (load-recovery-pin-screen))
               ;; TODO: If card is already initialized need to confirm pin only then go to mnenmonic
-              ;; https://github.com/status-im/status-react/issues/9451
+              ;; https://github.com/status-im/status-mobile/issues/9451
               (when (= flow :create)
                 (mnemonic/set-mnemonic)))))
 
@@ -591,19 +591,6 @@
   {:events [:keycard.callback/on-register-card-events]}
   [{:keys [db]} listeners]
   {:db (update-in db [:keycard :listeners] merge listeners)})
-
-(defn onboarding-intro-back-handler
-  "The back button handler is used to manage device back press.
-
-  If the handler returns false, the back button functions as usual (ie. dispatchs GO_BACK event).
-  If it returns true, the back button becomes inactive.
-
-  We want to deactivate the back button when the user comes from key-storage and migration flow."
-  []
-  (-> @re-frame.db/app-db
-      :keycard
-      :from-key-storage-and-migration?
-      boolean))
 
 (fx/defn ui-recovery-phrase-cancel-pressed
   {:events [:keycard.ui/recovery-phrase-cancel-pressed]}
