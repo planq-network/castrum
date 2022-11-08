@@ -8,7 +8,7 @@ let
   localSrcWarn = (path: "Using local status-go sources from ${path}");
 
   localSrc = rec {
-    owner = "planq-network";
+    owner = "status-im";
     repo = "status-go";
     rev = "unknown";
     shortRev = rev;
@@ -45,7 +45,7 @@ let
     rawVersion = versionJSON.version;
     cleanVersion = utils.sanitizeVersion versionJSON.version;
     # Need to pretend this is from status-im to let Go build it.
-    goPackagePath = "github.com/planq-network/${repo}";
+    goPackagePath = "github.com/status-im/${repo}";
     src = fetchFromGitHub {
       inherit rev owner repo sha256;
       name = "${repo}-${shortRev}-source";

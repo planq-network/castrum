@@ -23,7 +23,7 @@ let
 
   # These are necessary for status-go to show correct version
   paramsLdFlags = attrValues (mapAttrs (name: value:
-    "-X github.com/planq-network/status-go/params.${name}=${value}"
+    "-X github.com/status-im/status-go/params.${name}=${value}"
   ) goBuildParams);
 
   goBuildLdFlags = paramsLdFlags ++ [
