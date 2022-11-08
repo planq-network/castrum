@@ -1,4 +1,4 @@
-package network.planq.im;
+package network.planq.castrum;
 
 import android.content.Context;
 import android.annotation.TargetApi;
@@ -34,8 +34,8 @@ import com.facebook.react.modules.core.PermissionListener;
 import org.devio.rn.splashscreen.SplashScreen;
 
 import java.util.Properties;
-import network.planq.im.module.StatusThreadPoolExecutor;
-import network.planq.im.MainApplication;
+import network.planq.castrum.module.StatusThreadPoolExecutor;
+import network.planq.castrum.MainApplication;
 
 public class MainActivity extends NavigationActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback{

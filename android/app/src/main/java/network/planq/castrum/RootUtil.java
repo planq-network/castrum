@@ -1,4 +1,4 @@
-package network.planq.im;
+package network.planq.castrum;
 
 import java.io.File;
 import java.io.BufferedReader;
