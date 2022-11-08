@@ -1,4 +1,4 @@
-package network.planq.im.pushnotifications;
+package network.planq.castrum.pushnotifications;
 
 import android.os.Build;
 import android.app.Application;
@@ -16,8 +16,8 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactContext;
 
 
-import network.planq.im.pushnotifications.PushNotificationJsDelivery;
-import static network.planq.im.pushnotifications.PushNotification.LOG_TAG;
+import network.planq.castrum.pushnotifications.PushNotificationJsDelivery;
+import static network.planq.castrum.pushnotifications.PushNotification.LOG_TAG;
 
 public class PushNotificationActions extends BroadcastReceiver {
     @Override

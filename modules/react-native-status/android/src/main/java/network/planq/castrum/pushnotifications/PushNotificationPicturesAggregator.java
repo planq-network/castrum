@@ -1,4 +1,4 @@
-package network.planq.im.pushnotifications;
+package network.planq.castrum.pushnotifications;
 
 import androidx.annotation.Nullable;
 import com.facebook.common.executors.CallerThreadExecutor;
@@ -18,7 +18,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static network.planq.im.pushnotifications.PushNotification.LOG_TAG;
+import static network.planq.castrum.pushnotifications.PushNotification.LOG_TAG;
 
 public class PushNotificationPicturesAggregator {
   interface Callback {

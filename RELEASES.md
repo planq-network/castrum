@@ -558,7 +558,7 @@ Finally, when you receive a new ERC-20 token you can now add it to your wallet b
 * Fix blank view when open yearn.finance
 * Fix entering “0x” in recipient field
 
-Update in the [App Store](https://apps.apple.com/us/app/status-private-communication/id1178893006) or [Google Play](https://play.google.com/store/apps/details?id=network.planq.im) if you do not have auto updates enabled.
+Update in the [App Store](https://apps.apple.com/us/app/status-private-communication/id1178893006) or [Google Play](https://play.google.com/store/apps/details?id=network.planq.castrum) if you do not have auto updates enabled.
 
 The APK available is [here](https://status-im-files.ams3.cdn.digitaloceanspaces.com/StatusIm-Mobile-v1.8.0.apk).
 

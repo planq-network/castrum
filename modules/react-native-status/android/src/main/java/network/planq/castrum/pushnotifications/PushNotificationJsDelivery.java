@@ -1,4 +1,4 @@
-package network.planq.im.pushnotifications;
+package network.planq.castrum.pushnotifications;
 
 import android.os.Build;
 import android.app.Application;
@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import java.util.Set;
 
-import static network.planq.im.pushnotifications.PushNotification.LOG_TAG;
+import static network.planq.castrum.pushnotifications.PushNotification.LOG_TAG;
 
 class PushNotificationJsDelivery {
 

@@ -120,7 +120,7 @@ end
 def build_ios_adhoc(readonly: false, pr_build: false)
   # PR builds should appear as a separate App on iOS
   scheme = pr_build ? 'StatusImPR' : 'StatusIm'
-  app_id = pr_build ? 'network.planq.im' : 'network.planq.im'
+  app_id = pr_build ? 'network.planq.castrum.pr' : 'network.planq.castrum'
 
   kc = Keychain.new('fastlane')
 
@@ -145,8 +145,8 @@ def build_ios_adhoc(readonly: false, pr_build: false)
     export_options: {
       signingStyle: 'manual',
       provisioningProfiles: {
-        "network.planq.im": "match AdHoc network.planq.im",
-        "network.planq.im": "match AdHoc network.planq.im"
+        "network.planq.castrum": "match AdHoc network.planq.castrum",
+        "network.planq.castrum": "match AdHoc network.planq.castrum"
       }
     }
   )
@@ -246,7 +246,7 @@ platform :ios do
       type: 'appstore',
       readonly: true,
       api_key: asc_api_key(),
-      app_identifier: 'network.planq.im',
+      app_identifier: 'network.planq.castrum',
       keychain_name: kc.name,
       keychain_password: kc.pass
     )
