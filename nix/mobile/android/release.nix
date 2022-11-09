@@ -31,6 +31,7 @@ let
   gradleBuildType = if buildType == "pr" then "Pr" else "Release";
 
   apksPath = "./android/app/build/outputs/apk/${toLower gradleBuildType}";
+  bundlesPath = "./android/app/build/outputs/bundle/${toLower gradleBuildType}";
 
   baseName = "${buildType}-android";
 in stdenv.mkDerivation rec {
@@ -137,6 +138,19 @@ in stdenv.mkDerivation rec {
       -Dmaven.repo.local='${deps.gradle}' \
       -PversionCode=${toString buildNumber} \
       -PcommitHash=${commitHash} \
+      bundle${gradleBuildType} \
+      || exit 1
+    popd > /dev/null
+
+    pushd ./android
+    ${adhocEnvVars} ${pkgs.gradle}/bin/gradle \
+      ${toString gradleOpts} \
+      --console=plain \
+      --offline --stacktrace \
+      -Dorg.gradle.daemon=false \
+      -Dmaven.repo.local='${deps.gradle}' \
+      -PversionCode=${toString buildNumber} \
+      -PcommitHash=${commitHash} \
       assemble${gradleBuildType} \
       || exit 1
     popd > /dev/null
@@ -150,5 +164,6 @@ in stdenv.mkDerivation rec {
   installPhase = ''
     mkdir -p $out
     cp ${apksPath}/*.apk $out/
+    cp ${bundlesPath}/*.aab $out/app-${toLower gradleBuildType}-unsigned.aab
   '';
 }

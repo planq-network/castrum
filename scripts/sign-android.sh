@@ -37,6 +37,8 @@ if [[ "${1}" =~ unsigned ]]; then
   OUTPUT_FLAGS="--out=${1/unsigned/signed}"
 fi
 
+if [[ "${1}" =~ apk ]]; then
+
 echo -e "${GRN}Signing APK:${RST} ${1}" >&2
 
 exec apksigner sign --verbose \
@@ -46,3 +48,17 @@ exec apksigner sign --verbose \
     --key-pass="pass:$(env_var_or_gradle_prop KEYSTORE_KEY_PASSWORD)" \
     "${OUTPUT_FLAGS}" \
     "${1}"
+
+fi
+
+if [[ "${1}" =~ aab ]]; then
+  echo -e "${GRN}Signing AAB:${RST} ${1}" >&2
+
+  exec jarsigner -verbose \
+      -keystore "$(env_var_or_gradle_prop KEYSTORE_PATH)" \
+      -storepass "$(env_var_or_gradle_prop KEYSTORE_PASSWORD)" \
+      -keypass "$(env_var_or_gradle_prop KEYSTORE_KEY_PASSWORD)" \
+      -signedjar "${OUTPUT_FLAGS/--out=/}" \
+      "${1}" \
+      "$(env_var_or_gradle_prop KEYSTORE_ALIAS)"
+fi

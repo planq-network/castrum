@@ -214,6 +214,7 @@ release-android: export TARGET := keytool
 release-android: export KEYSTORE_PATH ?= $(HOME)/.gradle/status-im.keystore
 release-android: keystore build-android ##@build Build signed Android APK
 	@scripts/sign-android.sh result/app-release-unsigned.apk
+	@scripts/sign-android.sh result/app-release-unsigned.aab
 
 release-ios: export TARGET := ios
 release-ios: export BUILD_ENV ?= prod
