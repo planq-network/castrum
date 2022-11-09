@@ -42,7 +42,7 @@
             :name   "network-name"
             :symbol "network-symbol"
             :config {:NetworkId      1
-                     :DataDir        "/ethereum/mainnet_rpc"
+                     :DataDir        "/castrum/mainnet_rpc"
                      :UpstreamConfig {:Enabled true
                                       :URL     "upstream-url"}}}
            actual))))
@@ -58,7 +58,7 @@
             :name   "network-name"
             :symbol "network-symbol"
             :config {:NetworkId      5777
-                     :DataDir        "/ethereum/mainnet_rpc"
+                     :DataDir        "/castrum/mainnet_rpc"
                      :UpstreamConfig {:Enabled true
                                       :URL     "upstream-url"}}}
            actual))))
@@ -136,7 +136,7 @@
                                                            :name   "network-name"
                                                            :symbol "symbol"
                                                            :config {:NetworkId      1
-                                                                    :DataDir        "/ethereum/mainnet_rpc"
+                                                                    :DataDir        "/castrum/mainnet_rpc"
                                                                     :UpstreamConfig {:Enabled true
                                                                                      :URL     "upstream-url"}}}}}})]
       (is (= "settings_saveSetting" (:method (first (::json-rpc/call fx)))))
@@ -156,7 +156,7 @@
                                                               {:id     "random"
                                                                :name   "network-name"
                                                                :config {:NetworkId      1
-                                                                        :DataDir        "/ethereum/mainnet_rpc"
+                                                                        :DataDir        "/castrum/mainnet_rpc"
                                                                         :UpstreamConfig {:Enabled true
                                                                                          :URL     "upstream-url"}}}}}})]
       (is (:ui/show-error result)))))
@@ -175,7 +175,7 @@
                                                            :name   "network-name"
                                                            :symbol "symbol"
                                                            :config {:NetworkId      3
-                                                                    :DataDir        "/ethereum/mainnet_rpc"
+                                                                    :DataDir        "/castrum/mainnet_rpc"
                                                                     :UpstreamConfig {:Enabled true
                                                                                      :URL     "upstream-url"}}}}}})]
       (is (= "settings_saveSetting" (:method (first (::json-rpc/call fx)))))

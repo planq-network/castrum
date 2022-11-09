@@ -93,7 +93,7 @@
     :chain-explorer-link "https://etherscan.io/address/",
     :name                "Mainnet with upstream RPC",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :mainnet)
-                          :DataDir        "/ethereum/mainnet_rpc"
+                          :DataDir        "/castrum/mainnet_rpc"
                           :UpstreamConfig {:Enabled true
                                            :URL     mainnet-rpc-url}}}])
 
@@ -102,30 +102,44 @@
     :name                "xDai Chain",
     :chain-explorer-link "https://blockscout.com/xdai/mainnet/address/",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :xdai)
-                          :DataDir        "/ethereum/xdai_rpc"
+                          :DataDir        "/castrum/xdai_rpc"
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://gnosischain-rpc.gateway.pokt.network"}}}
    {:id                  "bsc_rpc",
     :chain-explorer-link "https://bscscan.com/address/",
     :name                "BSC Network",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :bsc)
-                          :DataDir        "/ethereum/bsc_rpc"
+                          :DataDir        "/castrum/bsc_rpc"
                           :UpstreamConfig {:Enabled true
-                                           :URL     "https://bsc-dataseed.binance.org"}}}])
+                                           :URL     "https://bsc-dataseed.binance.org"}}}
+   {:id                  "planq_rpc",
+    :name                "Planq Network",
+    :chain-explorer-link "https://evm.planq.network/address/",
+    :config              {:NetworkId      (ethereum/chain-keyword->chain-id :planq-mainnet)
+                          :DataDir        "/castrum/planq_rpc"
+                          :UpstreamConfig {:Enabled true
+                                           :URL     "https://evm-rpc.planq.network"}}}
+   {:id                  "evmos_rpc",
+    :name                "Evmos",
+    :chain-explorer-link "https://evm.evmos.org/address/",
+    :config              {:NetworkId      (ethereum/chain-keyword->chain-id :evmos-mainnet)
+                          :DataDir        "/castrum/evmos_rpc"
+                          :UpstreamConfig {:Enabled true
+                                           :URL     "https://eth.bd.evmos.org:8545"}}}])
 
 (def testnet-networks
   [{:id                  "goerli_rpc",
     :chain-explorer-link "https://goerli.etherscan.io/address/",
     :name                "Goerli with upstream RPC",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :goerli)
-                          :DataDir        "/ethereum/goerli_rpc"
+                          :DataDir        "/castrum/goerli_rpc"
                           :UpstreamConfig {:Enabled true
                                            :URL     goerli-rpc-url}}}
    {:id                  "bsc_testnet_rpc",
     :chain-explorer-link "https://testnet.bscscan.com/address/",
     :name                "BSC testnet",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :bsc-testnet)
-                          :DataDir        "/ethereum/bsc_testnet_rpc"
+                          :DataDir        "/castrum/bsc_testnet_rpc"
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://data-seed-prebsc-1-s1.binance.org:8545/"}}}])
 
@@ -138,12 +152,12 @@
                [id network])
              default-networks)))
 
-(def default-wallet-connect-metadata {:name "Status Wallet"
-                                      :description "Status is a secure messaging app, crypto wallet, and Web3 browser built with state of the art technology."
+(def default-wallet-connect-metadata {:name "Castrum Wallet"
+                                      :description "Castrum is a secure messaging app, crypto wallet, and Web3 browser built with state of the art technology."
                                       :url "#"
                                       :icons ["https://statusnetwork.com/img/press-kit-status-logo.svg"]})
 
-(def wallet-connect-project-id "87815d72a81d739d2a7ce15c2cfdefb3")
+(def wallet-connect-project-id "3254a3827f093cf489bfb001f67ad322")
 
 ;;TODO for development only should be removed in status 2.0
 (def new-ui-enabled? false)
