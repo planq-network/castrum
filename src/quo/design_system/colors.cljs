@@ -26,7 +26,7 @@
    :warning-01     "rgba(255, 202, 15, 1)"
    :warning-02     "rgba(255, 202, 15, 0.1)"
    :interactive-01 "rgba(13,208,189,1)"     ; Accent color, buttons, own message, actions,active state
-   :interactive-02 "rgba(236,239,252,1)"   ; Light Accent, buttons background, actions background, messages
+   :interactive-02 "rgba(236,252,246,1)"   ; Light Accent, buttons background, actions background, messages
    :interactive-03 "rgba(255,255,255,0.1)" ; Background for interactive above accent
    :interactive-04 "rgba(147,155,161,1)"   ; Disabled state
    :ui-background  "rgba(255,255,255,1)"   ; Default view background
