@@ -25,7 +25,7 @@
    :negative-02    "rgba(255,45,85,0.1))"  ; Secondary Negative, Supporting color for errors illustrations
    :warning-01     "rgba(255, 202, 15, 1)"
    :warning-02     "rgba(255, 202, 15, 0.1)"
-   :interactive-01 "rgba(67,96,223,1)"     ; Accent color, buttons, own message, actions,active state
+   :interactive-01 "rgba(13,208,189,1)"     ; Accent color, buttons, own message, actions,active state
    :interactive-02 "rgba(236,239,252,1)"   ; Light Accent, buttons background, actions background, messages
    :interactive-03 "rgba(255,255,255,0.1)" ; Background for interactive above accent
    :interactive-04 "rgba(147,155,161,1)"   ; Disabled state
@@ -36,12 +36,12 @@
    :text-01        "rgba(0,0,0,1)"         ; Main text color
    :text-02        "rgba(147,155,161,1)"   ; Secondary text
    :text-03        "rgba(255,255,255,0.7)" ; Secondary on accent
-   :text-04        "rgba(67,96,223,1)"     ; Links text color
+   :text-04        "rgba(13,208,189,1)"     ; Links text color
    :text-05        "rgba(255,255,255,1)"   ; Text inverse on accent
    :icon-01        "rgba(0,0,0,1)"         ; Primary icons
    :icon-02        "rgba(147,155,161,1)"   ; Secondary icons
    :icon-03        "rgba(255,255,255,0.4)" ; Secondary icons on accent bg
-   :icon-04        "rgba(67,96,223,1)"     ; Interactive icon
+   :icon-04        "rgba(13,208,189,1)"     ; Interactive icon
    :icon-05        "rgba(255,255,255,1)"   ; Icons inverse on accent background
    :shadow-01      "rgba(0,9,26,0.12)"     ; Main shadow color
    :backdrop       "rgba(0,0,0,0.4)"       ; Backdrop for modals and bottom sheet
