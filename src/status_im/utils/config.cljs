@@ -55,7 +55,7 @@
 (def log-level
   (string/upper-case (get-config :LOG_LEVEL "")))
 (def fleet (get-config :FLEET "eth.staging"))
-(def apn-topic (get-config :APN_TOPIC "im.status.ethereum"))
+(def apn-topic (get-config :APN_TOPIC "network.planq.castrum"))
 (def default-network (get-config :DEFAULT_NETWORK "goerli_rpc"))
 (def max-installations 2)
 ; currently not supported in status-go
