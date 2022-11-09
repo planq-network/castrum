@@ -21,6 +21,8 @@
 
 (def BSC-mainnet-chain-id 56)
 (def BSC-testnet-chain-id 97)
+(def planq-mainnet-chain-id 7070)
+(def evmos-mainnet-chain-id 9001)
 
 ;; IDs standardized in https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 (def chains
@@ -30,7 +32,11 @@
    :bsc         {:id   BSC-mainnet-chain-id
                  :name "BSC"}
    :bsc-testnet {:id   BSC-testnet-chain-id
-                 :name "BSC tetnet"}})
+                 :name "BSC tetnet"}
+   :planq-mainnet {:id planq-mainnet-chain-id
+                   :name "Planq"}
+   :evmos-mainnet {:id evmos-mainnet-chain-id
+                   :name "Evmos"}})
 
 (defn chain-id->chain-keyword [i]
   (or (some #(when (= i (:id (val %))) (key %)) chains)
@@ -54,7 +60,9 @@
 
 (defn sidechain? [id]
   (contains? #{(chain-keyword->chain-id :xdai)
-               (chain-keyword->chain-id :bsc)} id))
+               (chain-keyword->chain-id :bsc)
+               (chain-keyword->chain-id :planq-mainnet)
+               (chain-keyword->chain-id :evmos-mainnet)} id))
 
 (defn network-with-upstream-rpc? [network]
   (get-in network [:config :UpstreamConfig :Enabled]))

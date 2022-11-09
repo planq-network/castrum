@@ -36,7 +36,15 @@
     :bsc-testnet {:name           "BSC test"
                   :symbol         :ETH
                   :symbol-display :BNBtest
-                  :decimals       18}}))
+                  :decimals       18}
+    :planq-mainnet {:name         "Planq"
+                    :symbol       :ETH
+                    :symbol-display :PLQ
+                    :decimals     18}
+    :evmos-mainnet {:name         "Evmos"
+                    :symbol      :ETH
+                    :symbol-display :EVMOS
+                    :decimals     18}}))
 
 (def native-currency-symbols
   (set (map #(-> % val :symbol) all-native-currencies)))
