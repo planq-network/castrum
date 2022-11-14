@@ -1,6 +1,6 @@
 (ns quo2.components.tags.tags
   (:require [reagent.core :as reagent]
-            [quo.react-native :as rn]
+            [react-native.core :as rn]
             [quo2.components.tags.tag :as tag]))
 
 (defn tags [{:keys [default-active on-change]}]
@@ -22,8 +22,7 @@
                      :icon-color    icon-color
                      :labelled      (if (= type :label) true labelled)
                      :resource      (if (= type :icon)
-                                      :main-icons2/placeholder
+                                      :i/placeholder
                                       resource)
                      :on-press      #(do (reset! active-tab-id %)
-                                         (when on-change (on-change %)))})
-             tag-label]])]))))
+                                         (when on-change (on-change %)))})]])]))))

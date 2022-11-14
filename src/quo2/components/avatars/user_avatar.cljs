@@ -1,10 +1,11 @@
 (ns quo2.components.avatars.user-avatar
-  (:require [quo.react-native :as rn]
+  (:require [react-native.core :as rn]
+            [react-native.fast-image :as fast-image]
             [quo2.components.markdown.text :as text]
             [quo2.foundations.colors :as colors]
             [quo2.components.icon :as icons]
-            [clojure.string :refer [upper-case split blank?]]
-            [quo.theme :refer [dark?]]))
+            [quo2.theme :refer [dark?]]
+            [clojure.string :refer [upper-case split blank?]]))
 
 (def sizes {:big {:outer 80
                   :inner 72
@@ -131,8 +132,8 @@
                                                :no-color true}])
      (if profile-picture
        ;; display image
-       [rn/image {:style  (container-styling inner-dimensions outer-dimensions)
-                  :source profile-picture}]
+       [fast-image/fast-image {:source              {:uri profile-picture}
+                               :style               (container-styling inner-dimensions outer-dimensions)}]
        ;; else display initials
        [container inner-dimensions outer-dimensions
         [text/text {:weight :semi-bold

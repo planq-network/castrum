@@ -1,13 +1,13 @@
 (ns quo2.components.tabs.tabs
   (:require [oops.core :refer [oget]]
-            [quo.react-native :as rn]
+            [react-native.core :as rn]
             [quo2.components.tabs.tab :as tab]
             [reagent.core :as reagent]
-            [status-im.ui.components.react :as react]
-            [status-im.utils.core :as utils]
-            [status-im.utils.number :as number-utils]
+            [utils :as utils]
             [quo2.foundations.colors :as colors]
-            [quo2.components.notifications.notification-dot :refer [notification-dot]]))
+            [quo2.components.notifications.notification-dot :refer [notification-dot]]
+            [react-native.masked-view :as masked-view]
+            [react-native.linear-gradient :as linear-gradient]))
 
 (def default-tab-size 32)
 
@@ -16,7 +16,7 @@
     (fn [{:keys [data size] :or {size default-tab-size}}]
       [rn/view (merge {:flex-direction :row} style)
        (doall
-        (for [{:keys [label id new-info]} data]
+        (for [{:keys [label id new-info accessibility-label]} data]
           ^{:key id}
           [rn/view {:style {:margin-right (if (= size default-tab-size) 12 8)}}
            (when new-info
@@ -32,13 +32,14 @@
                        :background-color (colors/theme-colors colors/neutral-5 colors/neutral-95)}
               [notification-dot]])
            [tab/tab
-            {:id       id
-             :size     size
-             :active   (= id @active-tab-id)
-             :on-press (fn []
-                         (reset! active-tab-id id)
-                         (when on-change
-                           (on-change id)))}
+            {:id                  id
+             :size                size
+             :accessibility-label accessibility-label
+             :active              (= id @active-tab-id)
+             :on-press            (fn []
+                                    (reset! active-tab-id id)
+                                    (when on-change
+                                      (on-change id)))}
             label]]))])))
 
 (defn- calculate-fade-end-percentage
@@ -49,7 +50,7 @@
     ;; Truncate to avoid unnecessary rendering.
     (if (> fade-percentage 0.99)
       0.99
-      (number-utils/naive-round fade-percentage 2))))
+      (utils/naive-round fade-percentage 2))))
 
 (defn scrollable-tabs
   "Just like the component `tabs`, displays horizontally scrollable tabs with
@@ -97,15 +98,17 @@
                  size                  default-tab-size}
           :as   props}]
       (let [maybe-mask-wrapper (if fade-end?
-                                 [react/masked-view
-                                  {:mask-element (reagent/as-element
-                                                  [react/linear-gradient {:colors         [:black :transparent]
-                                                                          :locations      [(get @fading :fade-end-percentage) 1]
-                                                                          :start          {:x 0 :y 0}
-                                                                          :end            {:x 1 :y 0}
-                                                                          :pointer-events :none
-                                                                          :style          {:width  "100%"
-                                                                                           :height "100%"}}])}]
+                                 [masked-view/masked-view
+                                  {:mask-element
+                                   (reagent/as-element
+                                    [linear-gradient/linear-gradient
+                                     {:colors         [:black :transparent]
+                                      :locations      [(get @fading :fade-end-percentage) 1]
+                                      :start          {:x 0 :y 0}
+                                      :end            {:x 1 :y 0}
+                                      :pointer-events :none
+                                      :style          {:width  "100%"
+                                                       :height "100%"}}])}]
                                  [:<>])]
         (conj maybe-mask-wrapper
               [rn/flat-list

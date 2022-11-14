@@ -1,9 +1,9 @@
 (ns quo2.components.tabs.tab
   (:require [quo2.foundations.colors :as colors]
-            [quo.react-native :as rn]
-            [quo.theme :as theme]
-            [status-im.ui.components.icons.icons :as icons]
-            [quo2.components.markdown.text :as text]))
+            [react-native.core :as rn]
+            [quo2.theme :as theme]
+            [quo2.components.markdown.text :as text]
+            [quo2.components.icon :as icons]))
 
 (def themes {:light {:default  {:background-color colors/neutral-20
                                 :icon-color       colors/neutral-50

@@ -1,10 +1,9 @@
 (ns quo2.components.navigation.page-nav
-  (:require [quo.react-native :as rn]
+  (:require [react-native.core :as rn]
             [quo2.foundations.colors :as colors]
             [quo2.components.icon :as icons]
-            [status-im.utils.dimensions :as dimensions]
-            [clojure.string :as string]
-            [quo2.components.markdown.text :as text]))
+            [quo2.components.markdown.text :as text]
+            [clojure.string :as string]))
 
 (def ^:private centrify-style
   {:display         :flex
@@ -185,8 +184,7 @@
            mid-section
            left-section
            right-section-buttons]}]
-  (let [{:keys [height width]}      (dimensions/window)
-        put-middle-section-on-left? (or align-mid?
+  (let [put-middle-section-on-left? (or align-mid?
                                         (> (count right-section-buttons) 1))
         mid-section-props
         {:type                    (:type mid-section)
@@ -197,15 +195,12 @@
          :right-icon              (:right-icon mid-section)
          :icon                    (:icon mid-section)
          :left-icon               (:left-icon mid-section)}]
-    [rn/view {:style (cond->
-                      {:display            :flex
-                       :flex-direction     :row
-                       :width              width
-                       :height             (* 0.0497 height)
-                      ;;  iPhone 11 Pro's height in Figma divided by Component height 56/1125
-                       :align-items        :center
-                       :padding-horizontal 20
-                       :justify-content    :space-between}
+    [rn/view {:style (cond-> {:display            :flex
+                              :flex-direction     :row
+                              ;;  iPhone 11 Pro's height in Figma divided by Component height 56/1125
+                              :align-items        :center
+                              :padding-horizontal 20
+                              :justify-content    :space-between}
                        page-nav-background-uri (assoc :background-color page-nav-color)
                        page-nav-color (assoc :background page-nav-background-uri))}
      [rn/view {:style {:flex           1

@@ -1,13 +1,12 @@
 (ns quo2.components.messages.system-message
-  (:require [quo.react-native :as rn]
-            [quo.theme :as theme]
+  (:require [react-native.core :as rn]
+            [react-native.reanimated :as reanimated]
+            [quo2.theme :as theme]
             [quo2.components.avatars.icon-avatar :as icon-avatar]
             [quo2.components.avatars.user-avatar :as user-avatar]
             [quo2.components.markdown.text :as text]
             [quo2.foundations.colors :as colors]
-            [quo2.reanimated :as ra]
-            [status-im.i18n.i18n :as i18n]
-            [status-im.utils.core :as utils]))
+            [utils :as utils]))
 
 (def themes-landed {:pinned  colors/primary-50-opa-5
                     :added   colors/primary-50-opa-5
@@ -54,7 +53,7 @@
 
 (defmulti sm-render :type)
 
-(defmethod sm-render :deleted [{:keys [label timestamp-str]}]
+(defmethod sm-render :deleted [{:keys [label timestamp-str labels]}]
   [rn/view {:align-items     :center
             :justify-content :space-between
             :flex            1
@@ -67,10 +66,10 @@
     [text/text {:size  :paragraph-2
                 :style {:color        (get-color :text)
                         :margin-right 5}}
-     (i18n/label (or label :message-deleted))]
+     (or label (:message-deleted labels))]
     [sm-timestamp timestamp-str]]])
 
-(defmethod sm-render :added [{:keys [state mentions timestamp-str]}]
+(defmethod sm-render :added [{:keys [state mentions timestamp-str labels]}]
   [rn/view {:align-items    :center
             :flex-direction :row}
    [sm-icon {:icon    :main-icons/add-user16
@@ -84,14 +83,14 @@
                :style {:color        (get-color :text)
                        :margin-left  3
                        :margin-right 3}}
-    (i18n/label :added)]
+    (:added labels)]
    [sm-user-avatar (:image (second mentions))]
    [text/text {:weight :semi-bold
                :size   :paragraph-2}
     (:name (second mentions))]
    [sm-timestamp timestamp-str]])
 
-(defmethod sm-render :pinned [{:keys [state pinned-by content timestamp-str]}]
+(defmethod sm-render :pinned [{:keys [state pinned-by content timestamp-str labels]}]
   [rn/view {:flex-direction :row
             :flex           1
             :align-items    :center}
@@ -110,7 +109,7 @@
                :margin-right 2}
       [text/text {:size  :paragraph-2
                   :style {:color (get-color :text)}}
-       (i18n/label :pinned-a-message)]]
+       (:pinned-a-message labels)]]
      [sm-timestamp timestamp-str]]
     [rn/view {:flex-direction :row}
      [rn/view {:flex-direction :row
@@ -137,19 +136,19 @@
          (utils/truncate-str (:info content) 24)])]]]])
 
 (defn system-message
-  [{:keys [type style non-pressable? animate-landing?] :as message}]
+  [{:keys [type style non-pressable? animate-landing? labels] :as message}]
   [:f>
    (fn []
-     (let [sv-color (ra/use-shared-value
+     (let [sv-color (reanimated/use-shared-value
                      (get-color :bg (if animate-landing? :landed :default) type))]
        (when animate-landing?
-         (ra/animate-shared-value-with-delay
+         (reanimated/animate-shared-value-with-delay
           sv-color (get-color :bg :default type) 0 :linear 1000))
-       [ra/touchable-opacity
+       [reanimated/touchable-opacity
         {:on-press #(when-not non-pressable?
-                      (ra/set-shared-value
+                      (reanimated/set-shared-value
                        sv-color (get-color :bg :pressed type)))
-         :style    (ra/apply-animations-to-style
+         :style    (reanimated/apply-animations-to-style
                     {:background-color sv-color}
                     (merge
                      {:flex-direction     :row
@@ -159,4 +158,4 @@
                       :padding-horizontal 11
                       :background-color   sv-color}
                      style))}
-        [sm-render message]]))])
+        [sm-render message labels]]))])

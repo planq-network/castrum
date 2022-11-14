@@ -123,6 +123,7 @@ class TestrailReport(BaseTestReport):
 
         test_cases['pr']['critical'] = 50955
         test_cases['pr']['one_to_one_chat'] = 50956
+        test_cases['pr']['deep_links'] = 50967
 
 
         ## Nightly e2e
@@ -309,8 +310,12 @@ class TestrailReport(BaseTestReport):
             return None
 
     def get_not_executed_tests(self, test_run_id):
-        results = self.get("get_tests/%s&status_id=3" % test_run_id)
-        return [result['case_id'] for result in results["tests"]]
+        try:
+            results = self.get("get_tests/%s&status_id=3" % test_run_id)
+            return [result['case_id'] for result in results["tests"]]
+        except KeyError:
+            print('Cannot extract result for %s' % test_run_id)
+            pass
 
     @staticmethod
     def make_error_with_gh_issue_link(error, issue_id):

@@ -1,7 +1,7 @@
 (ns quo2.components.selectors.selectors
-  (:require [quo.react-native :as rn]
+  (:require [react-native.core :as rn]
             [quo2.foundations.colors :as colors]
-            [quo.theme :as theme]
+            [quo2.theme :as theme]
             [reagent.core :as reagent]
             [quo2.components.icon :as icons]))
 
@@ -39,7 +39,7 @@
           [rn/view {:style
                     {:height 20
                      :width 20}}
-           [icons/icon :main-icons2/check-small
+           [icons/icon :i/check-small
             {:size 20
              :color (colors/theme-colors
                      (colors/alpha colors/neutral-100 (if disabled? 0.3 1))
@@ -72,7 +72,7 @@
            [rn/view {:style
                      {:height 20
                       :width 20}}
-            [icons/icon :main-icons2/check-small
+            [icons/icon :i/check-small
              {:size 20
               :color colors/white}]])]]])))
 

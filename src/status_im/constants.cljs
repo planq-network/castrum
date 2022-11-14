@@ -56,12 +56,12 @@
                     emoji-reaction-sad         (:sad resources/reactions-old)
                     emoji-reaction-angry       (:angry resources/reactions-old)})
 
-(def reactions {emoji-reaction-love        :main-icons2/love
-                emoji-reaction-thumbs-up   :main-icons2/angry
-                emoji-reaction-thumbs-down :main-icons2/sad
-                emoji-reaction-laugh       :main-icons2/laugh
-                emoji-reaction-sad         :main-icons2/thumbs-up
-                emoji-reaction-angry       :main-icons2/thumbs-down})
+(def reactions {emoji-reaction-love        :i/love
+                emoji-reaction-thumbs-up   :i/thumbs-up
+                emoji-reaction-thumbs-down :i/thumbs-down
+                emoji-reaction-laugh       :i/laugh
+                emoji-reaction-sad         :i/sad
+                emoji-reaction-angry       :i/angry})
 
 (def ^:const invitation-state-unknown 0)
 (def ^:const invitation-state-requested 1)
@@ -182,25 +182,6 @@
 (def ^:const terms-of-service-link "https://status.im/terms-of-use")
 (def ^:const docs-link "https://status.im/docs/")
 (def ^:const principles-link "https://our.status.im/our-principles/")
-
-(def ^:const activity-center-notification-type-no-type 0)
-(def ^:const activity-center-notification-type-one-to-one-chat 1)
-(def ^:const activity-center-notification-type-private-group-chat 2)
-(def ^:const activity-center-notification-type-mention 3)
-(def ^:const activity-center-notification-type-reply 4)
-(def ^:const activity-center-notification-type-contact-request 5)
-(def ^:const activity-center-notification-type-contact-verification 6)
-
-;; TODO: Remove this constant once the old Notification Center code is removed.
-;; Its value clashes with the new constant `activity-center-notification-type-contact-verification`
-;; used in status-go.
-(def ^:const activity-center-notification-type-contact-request-retracted 6)
-
-;; TODO: Replace with correct enum values once status-go implements them.
-(def ^:const activity-center-notification-type-admin 66610)
-(def ^:const activity-center-notification-type-tx 66612)
-(def ^:const activity-center-notification-type-membership 66613)
-(def ^:const activity-center-notification-type-system 66614)
 
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)

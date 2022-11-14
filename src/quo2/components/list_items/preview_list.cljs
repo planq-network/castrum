@@ -1,9 +1,9 @@
 (ns quo2.components.list-items.preview-list
-  (:require [quo.react-native :as rn]
-            [status-im.i18n.i18n :as i18n]
+  (:require [react-native.core :as rn]
+            [react-native.hole-view :as hole-view]
+            [react-native.fast-image :as fast-image]
             [quo2.foundations.colors :as colors]
             [quo2.components.icon :as quo2.icons]
-            [status-im.ui.components.fast-image :as fast-image]
             [quo2.components.avatars.user-avatar :as user-avatar]
             [quo2.components.markdown.text :as quo2.text]))
 
@@ -42,13 +42,13 @@
 (defn list-item [index type size item list-size margin-left
                  hole-size hole-radius hole-x hole-y border-radius]
   (let [last-item? (= index (- list-size 1))]
-    [rn/hole-view {:style {:margin-left   (if (= index 0) 0 margin-left)}
-                   :holes (if last-item? []
-                              [{:x             hole-x
-                                :y             hole-y
-                                :width         hole-size
-                                :height        hole-size
-                                :borderRadius  hole-radius}])}
+    [hole-view/hole-view {:style {:margin-left   (if (= index 0) 0 margin-left)}
+                          :holes (if last-item? []
+                                     [{:x             hole-x
+                                       :y             hole-y
+                                       :width         hole-size
+                                       :height        hole-size
+                                       :borderRadius  hole-radius}])}
      [avatar item type size border-radius]]))
 
 (defn get-overflow-color [transparent? transparent-color light-color dark-color override-theme]
@@ -56,7 +56,7 @@
     transparent-color
     (colors/theme-colors light-color dark-color override-theme)))
 
-(defn overflow-label [label size transparent? border-radius margin-left override-theme]
+(defn overflow-label [label size transparent? border-radius margin-left override-theme more-than-99-label]
   [rn/view {:style {:width            size
                     :height           size
                     :margin-left      margin-left
@@ -70,13 +70,13 @@
                                        colors/neutral-70
                                        override-theme)}}
    (if (= size 16)
-     [quo2.icons/icon :main-icons2/more {:size 12
-                                         :color (get-overflow-color
-                                                 transparent?
-                                                 colors/white-opa-70
-                                                 colors/neutral-50
-                                                 colors/neutral-40
-                                                 override-theme)}]
+     [quo2.icons/icon :i/more {:size 12
+                               :color (get-overflow-color
+                                       transparent?
+                                       colors/white-opa-70
+                                       colors/neutral-50
+                                       colors/neutral-40
+                                       override-theme)}]
      [quo2.text/text {:size   (if (= size 32) :paragraph-2 :label)
                       :weight :medium
                       :style  {:color       (get-overflow-color
@@ -89,7 +89,7 @@
       ;; If overflow label is below 100, show label as +label (ex. +30), else just show 99+
       (if (< label 100)
         (str "+" label)
-        (i18n/label :counter-99-plus))])])
+        more-than-99-label)])])
 
 (defn border-type [type]
   (case type
@@ -105,7 +105,7 @@
     :transparent?  overflow-label transparent?}
    items           preview list items (only 4 items is required for preview)
   "
-  [{:keys [type size list-size transparent? override-theme]} items]
+  [{:keys [type size list-size transparent? override-theme more-than-99-label]} items]
   (let [items-arr     (into [] items)
         list-size     (or list-size (count items))
         margin-left   (get-in params [size :margin-left])
@@ -120,4 +120,4 @@
        [list-item index type size (get items-arr index) list-size
         margin-left hole-size hole-radius hole-x hole-y border-radius])
      (when (> list-size 4)
-       [overflow-label (- list-size 3) size transparent? border-radius margin-left override-theme])]))
+       [overflow-label (- list-size 3) size transparent? border-radius margin-left override-theme more-than-99-label])]))

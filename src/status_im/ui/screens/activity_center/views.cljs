@@ -9,6 +9,7 @@
             [quo2.components.tags.context-tags :as context-tags]
             [quo2.foundations.colors :as colors]
             [status-im.constants :as constants]
+            [status-im.activity-center.notification-types :as types]
             [status-im.i18n.i18n :as i18n]
             [status-im.multiaccounts.core :as multiaccounts]
             [status-im.utils.datetime :as datetime]
@@ -26,7 +27,7 @@
 
 ;;;; Contact request notifications
 
-(defmethod notification-component constants/activity-center-notification-type-contact-request
+(defmethod notification-component types/contact-request
   [{:keys [id] :as notification}]
   (let [message   (or (:message notification) (:last-message notification))
         contact   (<sub [:contacts/contact-by-identity (:author notification)])
@@ -43,7 +44,7 @@
     (conj pressable
           [activity-logs/activity-log
            (merge {:title     (i18n/label :t/contact-request)
-                   :icon      :main-icons2/add-user
+                   :icon      :i/add-user
                    :timestamp (datetime/timestamp->relative (:timestamp notification))
                    :unread?   (not (:read notification))
                    :context   [[context-tags/user-avatar-tag
@@ -76,13 +77,13 @@
 
 ;;;; Contact verification notifications
 
-(defmethod notification-component constants/activity-center-notification-type-contact-verification
+(defmethod notification-component types/contact-verification
   [{:keys [id contact-verification-status] :as notification}]
   (let [message (or (:message notification) (:last-notification notification))
         contact (<sub [:contacts/contact-by-identity (:author notification)])]
     [activity-logs/activity-log
      (merge {:title     (i18n/label :t/identity-verification-request)
-             :icon      :main-icons2/friend
+             :icon      :i/friend
              :timestamp (datetime/timestamp->relative (:timestamp notification))
              :unread?   (not (:read notification))
              :context   [[context-tags/user-avatar-tag
@@ -136,7 +137,7 @@
                                               {:filter-status (if unread-filter-enabled?
                                                                 :read
                                                                 :unread)}])}
-     :main-icons2/unread]))
+     :i/unread]))
 
 ;; TODO(2022-10-07): The empty state is still under design analysis, so we
 ;; shouldn't even care about translations at this point. A placeholder box is
@@ -170,23 +171,23 @@
                            :fade-end?           true
                            :on-change           #(>evt [:activity-center.notifications/fetch-first-page {:filter-type %}])
                            :default-active      filter-type
-                           :data                [{:id    constants/activity-center-notification-type-no-type
+                           :data                [{:id    types/no-type
                                                   :label (i18n/label :t/all)}
-                                                 {:id    constants/activity-center-notification-type-admin
+                                                 {:id    types/admin
                                                   :label (i18n/label :t/admin)}
-                                                 {:id    constants/activity-center-notification-type-mention
+                                                 {:id    types/mention
                                                   :label (i18n/label :t/mentions)}
-                                                 {:id    constants/activity-center-notification-type-reply
+                                                 {:id    types/reply
                                                   :label (i18n/label :t/replies)}
-                                                 {:id    constants/activity-center-notification-type-contact-request
+                                                 {:id    types/contact-request
                                                   :label (i18n/label :t/contact-requests)}
-                                                 {:id    constants/activity-center-notification-type-contact-verification
+                                                 {:id    types/contact-verification
                                                   :label (i18n/label :t/identity-verification)}
-                                                 {:id    constants/activity-center-notification-type-tx
+                                                 {:id    types/tx
                                                   :label (i18n/label :t/transactions)}
-                                                 {:id    constants/activity-center-notification-type-membership
+                                                 {:id    types/membership
                                                   :label (i18n/label :t/membership)}
-                                                 {:id    constants/activity-center-notification-type-system
+                                                 {:id    types/system
                                                   :label (i18n/label :t/system)}]}]))
 
 (defn header
@@ -200,7 +201,7 @@
                      :style          {:margin-bottom  12
                                       :margin-left      screen-padding}
                      :on-press       #(>evt [:hide-popover])}
-      :main-icons2/close]
+      :i/close]
      [text/text {:size   :heading-1
                  :weight :semi-bold
                  :style  {:padding-horizontal screen-padding

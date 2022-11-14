@@ -1,14 +1,15 @@
 (ns status-im.switcher.home-stack
-  (:require [quo2.reanimated :as reanimated]
+  (:require [react-native.reanimated :as reanimated]
+            [status-im.i18n.i18n :as i18n]
             [status-im.switcher.styles :as styles]
             [status-im.switcher.animation :as animation]
-            [status-im.switcher.constants :as constants]
             [status-im.ui2.screens.chat.home :as chat.home]
+            [status-im.switcher.constants :as constants]
             [status-im.switcher.bottom-tabs :as bottom-tabs]
             [status-im.ui.screens.profile.user.views :as profile.user]
             [status-im.ui.screens.wallet.accounts.views :as wallet.accounts]
             [quo2.components.navigation.floating-shell-button :as floating-shell-button]
-            [status-im.ui.screens.communities.communities-list-redesign :as communities]))
+            [status-im.ui2.screens.communities.communities-home :as communities-home]))
 
 (defn load-stack? [stack-id]
   (case stack-id
@@ -32,7 +33,7 @@
                   :right               0
                   :accessibility-label stack-id})}
         (case stack-id
-          :communities-stack [communities/communities-list]
+          :communities-stack [communities-home/views]
           :chats-stack       [chat.home/home]
           :wallet-stack      [wallet.accounts/accounts-overview]
           :browser-stack     [profile.user/my-profile])])]))
@@ -54,6 +55,7 @@
         [stack-view :browser-stack shared-values]
         [stack-view :wallet-stack shared-values]
         [floating-shell-button/floating-shell-button
-         {:jump-to {:on-press #(animation/close-home-stack shared-values)}}
+         {:jump-to {:on-press #(animation/close-home-stack shared-values)
+                    :label (i18n/label :t/jump-to)}}
          {:position :absolute
           :bottom   12}]]))])

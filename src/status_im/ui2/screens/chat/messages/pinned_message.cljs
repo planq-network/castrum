@@ -1,7 +1,7 @@
 (ns status-im.ui2.screens.chat.messages.pinned-message
   (:require [status-im.i18n.i18n :as i18n]
             [quo.react :as react]
-            [quo2.reanimated :as reanimated]
+            [react-native.reanimated :as reanimated]
             [quo.react-native :as rn]
             [quo2.foundations.typography :as typography]
             [quo2.foundations.colors :as colors]
@@ -47,6 +47,6 @@
                                :style               {:position :absolute
                                                      :top      16
                                                      :right    16}}
-         [icons/icon :main-icons2/close {:color  (colors/theme-colors colors/white colors/neutral-100)
-                                         :height 8
-                                         :width  8}]]]))])
+         [icons/icon :i/close {:color  (colors/theme-colors colors/white colors/neutral-100)
+                               :height 8
+                               :width  8}]]]))])
