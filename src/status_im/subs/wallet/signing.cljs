@@ -38,10 +38,10 @@
  :request-transaction)
 
 (re-frame/reg-sub
- :wallet/binance-chain?
- :<- [:current-network]
- (fn [network]
-   (ethereum/binance-chain-id? (get-in network [:config :NetworkId]))))
+  :wallet/binance-chain?
+  :<- [:current-network]
+  (fn [network]
+   (ethereum/cosmos-chain-id? (get-in network [:config :NetworkId]))))
 
 (re-frame/reg-sub
  :signing/fee
