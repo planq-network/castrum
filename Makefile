@@ -206,7 +206,7 @@ build-android: export BUILD_ENV ?= prod
 build-android: export BUILD_TYPE ?= nightly
 build-android: export BUILD_NUMBER ?= $(TMP_BUILD_NUMBER)
 build-android: export ANDROID_ABI_SPLIT ?= false
-build-android: export ANDROID_ABI_INCLUDE ?= armeabi-v7a;arm64-v8a;x86
+build-android: export ANDROID_ABI_INCLUDE ?= armeabi-v7a;arm64-v8a;x86;x86_64
 build-android: ##@build Build unsigned Android APK
 	@scripts/build-android.sh
 
