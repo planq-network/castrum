@@ -150,9 +150,9 @@
 (def regx-bold #"\*[^*]+\*")
 (def regx-italic #"~[^~]+~")
 (def regx-backquote #"`[^`]+`")
-(def regx-universal-link #"((^https?://join.status.im/)|(^status-im://))[\x00-\x7F]+$")
-(def regx-community-universal-link #"((^https?://join.status.im/)|(^status-im://))c/([\x00-\x7F]+)$")
-(def regx-deep-link #"((^ethereum:.*)|(^status-im://[\x00-\x7F]+$))")
+(def regx-universal-link #"((^https?://join.planq.network/)|(^status-im://)|(^castrum://))[\x00-\x7F]+$")
+(def regx-community-universal-link #"((^https?://join.planq.network/)|(^status-im://)|(^castrum://))c/([\x00-\x7F]+)$")
+(def regx-deep-link #"((^ethereum:.*)|(^status-im://[\x00-\x7F]+$)|(^castrum://[\x00-\x7F]+$))")
 
 (def ^:const dapp-permission-contact-code "contact-code")
 (def ^:const dapp-permission-web3 "web3")
@@ -178,10 +178,10 @@
 (def ^:const one-week (* one-day 7))
 (def ^:const one-month (* one-day 31))
 
-(def ^:const privacy-policy-link "https://status.im/privacy-policy/")
-(def ^:const terms-of-service-link "https://status.im/terms-of-use")
-(def ^:const docs-link "https://status.im/docs/")
-(def ^:const principles-link "https://our.status.im/our-principles/")
+(def ^:const privacy-policy-link "https://planq.network/privacy-policy")
+(def ^:const terms-of-service-link "https://planq.network/privacy-policy")
+(def ^:const docs-link "https://docs.planq.network/developers/overview.html")
+(def ^:const principles-link "https://planq.network/community")
 
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)
