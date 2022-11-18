@@ -119,15 +119,17 @@
         network-id (get db :networks/current-network)]
     (get networks network-id)))
 
-(defn binance-chain-id? [chain-id]
+(defn cosmos-chain-id? [chain-id]
   (or (= BSC-mainnet-chain-id chain-id)
-      (= BSC-testnet-chain-id chain-id)))
+      (= BSC-testnet-chain-id chain-id)
+      (= planq-mainnet-chain-id chain-id)
+      (= evmos-mainnet-chain-id chain-id)))
 
 (defn binance-chain? [db]
   (-> db
       current-network
       network->chain-id
-      binance-chain-id?))
+      cosmos-chain-id?))
 
 (def custom-rpc-node-id-len 45)
 
