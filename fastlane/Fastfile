@@ -146,7 +146,7 @@ def build_ios_adhoc(readonly: false, pr_build: false)
       signingStyle: 'manual',
       provisioningProfiles: {
         "network.planq.castrum": "match AdHoc network.planq.castrum",
-        "network.planq.castrum": "match AdHoc network.planq.castrum"
+        "network.planq.castrum.r": "match AdHoc network.planq.castrum.pr"
       }
     }
   )
