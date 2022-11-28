@@ -59,6 +59,7 @@
 (def token-icons
   {:mainnet (resolve-icons :mainnet)
    :xdai (resolve-icons :xdai)
+   :planq-mainnet (resolve-icons :planq-mainnet)
    :custom []})
 
 (def default-token (js/require "../resources/images/tokens/default-token.png"))
