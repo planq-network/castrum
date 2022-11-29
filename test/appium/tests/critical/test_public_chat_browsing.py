@@ -344,7 +344,7 @@ class TestPublicChatBrowserOneDeviceMerged(MultipleSharedDeviceTestCase):
     def test_public_chat_open_using_deep_link(self):
         self.drivers[0].close_app()
         chat_name = self.home.get_random_chat_name()
-        deep_link = 'status-im://%s' % chat_name
+        deep_link = 'castrum://%s' % chat_name
         self.sign_in.open_weblink_and_login(deep_link)
         try:
             assert self.chat.user_name_text.text == '#' + chat_name

@@ -155,27 +155,27 @@ class TestPermissionsScanQrOneDevice(MultipleSharedDeviceTestCase):
 
         url_data = {
             'ens_with_stateofus_domain_deep_link': {
-                'url': 'https://join.status.im/u/%s.stateofus.eth' % ens_user_message_sender['ens'],
+                'url': 'https://join.planq.network/u/%s.stateofus.eth' % ens_user_message_sender['ens'],
                 'username': '@%s' % ens_user_message_sender['ens']
             },
             'ens_without_stateofus_domain_deep_link': {
-                'url': 'https://join.status.im/u/%s' % ens_user_message_sender['ens'],
+                'url': 'https://join.planq.network/u/%s' % ens_user_message_sender['ens'],
                 'username': '@%s' % ens_user_message_sender['ens']
             },
             'ens_another_domain_deep_link': {
-                'url': 'status-im://u/%s' % ens_user['ens'],
+                'url': 'castrum://u/%s' % ens_user['ens'],
                 'username': '@%s' % ens_user['ens']
             },
             'own_profile_key_deep_link': {
-                'url': 'https://join.status.im/u/%s' % self.public_key,
+                'url': 'https://join.planq.network/u/%s' % self.public_key,
                 'error': "That's you"
             },
             'other_user_profile_key_deep_link': {
-                'url': 'https://join.status.im/u/%s' % transaction_senders['M']['public_key'],
+                'url': 'https://join.planq.network/u/%s' % transaction_senders['M']['public_key'],
                 'username': transaction_senders['M']['username']
             },
             'other_user_profile_key_deep_link_invalid': {
-                'url': 'https://join.status.im/u/%sinvalid' % ens_user['public_key'],
+                'url': 'https://join.planq.network/u/%sinvalid' % ens_user['public_key'],
                 'error': 'Please enter or scan a valid chat key'
             },
             'own_profile_key': {
@@ -225,16 +225,16 @@ class TestPermissionsScanQrOneDevice(MultipleSharedDeviceTestCase):
 
         url_data = {
             'ens_without_stateofus_domain_deep_link': {
-                'url': 'https://join.status.im/u/%s' % ens_user_message_sender['ens'],
+                'url': 'https://join.planq.network/u/%s' % ens_user_message_sender['ens'],
                 'username': '@%s' % ens_user_message_sender['ens']
             },
 
             'other_user_profile_key_deep_link': {
-                'url': 'status-im://u/%s' % basic_user['public_key'],
+                'url': 'castrum://u/%s' % basic_user['public_key'],
                 'username': basic_user['username']
             },
             'other_user_profile_key_deep_link_invalid': {
-                'url': 'https://join.status.im/u/%sinvalid' % ens_user['public_key'],
+                'url': 'https://join.planq.network/u/%sinvalid' % ens_user['public_key'],
                 'error': 'Unable to read this code'
             },
             'own_profile_key': {
@@ -265,13 +265,13 @@ class TestPermissionsScanQrOneDevice(MultipleSharedDeviceTestCase):
                 },
             },
             'dapp_deep_link': {
-                'url': 'https://join.status.im/b/%s' % test_dapp_url,
+                'url': 'https://join.planq.network/b/%s' % test_dapp_url,
             },
             'dapp_deep_link_https': {
-                'url': 'https://join.status.im/b/%s' % test_dapp_url,
+                'url': 'https://join.planq.network/b/%s' % test_dapp_url,
             },
             'public_chat_deep_link': {
-                'url': 'https://join.status.im/baga-ma-2020',
+                'url': 'https://join.planq.network/baga-ma-2020',
                 'chat_name': 'baga-ma-2020'
             },
         }

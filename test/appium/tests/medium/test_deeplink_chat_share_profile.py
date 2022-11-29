@@ -40,7 +40,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
         self.drivers[0].close_app()
 
         self.sign_in.just_fyi('Check that no error when opening invalid deep link')
-        deep_link = 'status-im://u/%s' % self.public_key[:-10]
+        deep_link = 'castrum://u/%s' % self.public_key[:-10]
         self.sign_in.open_weblink_and_login(deep_link)
         self.home = self.sign_in.get_home_view()
         self.home.plus_button.click_until_presence_of_element(self.home.start_new_chat_button)
@@ -50,7 +50,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
         self.drivers[0].close_app()
 
         self.sign_in.just_fyi('Check that no error when opening own valid deep link')
-        deep_link = 'status-im://u/%s' % self.public_key
+        deep_link = 'castrum://u/%s' % self.public_key
         self.sign_in.open_weblink_and_login(deep_link)
         from views.profile_view import ProfileView
         profile = ProfileView(self.drivers)
@@ -62,7 +62,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
     def test_deep_link_open_user_profile(self):
         for user_ident in ens_user['ens'], ens_user['ens_upgrade'], ens_user['public_key']:
             self.drivers[0].close_app()
-            deep_link = 'status-im://u/%s' % user_ident
+            deep_link = 'castrum://u/%s' % user_ident
             self.sign_in.open_weblink_and_login(deep_link)
             chat = self.sign_in.get_chat_view()
             for text in ens_user['username'], self.sign_in.get_translation_by_key("add-to-contacts"):
@@ -74,7 +74,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
     def test_deep_link_open_dapp(self):
         self.drivers[0].close_app()
         dapp_name = test_dapp_url
-        dapp_deep_link = 'status-im://b/%s' % dapp_name
+        dapp_deep_link = 'castrum://b/%s' % dapp_name
         self.sign_in.open_weblink_and_login(dapp_deep_link)
         web_view = self.sign_in.get_chat_view()
         try:
@@ -97,7 +97,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
         chat.share_button.click()
         chat.share_via_messenger()
         if not chat.element_by_text_part(
-                'https://join.status.im/u/%s' % dummy_user["public_key"]).is_element_displayed():
+                'https://join.planq.network/u/%s' % dummy_user["public_key"]).is_element_displayed():
             self.errors.append("Can't share public key of contact")
         for _ in range(2):
             chat.click_system_back_button_until_element_is_shown()
@@ -113,7 +113,7 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
         self.public_chat.share_chat_button.click()
         self.public_chat.share_via_messenger()
         if not self.public_chat.element_by_text_part(
-                'https://join.status.im/%s' % self.public_chat_name).is_element_displayed():
+                'https://join.planq.network/%s' % self.public_chat_name).is_element_displayed():
             self.errors.append("Can't share link to public chat")
         for _ in range(2):
             self.public_chat.click_system_back_button_until_element_is_shown()
@@ -128,8 +128,8 @@ class TestDeeplinkChatProfileOneDevice(MultipleSharedDeviceTestCase):
         browser.options_button.click()
         browser.share_url_button.click()
         browser.share_via_messenger()
-        expeceted_text_1 = 'https://join.status.im/b/https://dap.ps'
-        expeceted_text_2 = 'https://join.status.im/b/http://dap.ps'
+        expeceted_text_1 = 'https://join.planq.network/b/https://dap.ps'
+        expeceted_text_2 = 'https://join.planq.network/b/http://dap.ps'
 
         if not (browser.element_by_text_part(expeceted_text_1).is_element_displayed() or
                 browser.element_by_text_part(expeceted_text_2).is_element_displayed()):
@@ -352,7 +352,7 @@ class TestDeeplinkOneDevice(MultipleSharedDeviceTestCase):
         self.drivers[0].close_app()
 
         self.sign_in.just_fyi('Check that no error when opening invalid deep link')
-        deep_link = 'status-im://u/%s' % self.public_key[:-10]
+        deep_link = 'castrum://u/%s' % self.public_key[:-10]
         self.sign_in.open_weblink_and_login(deep_link)
         self.home = self.sign_in.get_home_view()
         self.home.chats_tab.click_until_presence_of_element(self.home.plus_button)
@@ -362,7 +362,7 @@ class TestDeeplinkOneDevice(MultipleSharedDeviceTestCase):
         self.drivers[0].close_app()
 
         self.sign_in.just_fyi('Check that no error when opening own valid deep link')
-        deep_link = 'status-im://u/%s' % self.public_key
+        deep_link = 'castrum://u/%s' % self.public_key
         self.sign_in.open_weblink_and_login(deep_link)
         profile = self.home.get_profile_view()
         self.home.browser_tab.click()
@@ -374,7 +374,7 @@ class TestDeeplinkOneDevice(MultipleSharedDeviceTestCase):
     def test_public_chat_open_using_deep_link(self):
         self.drivers[0].close_app()
         chat_name = self.home.get_random_chat_name()
-        deep_link = 'status-im://%s' % chat_name
+        deep_link = 'castrum://%s' % chat_name
         self.sign_in.open_weblink_and_login(deep_link)
         chat = self.sign_in.get_chat_view()
         if not chat.user_name_text_new_UI.text == '#' + chat_name:
@@ -386,7 +386,7 @@ class TestDeeplinkOneDevice(MultipleSharedDeviceTestCase):
     def test_deep_link_open_user_profile(self):
         for user_ident in ens_user['ens'], ens_user['ens_upgrade'], ens_user['public_key']:
             self.drivers[0].close_app()
-            deep_link = 'status-im://u/%s' % user_ident
+            deep_link = 'castrum://u/%s' % user_ident
             self.sign_in.open_weblink_and_login(deep_link)
             chat = self.sign_in.get_chat_view()
             chat.wait_for_element_starts_with_text(ens_user['username'])
@@ -402,27 +402,27 @@ class TestDeeplinkOneDevice(MultipleSharedDeviceTestCase):
 
         url_data = {
             'ens_with_stateofus_domain_deep_link': {
-                'url': 'https://join.status.im/u/%s.stateofus.eth' % ens_user_message_sender['ens'],
+                'url': 'https://join.planq.network/u/%s.stateofus.eth' % ens_user_message_sender['ens'],
                 'username': '@%s' % ens_user_message_sender['ens']
             },
             'ens_without_stateofus_domain_deep_link': {
-                'url': 'https://join.status.im/u/%s' % ens_user_message_sender['ens'],
+                'url': 'https://join.planq.network/u/%s' % ens_user_message_sender['ens'],
                 'username': '@%s' % ens_user_message_sender['ens']
             },
             'ens_another_domain_deep_link': {
-                'url': 'status-im://u/%s' % ens_user['ens'],
+                'url': 'castrum://u/%s' % ens_user['ens'],
                 'username': '@%s' % ens_user['ens']
             },
             'own_profile_key_deep_link': {
-                'url': 'https://join.status.im/u/%s' % self.public_key,
+                'url': 'https://join.planq.network/u/%s' % self.public_key,
                 'error': "That's you"
             },
             'other_user_profile_key_deep_link': {
-                'url': 'https://join.status.im/u/%s' % transaction_senders['M']['public_key'],
+                'url': 'https://join.planq.network/u/%s' % transaction_senders['M']['public_key'],
                 'username': transaction_senders['M']['username']
             },
             'other_user_profile_key_deep_link_invalid': {
-                'url': 'https://join.status.im/u/%sinvalid' % ens_user['public_key'],
+                'url': 'https://join.planq.network/u/%sinvalid' % ens_user['public_key'],
                 'error': 'Please enter or scan a valid chat key'
             },
             'own_profile_key': {
