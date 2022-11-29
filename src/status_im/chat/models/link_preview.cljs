@@ -43,7 +43,7 @@
   {:db (community-failed-to-resolve db community-id)})
 
 (defn community-link [id]
-  (str "https://join.status.im/c/" id))
+  (str "https://join.planq.network/c/" id))
 
 (fx/defn handle-community-resolved
   {:events [::community-resolved]}

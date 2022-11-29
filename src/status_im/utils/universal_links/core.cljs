@@ -20,7 +20,7 @@
 ;; dispatched 7 times for the same link
 
 ;; domains should be without the trailing slash
-(def domains {:external "https://join.status.im"
+(def domains {:external "https://join.planq.network"
               :internal "status-im:/"})
 
 (def links {:public-chat        "%s/%s"

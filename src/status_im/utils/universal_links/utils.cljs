@@ -3,8 +3,8 @@
             [goog.string :as gstring]))
 
 ;; domains should be without the trailing slash
-(def domains {:external "https://join.status.im"
-              :internal "status-im:/"})
+(def domains {:external "https://join.planq.network"
+              :internal "castrum:/"})
 
 (def links {:public-chat "%s/%s"
             :private-chat "%s/p/%s"

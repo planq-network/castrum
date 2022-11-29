@@ -29,7 +29,7 @@
 			<string>network.planq.castrum.applink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>status-im</string>
+				<string>castrum</string>
 			</array>
 		</dict>
 		<dict>
