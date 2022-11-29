@@ -3,16 +3,13 @@
             [quo2.core :as quo2]
             [status-im.constants :as constants]
             [status-im.i18n.i18n :as i18n]
-            [status-im.multiaccounts.core :as multiaccounts]
-            [status-im.ui.screens.activity-center.notification.contact-request.style :as style]
-            [status-im.ui.screens.activity-center.utils :as activity-center.utils]
+            [status-im.ui.screens.activity-center.notification.common.view :as common]
             [status-im.utils.datetime :as datetime]
             [utils.re-frame :as rf]))
 
 (defn view
   [{:keys [id author message last-message] :as notification}]
   (let [message   (or message last-message)
-        contact   (rf/sub [:contacts/contact-by-identity author])
         pressable (case (:contact-request-state message)
                     constants/contact-request-message-state-accepted
                     ;; NOTE(2022-09-21): We need to dispatch to
@@ -30,16 +27,8 @@
                    :icon      :main-icons2/add-user
                    :timestamp (datetime/timestamp->relative (:timestamp notification))
                    :unread?   (not (:read notification))
-                   :context   [[quo2/user-avatar-tag
-                                {:color          :purple
-                                 :override-theme :dark
-                                 :size           :small
-                                 :style          style/user-avatar-tag
-                                 :text-style     style/user-avatar-tag-text}
-                                (activity-center.utils/contact-name contact)
-                                (multiaccounts/displayed-photo contact)]
-                               [quo2/text {:style style/context-tag-text}
-                                (i18n/label :t/contact-request-sent)]]
+                   :context   [[common/user-avatar-tag author]
+                               (i18n/label :t/contact-request-sent)]
                    :message   {:body (get-in message [:content :text])}
                    :status    (case (:contact-request-state message)
                                 constants/contact-request-message-state-accepted
@@ -49,10 +38,16 @@
                                 nil)}
                   (case (:contact-request-state message)
                     constants/contact-request-state-mutual
-                    {:button-1 {:label    (i18n/label :t/decline)
-                                :type     :danger
-                                :on-press #(rf/dispatch [:contact-requests.ui/decline-request id])}
-                     :button-2 {:label    (i18n/label :t/accept)
-                                :type     :positive
-                                :on-press #(rf/dispatch [:contact-requests.ui/accept-request id])}}
+                    {:button-1 {:label               (i18n/label :t/decline)
+                                :accessibility-label :decline-contact-request
+                                :type                :danger
+                                :on-press            (fn []
+                                                       (rf/dispatch [:contact-requests.ui/decline-request id])
+                                                       (rf/dispatch [:activity-center.notifications/mark-as-read id]))}
+                     :button-2 {:label               (i18n/label :t/accept)
+                                :accessibility-label :accept-contact-request
+                                :type                :positive
+                                :on-press            (fn []
+                                                       (rf/dispatch [:contact-requests.ui/accept-request id])
+                                                       (rf/dispatch [:activity-center.notifications/mark-as-read id]))}}
                     nil))])))
