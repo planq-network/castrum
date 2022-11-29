@@ -821,7 +821,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CUSTOM_PRODUCT_NAME = "Status Debug";
+				CUSTOM_PRODUCT_NAME = "Castrum Debug";
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DTX7Z4U3YA;
 				EXCLUDED_ARCHS = "";
@@ -891,7 +891,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CUSTOM_PRODUCT_NAME = Status;
+				CUSTOM_PRODUCT_NAME = Castrum;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DTX7Z4U3YA;
 				EXCLUDED_ARCHS = "";
@@ -951,7 +951,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CUSTOM_PRODUCT_NAME = "Status Debug";
+				CUSTOM_PRODUCT_NAME = "Castrum Debug";
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DTX7Z4U3YA;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1016,7 +1016,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CUSTOM_PRODUCT_NAME = Status;
+				CUSTOM_PRODUCT_NAME = Castrum;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DTX7Z4U3YA;
 				FRAMEWORK_SEARCH_PATHS = (
