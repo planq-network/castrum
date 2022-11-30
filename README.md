@@ -1,26 +1,17 @@
-# Status - a Mobile Ethereum Operating System
+# Castrum - The blockchain cosmos on your phone
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=im.status.ethereum)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=network.planq.castrum)
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/>](https://f-droid.org/packages/im.status.ethereum/)
-[<img src="doc/github_badge.png" alt="Get it on Github" height="80"/>](https://github.com/status-im/status-mobile/releases)
+[<img src="doc/github_badge.png" alt="Get it on Github" height="80"/>](https://github.com/planq-network/castrum/releases)
 
-Join us in creating a browser, messenger, and gateway to a decentralized world. Status is a free (libre) open source mobile client targeting Android & iOS built entirely on [Ethereum](https://ethereum.org/) technologies. That's right, no middle men and `go-ethereum` running directly on your device.
+Join us in creating a browser, messenger, and gateway to a decentralized world. Castrum is a free (libre) open source mobile client targeting Android & iOS built entirely on [Ethereum](https://ethereum.org/) technologies. That's right, no middle men and `go-ethereum` running directly on your device.
 
-[![Getting started with Status](https://i.imgur.com/C0aZZEL.jpg)](https://www.youtube.com/watch?v=oDCSEmS9c3o "Getting started with Status")
+Castrum is a fork of [Status](https://github.com/status-im/status-mobile) with the intent to expand it to cosmos-sdk based chains. We share a common vision and are aiming to complement the original Status app.
 
-## Why?
-
-We believe in a medium of pure free trade, economies with fair, permission-less access and a world without intermediaries. We want to create policies that can exist between friends or scale globally, we want to communicate securely and be uninhibited by legacy systems.
-
-We want to take responsibility for our data, the way we conduct ourselves privately and promote this way of life to a mass audience.
-
-We want deep insights into our own economies so we can make informed, data-driven decisions on how to make our lives better. The Ethereum blockchain, Smart Contracts, Swarm and Whisper provides us a path forward.
-
-If this interests you, **help us make Status a reality** - anyone can contribute and we need everyone at any skill level to participate.
 
 ## How to Contribute?
 
-Go straight to the [docs](https://status.im/docs) or [join our chat](https://join.status.im/chat/public/status) and choose what interests you:
+Go straight to the [Status Docs](https://status.im/docs) or [join our chat](https://join.planq.network/chat/public/castrum) and choose what interests you:
 
 - **Developer** Developers are the heart of software and to keep Status beating
 we need all the help we can get! If you're looking to code in ClojureScript or
@@ -53,27 +44,17 @@ Status is a visual interface to make permanent changes on the Blockchain, it han
 Help us spread the word! Tell a friend *right now*, in fact tell **everyone** - yell from a mountain if you have to, every person counts! If you've got a great story to tell or have some interesting way you've spread the word about Status let us know about it in our [chat](https://join.status.im/chat/public/status)
 
 ## Status API
-View our [API Docs](https://status.im/developer_tools/status_web_api.html) and learn how to integrate your DApp into Status. You can read more about how to add your DApp to Status [here](https://status.im/developer_tools/add_your_dapp.html).
+* As Castrum is a fork of Status, we are supporting (mostly) the below API of Status.
+* View our [API Docs](https://status.im/developer_tools/status_web_api.html) and learn how to integrate your DApp into Status. You can read more about how to add your DApp to Status [here](https://status.im/developer_tools/add_your_dapp.html).
 
 ## Give me Binaries!
 
-You can get our Beta builds for both Android and iOS on our [website](https://status.im), through our [nightly builds](https://status.im/nightly/) or by [building it yourself](https://status.im/technical/build_status/).
-
-## Core Contributors
-
-[Core Team Members](https://github.com/orgs/status-im/people)
-
-Special thanks to [@adrian-tiberius](https://github.com/adrian-tiberius).
-Without the dedication of these outstanding individuals, Status would not exist.
+You can get our Beta builds for both Android and iOS on our [Github](https://github.com/planq-network/castrum/releases/).
 
 ## Contact us
 
-Feel free to email us at [support@status.im](mailto:support@status.im) or better yet, [join our chat](https://join.status.im/chat/public/status).
+Feel free to email us at [castrum@planq.network](mailto:castrum@planq.network) or better yet, [join our chat](https://join.planq.network/chat/public/castrum).
 
 ## License
 
-Licensed under the [Mozilla Public License v2.0](https://github.com/status-im/status-mobile/blob/develop/LICENSE.md)
-
-## Testing Supported by
-
-[![BrowserStack Status](https://www.browserstack.com/automate/badge.svg?badge_key=SFBWQ3k5R2tnT2t6UGsxU1h1U0g3VFlCNnoxVTRHYWNoTDhsb1laaTJZWT0tLUZMUm5sSVFBSU9qSWM1RUJvK1I3Z3c9PQ==--ad15ae7992b432b33743749d40318952415bd98f)](https://www.browserstack.com/automate/public-build/SFBWQ3k5R2tnT2t6UGsxU1h1U0g3VFlCNnoxVTRHYWNoTDhsb1laaTJZWT0tLUZMUm5sSVFBSU9qSWM1RUJvK1I3Z3c9PQ==--ad15ae7992b432b33743749d40318952415bd98f)
+Licensed under the [Mozilla Public License v2.0](https://github.com/planq-network/castrum/blob/develop/LICENSE.md)
