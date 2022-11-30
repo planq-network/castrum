@@ -28,7 +28,7 @@
    :keycard-connection (js/require "../resources/images/ui/keycard-connection.png")
    :keycard-wrong      (js/require "../resources/images/ui/keycard-wrong.png")
    :not-keycard        (js/require "../resources/images/ui/not-keycard.png")
-   :status-logo        (js/require "../resources/images/ui/status-logo.png")
+   :status-logo        (js/require "../resources/images/ui/castrum-logo.png")
    :warning-sign       (js/require "../resources/images/ui/warning-sign.png")
    :phone-nfc-on       (js/require "../resources/images/ui/phone-nfc-on.png")
    :phone-nfc-off      (js/require "../resources/images/ui/phone-nfc-off.png")
