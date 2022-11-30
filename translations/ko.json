@@ -950,7 +950,7 @@
     "mailserver-error-content": "선택한 스테이터스 노드에 연결할 수 없습니다.",
     "mailserver-error-title": "스테이터스 노드에 연결하던 중 오류가 발생했습니다",
     "mailserver-format": "enode:\/\/{enode-id}:{password}@{ip-address}:{port}",
-    "mailserver-pick-another": "다른 Status 노드 선택",
+    "mailserver-pick-another": "다른 Castrum 노드 선택",
     "mailserver-reconnect": "스테이터스 노드에 연결할 수 없습니다. 화면을 터치하여 다시 연결하세요",
     "mailserver-request-error-content": "스테이터스 노드가 다음 오류를 반환했습니다: {{error}}",
     "mailserver-request-error-status": "기록을 가져 오던 중 오류가 발생했습니다. 자세한 내용은 로그를 확인해주세요",

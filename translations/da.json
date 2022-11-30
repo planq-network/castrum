@@ -19,10 +19,10 @@
         "other": "timer"
     },
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "Gå venligst til dine systemindstillinger og sørg  for at du Status > Kamera er tilladt.",
+    "camera-access-error": "Gå venligst til dine systemindstillinger og sørg  for at du Castrum > Kamera er tilladt.",
     "remove": "Fjern",
     "add-members": "Tilføj medlemmere",
-    "photos-access-error": "Gå venligst til dine systemindstillinger og sørg  for at du Status > Billeder er tilladt.",
+    "photos-access-error": "Gå venligst til dine systemindstillinger og sørg  for at du Castrum > Billeder er tilladt.",
     "done": "Klar",
     "delete-chat": "Fjern samtale",
     "new-group-chat": "Ny gruppsamtale",
@@ -102,7 +102,7 @@
         "other": "{{count}} medlemmer",
         "zero": "ingen medlemmer"
     },
-    "intro-message1": "Velkommen til Status\n Tryk på denne meddelelse for at angive din adgangskode og komme i gang!",
+    "intro-message1": "Velkommen til Castrum\n Tryk på denne meddelelse for at angive din adgangskode og komme i gang!",
     "new-contact": "Ny kontakt",
     "datetime-second": {
         "one": "sekund",

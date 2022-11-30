@@ -19,10 +19,10 @@
         "other": "stundas"
     },
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "Kļūda, nav atļaujas piekļūt kamerai. Lūdzu, iestatījumos pārliecinies, ka  Status > Camera ir izvēlēts.",
+    "camera-access-error": "Kļūda, nav atļaujas piekļūt kamerai. Lūdzu, iestatījumos pārliecinies, ka  Castrum > Camera ir izvēlēts.",
     "remove": "Noņemt",
     "add-members": "Pievienot biedrus",
-    "photos-access-error": "Kļūda, nav atļaujas piekļūt fotogrāfijām. Lūdzu, iestatījumos pārliecinies, ka Status > Photos ir izvēlēts.",
+    "photos-access-error": "Kļūda, nav atļaujas piekļūt fotogrāfijām. Lūdzu, iestatījumos pārliecinies, ka Castrum > Photos ir izvēlēts.",
     "done": "Darīts",
     "delete-chat": "Dzēst čatu",
     "new-group-chat": "Jauna grupa",

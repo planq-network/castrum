@@ -101,7 +101,7 @@
         "other": "{{count}} miembros",
         "zero": "no hay miembros"
     },
-    "intro-message1": "¡Bienvenid@ a Status\nToca este mensaje para configurar tu contraseña y empezar!",
+    "intro-message1": "¡Bienvenid@ a Castrum\nToca este mensaje para configurar tu contraseña y empezar!",
     "datetime-second": {
         "one": "segundo",
         "other": "segundos"

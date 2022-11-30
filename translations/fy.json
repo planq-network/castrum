@@ -19,10 +19,10 @@
         "other": "oeren"
     },
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "Om de kamera tastimming te jaan, gea nei dyn systeem ynstellings en wêz wis dat Status > Camera selektearre is.",
+    "camera-access-error": "Om de kamera tastimming te jaan, gea nei dyn systeem ynstellings en wêz wis dat Castrum > Camera selektearre is.",
     "remove": "Fuortsmite",
     "add-members": "Foegje leden ta",
-    "photos-access-error": "Om ús tastimming te jaan oan dyn foto's, gea nei dyn systeem ynstellings en wêz wis dat Status > Foto's selektearre is.",
+    "photos-access-error": "Om ús tastimming te jaan oan dyn foto's, gea nei dyn systeem ynstellings en wêz wis dat Castrum > Foto's selektearre is.",
     "done": "Klear",
     "delete-chat": "Chat fuortsmite",
     "new-group-chat": "Nije groepchat",
@@ -101,7 +101,7 @@
         "other": "{{count}} leden",
         "zero": "gjin leden"
     },
-    "intro-message1": "Wolkom by Status\nTik op dit berjocht om dyn wachtwurd yn te stellen en oan de slach te gean!",
+    "intro-message1": "Wolkom by Castrum\nTik op dit berjocht om dyn wachtwurd yn te stellen en oan de slach te gean!",
     "new-contact": "Nije kontaktpersoanen",
     "datetime-second": {
         "one": "sekonde ",

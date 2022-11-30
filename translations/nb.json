@@ -20,10 +20,10 @@
     },
     "wallet-settings": "Lommeboksinstillinger",
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "For å tillate bruk av kamera, gå til systeminstillinger og sørg for at Status > Kamera er aktivert.",
+    "camera-access-error": "For å tillate bruk av kamera, gå til systeminstillinger og sørg for at Castrum > Kamera er aktivert.",
     "remove": "Fjern",
     "add-members": "Legg til medlemmer",
-    "photos-access-error": "For å tillate bruk av bilder, gå til systeminstillinger og sørg for at Status > Bilder er aktivert.",
+    "photos-access-error": "For å tillate bruk av bilder, gå til systeminstillinger og sørg for at Castrum > Bilder er aktivert.",
     "done": "Ferdig",
     "delete-chat": "Fjern melding",
     "new-group-chat": "Ny gruppemelding",
@@ -110,7 +110,7 @@
         "other": "{{count}} medlemmer",
         "zero": "ingen medlemmer"
     },
-    "intro-message1": "Velkommen til Status\nTrykk på denne beskjeden for å sette et passord og komme i gang!",
+    "intro-message1": "Velkommen til Castrum\nTrykk på denne beskjeden for å sette et passord og komme i gang!",
     "transactions-history": "Historikk",
     "new-contact": "Ny kontakt",
     "datetime-second": {

@@ -19,10 +19,10 @@
         "other": "hodin(y)"
     },
     "datetime-ago-format": "{{ago}} {{number}} {{time-intervals}}",
-    "camera-access-error": "Pro udělení potřebných oprávnění ke kameře přejděte do nastavení systému a ujistěte se, že je vybráno Status > Kamera.",
+    "camera-access-error": "Pro udělení potřebných oprávnění ke kameře přejděte do nastavení systému a ujistěte se, že je vybráno Castrum > Kamera.",
     "remove": "Odstranit",
     "add-members": "Přidat členy",
-    "photos-access-error": "Pro udělení potřebných oprávnění k fotoaparátu přejděte do nastavení systému a ujistěte se, že je vybráno Status > Fotoaparát.",
+    "photos-access-error": "Pro udělení potřebných oprávnění k fotoaparátu přejděte do nastavení systému a ujistěte se, že je vybráno Castrum > Fotoaparát.",
     "done": "Hotovo",
     "delete-chat": "Smazat chat",
     "new-group-chat": "Nový skupinový chat",
@@ -110,7 +110,7 @@
     },
     "intro-message1": [
         "str",
-        "Vítá vás Status\nKlepněte na tuto zprávu pro nastavení hesla a zahájení!"
+        "Vítá vás Castrum\nKlepněte na tuto zprávu pro nastavení hesla a zahájení!"
     ],
     "transactions-history": "Historie",
     "new-contact": "Nový kontakt",

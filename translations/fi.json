@@ -19,10 +19,10 @@
         "other": "tuntia"
     },
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "Myöntääksesi vaadittu kameran käyttölupa, siirry järjestelmäasetuksiin ja varmista, että Status > Kamera on valittu.",
+    "camera-access-error": "Myöntääksesi vaadittu kameran käyttölupa, siirry järjestelmäasetuksiin ja varmista, että Castrum > Kamera on valittu.",
     "remove": "Poista",
     "add-members": "Lisää käyttäjiä",
-    "photos-access-error": "Myöntääksesi vaadittu kuvien käyttölupa, siirry järjestelmäasetuksiin ja varmista, että Status > Kuvat on valittu.",
+    "photos-access-error": "Myöntääksesi vaadittu kuvien käyttölupa, siirry järjestelmäasetuksiin ja varmista, että Castrum > Kuvat on valittu.",
     "done": "Valmis",
     "delete-chat": "Poista keskustelu",
     "new-group-chat": "Uusi ryhmäkeskustelu",
