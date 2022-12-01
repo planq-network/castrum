@@ -11,9 +11,6 @@
 (def descriptor [{:label "Unread?"
                   :key   :unread?
                   :type  :boolean}
-                 {:label "Replying?"
-                  :key   :replying?
-                  :type  :boolean}
                  {:label   "Icon"
                   :key     :icon
                   :type    :select
@@ -140,10 +137,6 @@
 
                                        (= (:message @state) :with-mention)
                                        (assoc :message message-with-mention)
-
-                                       (some? (:status @state))
-                                       (update :status (fn [status]
-                                                         {:label (name status) :type status}))
 
                                        (= (:message @state) :with-title)
                                        (assoc :message message-with-title)
