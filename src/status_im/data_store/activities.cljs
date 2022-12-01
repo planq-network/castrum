@@ -4,7 +4,7 @@
             [status-im.constants :as constants]
             [status-im.activity-center.notification-types :as notification-types]
             [status-im.data-store.messages :as messages]
-            [status-im2.setup.config :as config]))
+            [status-im.utils.config :as config]))
 
 (defn- rpc->type [{:keys [type name] :as chat}]
   (case type
