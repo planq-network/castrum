@@ -695,7 +695,8 @@
     :as   params}]
   (when (:multiaccount db)
     (let [syncing-allowed? (mobile-network-utils/syncing-allowed? cofx)
-          binance-chain?   (ethereum/binance-chain? db)]
+          binance-chain?   (ethereum/binance-chain? db)
+          addresses   (map :address (get db :multiaccount/accounts))]
       (log/info "restart-wallet-service"
                 "force-restart?" force-restart?
                 "syncing-allowed?" syncing-allowed?
@@ -758,7 +759,8 @@
                    :wallet/last-pull-time now
                    :wallet/refreshing-history? true)}
        (restart-wallet-service
-        {:force-restart? true})))))
+        {:force-restart? true})
+       (update-balances nil true)))))
 
 (re-frame/reg-fx
  ::start-watching
