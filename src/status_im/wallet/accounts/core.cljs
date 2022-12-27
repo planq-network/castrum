@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.ethereum.core :as ethereum]
+            [status-im.cosmos.core :as cosmos]
             [status-im.ethereum.eip55 :as eip55]
             [status-im.ethereum.eip681 :as eip681]
             [status-im.ethereum.json-rpc :as json-rpc]

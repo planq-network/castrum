@@ -61,6 +61,19 @@
 ; currently not supported in status-go
 (def enable-remove-profile-picture? false)
 
+(def network-type:evm "0" )
+(def network-type:cosmos "1" )
+(def network-type:hybrid "2" )
+
+(defn evm-only-chain? [network]
+  (get-in network [:config :NetworkType network-type:evm]))
+
+(defn cosmos-only-chain? [network]
+  (get-in network [:config :NetworkType network-type:cosmos]))
+
+(defn hybrid-chain? [network]
+  (get-in network [:config :NetworkType network-type:hybrid]))
+
 (def verify-transaction-chain-id (js/parseInt (get-config :VERIFY_TRANSACTION_CHAIN_ID "1")))
 (def verify-transaction-url (if (= :mainnet (ethereum/chain-id->chain-keyword verify-transaction-chain-id))
                               mainnet-rpc-url
@@ -103,6 +116,7 @@
     :chain-explorer-link "https://blockscout.com/xdai/mainnet/address/",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :xdai)
                           :DataDir        "/castrum/xdai_rpc"
+                          :NetworkType    network-type:evm
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://gnosischain-rpc.gateway.pokt.network"}}}
    {:id                  "bsc_rpc",
@@ -110,20 +124,41 @@
     :name                "BSC Network",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :bsc)
                           :DataDir        "/castrum/bsc_rpc"
+                          :NetworkType    network-type:hybrid
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://bsc-dataseed.binance.org"}}}
    {:id                  "planq_rpc",
     :name                "Planq Network",
     :chain-explorer-link "https://evm.planq.network/address/",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :planq-mainnet)
+                          :CosmosChainID  "planq_7070-2"
+                          :Slip44         "60"
+                          :Bech32Prefix   "plq"
                           :DataDir        "/castrum/planq_rpc"
+                          :KeyAlgorithm   "ethsecp256k1"
+                          :NetworkType    network-type:hybrid
+                          :Fees           {:FeeTokens [{:Denom "aplanq"
+                                                        :FixedMinGasPrice "20000000000"
+                                                        :LowGasPrice "20000000000"
+                                                        :AverageGasPrice "25000000000"
+                                                        :HighGasPrice "40000000000"}]}
+                          :Staking        {:StakingTokens [{:Denom "aplanq"}]}
+                          :Assets         {:DenomUnits [{:Denom "aplanq"
+                                                         :Exponent 0}
+                                                        {:Denom "planq"
+                                                         :Exponent "18"}]}
                           :UpstreamConfig {:Enabled true
-                                           :URL     "https://evm-rpc.planq.network"}}}
+                                           :URL     "https://evm-rpc.planq.network"
+                                           :RpcURL  "https://rpc.planq.network"
+                                           :RestURL "https://rest.planq.network"}
+                          :Explorers      {:Cosmos  "https://explorer.planq.network/transactions/${txHash}"
+                                           :EVM     "https://evm.planq.network/tx/${txHash}"}}}
    {:id                  "evmos_rpc",
     :name                "Evmos",
     :chain-explorer-link "https://evm.evmos.org/address/",
     :config              {:NetworkId      (ethereum/chain-keyword->chain-id :evmos-mainnet)
                           :DataDir        "/castrum/evmos_rpc"
+                          :NetworkType    network-type:hybrid
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://eth.bd.evmos.org:8545"}}}])
 
