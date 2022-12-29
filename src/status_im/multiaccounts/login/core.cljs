@@ -142,6 +142,7 @@
     ;; NOTE: Local notifications should be enabled only after wallet was started
     ::enable-local-notifications nil}
    (check-invalid-ens)
+   (wallet/assoc-bech32)
    (wallet/initialize-tokens tokens custom-tokens)
    (wallet/initialize-favourites favourites)
    (wallet/get-pending-transactions)

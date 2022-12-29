@@ -3,6 +3,7 @@
             [status-im.multiaccounts.update.core :as multiaccounts.update]
             [status-im.utils.config :as config]
             [status-im.qr-scanner.core :as qr-scaner]
+            [status-im.cosmos.core :as cosmos]
             [status-im.ethereum.core :as ethereum]
             [status-im.ethereum.eip55 :as eip55]
             [status-im.ethereum.json-rpc :as json-rpc]
@@ -262,6 +263,16 @@
     (if checked?
       (conj tokens-id token-id)
       (disj tokens-id token-id))))
+
+(fx/defn assoc-bech32
+  {:events [::update-bech32-success]}
+  [{:keys [db]}]
+  (let [addresses (map (comp string/lower-case :address)
+                (get db :multiaccount/accounts))]
+    (map (fn [address]
+  {:db (assoc-in db
+                [:wallet :accounts  (eip55/address->checksum address) :bech32-addr]
+                (cosmos/convert-address address db))} addresses))))
 
 (fx/defn update-balance
   {:events [::update-balance-success]}
