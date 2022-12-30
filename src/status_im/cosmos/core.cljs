@@ -7,10 +7,12 @@
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
             [oops.core :refer [oget ocall gget oget+]]
-            ["@keplr-wallet/cosmos" :refer (Bech32Address)]))
+            [oops.helpers :refer [get-constructor]]
+            ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]))
 
-(def bech32-address-ctor (gget "Bech32Address"))
-(def bech32-address (bech32-address-ctor. <args>))
+;(def bech32-address-ctor (gget "Bech32Address"))
+;(def bech32-address (bech32-address-ctor. <args>))
+(defn bech32-address [opts] ((get-constructor Bech32Address) (clj->js opts)))
 (defn to-bech32 [opts] (oget+ Bech32Address "toBech32" (clj->js opts)))
 (defn from-bech32 [opts] (oget+ Bech32Address "fromBech32" (clj->js opts)))
 (def bech32-to-hex (oget+ Bech32Address "toHex"))
