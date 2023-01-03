@@ -125,6 +125,7 @@
       (= planq-mainnet-chain-id chain-id)
       (= evmos-mainnet-chain-id chain-id)))
 
+
 (defn binance-chain? [db]
   (-> db
       current-network

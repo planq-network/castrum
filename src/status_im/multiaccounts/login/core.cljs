@@ -142,7 +142,6 @@
     ;; NOTE: Local notifications should be enabled only after wallet was started
     ::enable-local-notifications nil}
    (check-invalid-ens)
-   (wallet/assoc-bech32)
    (wallet/initialize-tokens tokens custom-tokens)
    (wallet/initialize-favourites favourites)
    (wallet/get-pending-transactions)
@@ -165,6 +164,8 @@
    (when (ethereum/binance-chain? db)
      (wallet/request-current-block-update))
    (prices/update-prices)
+   (log/info "[login-core] calling assoc-bech32")
+   (wallet/assoc-bech32)
    (wallet-connect-legacy/get-connector-session-from-db)))
 
 (fx/defn login

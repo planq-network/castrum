@@ -265,14 +265,23 @@
       (disj tokens-id token-id))))
 
 (fx/defn assoc-bech32
-  {:events [::update-bech32-success]}
-  [{:keys [db]}]
+  [{:keys [db] :as cofx}]
+  (log/info "[wallet-core] calling assoc-bech32")
   (let [addresses (map (comp string/lower-case :address)
-                (get db :multiaccount/accounts))]
-    (map (fn [address]
+                      (get db :multiaccount/accounts))]
+   (log/info "[wallet-core] addresses " addresses)
+   (apply fx/merge
+          cofx
+          (map (fn [address]
+          (assoc-bech32-to-address address))
+        addresses))))
+
+(fx/defn assoc-bech32-to-address
+  [{:keys [db]} address]
+  (log/info "[wallet-core] bech32-to-address " (cosmos/convert-address address db))
   {:db (assoc-in db
-                [:wallet :accounts  (eip55/address->checksum address) :bech32-addr]
-                (cosmos/convert-address address db))} addresses))))
+                [:wallet :accounts (eip55/address->checksum address) :bech32-addr]
+                (cosmos/convert-address address db))})
 
 (fx/defn update-balance
   {:events [::update-balance-success]}

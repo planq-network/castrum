@@ -6,32 +6,35 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
-            [oops.core :refer [oget ocall gget oget+]]
-            [oops.helpers :refer [get-constructor]]
+            [oops.core :refer [oget ocall gget oget+ ocall+]]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]))
 
-;(def bech32-address-ctor (gget "Bech32Address"))
-;(def bech32-address (bech32-address-ctor. <args>))
-(defn bech32-address [opts] ((get-constructor Bech32Address) (clj->js opts)))
-(defn to-bech32 [opts] (oget+ Bech32Address "toBech32" (clj->js opts)))
-(defn from-bech32 [opts] (oget+ Bech32Address "fromBech32" (clj->js opts)))
-(def bech32-to-hex (oget+ Bech32Address "toHex"))
+(defn- string-to-bytes [s]
+  (bytes (map (comp byte int) s)))
+(defn bech32-address [opts] (new Bech32Address (clj->js(string-to-bytes opts))))
+
+(defn to-bech32 [object opts] (ocall+ object "toBech32" opts))
+
+(defn from-bech32 [opts] (ocall+ Bech32Address "fromBech32" (clj->js opts)))
+
+(defn bech32-to-hex [object] (ocall+ object "toHex"))
 
 
-
-(defn get-bech32-prefix
-      [{:networks/keys [current-network networks]}]
-      (get networks current-network)
-      (get-in current-network [:config :Bech32Prefix]))
+(defn get-bech32-prefix [db]
+  (let [networks (get db :networks/networks)
+        current-network-id (get db :networks/current-network)
+        current-network (get networks current-network-id)]
+      (get-in current-network [:config :Bech32Prefix])))
 
 (defn convert-address [address db]
+  (log/info "[cosmos-module] bech32-addr")
   (if (string/starts-with? address "0x")
     (let [addr (string/replace address "0x" "")
           bech32-prefix (get-bech32-prefix db)
-          bech32-addr (bech32-address (aget addr 0))]
-
-    (update bech32-addr to-bech32(bech32-addr {:prefix bech32-prefix}))
-    (bech32-addr))
+          bech32-addr (bech32-address addr)]
+      (log/info "[cosmos-module] bech32-addr" bech32-addr
+                "bech32-prefix" bech32-prefix)
+    (to-bech32 bech32-addr bech32-prefix))
     (let [bech32-prefix (get-bech32-prefix db)
           bech32-addr (from-bech32 {:bech32Address address :prefix bech32-prefix})]
            (bech32-to-hex(bech32-addr))
