@@ -6,19 +6,24 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
+            [goog.crypt :as c]
             [oops.core :refer [oget ocall gget oget+ ocall+]]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]))
 
-(defn- string-to-bytes [s]
-  (bytes (map (comp byte int) s)))
-(defn bech32-address [opts] (new Bech32Address (clj->js(string-to-bytes opts))))
+(defn string-to-bytes [opts]
+  (c/hexToByteArray opts))
 
-(defn to-bech32 [object opts] (ocall+ object "toBech32" opts))
+(defn bech32-address [opts]
+  (new Bech32Address (clj->js(string-to-bytes opts))))
 
-(defn from-bech32 [opts] (ocall+ Bech32Address "fromBech32" (clj->js opts)))
+(defn to-bech32 [object opts]
+  (ocall+ object "toBech32" opts))
 
-(defn bech32-to-hex [object] (ocall+ object "toHex"))
+(defn from-bech32 [opts]
+  (ocall+ Bech32Address "fromBech32" (clj->js opts)))
 
+(defn bech32-to-hex [object]
+  (ocall+ object "toHex"))
 
 (defn get-bech32-prefix [db]
   (let [networks (get db :networks/networks)
@@ -27,13 +32,10 @@
       (get-in current-network [:config :Bech32Prefix])))
 
 (defn convert-address [address db]
-  (log/info "[cosmos-module] bech32-addr")
   (if (string/starts-with? address "0x")
     (let [addr (string/replace address "0x" "")
           bech32-prefix (get-bech32-prefix db)
           bech32-addr (bech32-address addr)]
-      (log/info "[cosmos-module] bech32-addr" bech32-addr
-                "bech32-prefix" bech32-prefix)
     (to-bech32 bech32-addr bech32-prefix))
     (let [bech32-prefix (get-bech32-prefix db)
           bech32-addr (from-bech32 {:bech32Address address :prefix bech32-prefix})]
