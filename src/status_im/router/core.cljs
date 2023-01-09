@@ -17,7 +17,7 @@
 
 (def ethereum-scheme "ethereum:")
 
-(def uri-schemes ["status-im://" "status-im:"])
+(def uri-schemes ["status-im://" "status-im:" "castrum://" "castrum:"])
 
 (def wallet-connect-scheme "wc:")
 
