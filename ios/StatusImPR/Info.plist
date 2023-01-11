@@ -74,7 +74,7 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Status uses camera to take pictures and scan QR codes.</string>
+	<string>Castrum uses camera to take pictures and scan QR codes.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Enabling Face ID allows you quick and secure access to your account.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
