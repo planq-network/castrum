@@ -73,7 +73,7 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Status uses camera to take pictures and scan QR codes.</string>
+	<string>Castrum uses camera to take pictures and scan QR codes.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Location access is required for some DApps to function properly.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
