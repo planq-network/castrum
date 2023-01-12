@@ -902,7 +902,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StatusIm/StatusIm.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CUSTOM_PRODUCT_NAME = Castrum;
 				DEAD_CODE_STRIPPING = YES;
@@ -951,7 +951,7 @@
 				PRODUCT_NAME = StatusIm;
 				PROVISIONING_PROFILE = "e2202b12-7a66-4ff7-af3c-a52e35f32dc1";
 				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc network.planq.castrum";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Castrum Development";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Castrum Release";
 				SWIFT_OBJC_BRIDGING_HEADER = "StatusIm-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
