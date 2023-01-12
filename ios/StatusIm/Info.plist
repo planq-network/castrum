@@ -6,8 +6,6 @@
 	<string>????</string>
 	<key>CFBundleCommitHash</key>
 	<string>unknown</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Enabling Face ID allows you quick and secure access to your account.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -50,15 +48,15 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
-	<key>ITSEncryptionExportComplianceCode</key>
-	<string>1aa92c4d-6194-4d7d-b70a-16b48256b87e</string>
+	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>whatsapp</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>Enable Keycard</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -74,16 +72,18 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Castrum uses camera to take pictures and scan QR codes.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Enabling Face ID allows you quick and secure access to your account.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Location access is required for some DApps to function properly.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required for some DApps to function properly.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photos access is required to give you the ability to send images.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Photos access is required to give you the ability to save images.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Need microphone access for sending audio messages.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Photos access is required to give you the ability to save images.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photos access is required to give you the ability to send images.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter-Bold.otf</string>
