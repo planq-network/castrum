@@ -2,7 +2,7 @@
 
 app_identifier('network.planq.castrum') # The bundle identifier of your app
 apple_id(ENV['FASTLANE_APPLE_ID']) # Your Apple email address
-itc_team_id('118430139') # iTunes Connect Team ID
+itc_team_id('125802400') # iTunes Connect Team ID
 
 for_platform :ios do
   for_lane :pr do
