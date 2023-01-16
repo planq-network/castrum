@@ -16,7 +16,7 @@
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]))
 
-(def report-email "error-reports@status.im")
+(def report-email "support@planq.network")
 (def max-log-entries 1000)
 (def logs-queue (atom #queue[]))
 (defn add-log-entry [entry]
