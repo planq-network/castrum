@@ -55,7 +55,7 @@
 
 (defn- get-base-node-config [config]
   (cond-> (assoc config
-                 :Name "StatusIM")
+                 :Name "CastrumIM")
     config/dev-build?
     (assoc :ListenAddr ":30304"
            :DataDir (str (:DataDir config) "_dev"))))
