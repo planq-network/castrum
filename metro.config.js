@@ -4,6 +4,8 @@
  *
  * @format
  */
+const defaultResolver = require('metro-resolver').resolve;
+
 module.exports = {
     transformer: {
         getTransformOptions: async () => ({
@@ -15,5 +17,22 @@ module.exports = {
     },
     resolver: {
         extraNodeModules: require('node-libs-react-native'),
+        resolveRequest: (context, moduleName, platform, realModuleName) => {
+        if (moduleName.startsWith('@ledgerhq/devices') || moduleName.startsWith('@ledgerhq/cryptoassets') ) {
+          return {
+            filePath: require.resolve(moduleName, {
+              paths: [
+                require('path').dirname(context.originModulePath),
+              ],
+            }),
+            type: 'sourceFile',
+          };
+        }
+        return defaultResolver(
+                {
+                  ...context,
+                  resolveRequest: null,
+                }, moduleName, platform, realModuleName);
+        },
     },
 };
