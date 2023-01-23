@@ -22,7 +22,7 @@
                ::logout                              nil
                ::multiaccounts/webview-debug-changed false
                :keychain/clear-user-password         key-uid
-               :setup/open-multiaccounts             #(re-frame/dispatch [:setup/initialize-multiaccounts % {:logout? logout?}])}
+               ::init/open-multiaccounts             #(re-frame/dispatch [::init/initialize-multiaccounts % {:logout? logout?}])}
               (keychain/save-auth-method key-uid auth-method)
               (wallet/clear-timeouts)
               (init/initialize-app-db))))
