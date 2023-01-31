@@ -179,7 +179,7 @@
 (def ^:const one-month (* one-day 31))
 
 (def ^:const privacy-policy-link "https://planq.network/privacy-policy")
-(def ^:const terms-of-service-link "https://planq.network/privacy-policy")
+(def ^:const terms-of-service-link "https://static.planq.network/tos-castrum.pdf")
 (def ^:const docs-link "https://docs.planq.network/developers/overview.html")
 (def ^:const principles-link "https://planq.network/community")
 
