@@ -8,7 +8,7 @@ This document explains some of the steps that are involved in releases.
 
 All the coordination is done in the `#release` channel on discord.
 
-Release readiness can be tracked by watching an appropriate milestone at [milestones](https://github.com/status-im/status-mobile/milestones) section in github.
+Release readiness can be tracked by watching an appropriate milestone at [milestones](https://github.com/planq-network/castrum/milestones) section in github.
 
 When release is building you can check the progress in a testrail. Ask @churik for access if you don't have it
 
@@ -25,7 +25,7 @@ Upon script call two branches will be created:
 - `release/a.b.x`
 - `chore/update-release-to-$version`
 
-The first one is the main release branch. All bugfixes should be cherry-picked from `develop` to it.  Jenkins treats that branch specially and prepares release builds from it. 
+The first one is the main release branch. All bugfixes should be cherry-picked from `develop` to it.  Jenkins treats that branch specially and prepares release builds from it.
 
 The second branch only updates the `VERSION` file and all you need to do is to merge it to `develop`. If you have the `gh` command installed, `cut-release` script will automatically create a PR for this.
 
@@ -45,7 +45,7 @@ For example, valid branch names are:
 We need to update the `VERSION` file to reflect the release we want to build.
 
 
-## Building 
+## Building
 
 Jenkins will automatically build this branch and create release candidates.
 Those will go through the QA process and the QA team will let us know when
@@ -59,7 +59,7 @@ release branch.
 
 It is a release manager's responsibility to cherry-pick bugfix from `develop` to release branch. In order to do this, you should be a part of a `release group` on github. Contact @jakubgs to be added.
 
-If cherry-picking not practical for some reason (i.e develop has diverged significantly from release) 
+If cherry-picking not practical for some reason (i.e develop has diverged significantly from release)
 other workflows are possible.
 
 To change status-go, a similar workflow applies.
@@ -81,7 +81,7 @@ For example valid names are:
 
 Once the branch is ready to use and tested successfully, tag the branch:
 
-`git tag v0.62.3+hotfix.2` 
+`git tag v0.62.3+hotfix.2`
 
 Push the branch and then the tag to origin:
 `git push --set-upstream origin release/v0.62.3+hotfix.2`

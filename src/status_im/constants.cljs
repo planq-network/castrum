@@ -164,7 +164,7 @@
 (def ^:const web3-send-async-callback "web3-send-async-callback")
 (def ^:const scan-qr-code "scan-qr-code")
 
-(def ^:const faq "https://status.im/faq/")
+(def ^:const faq "https://planq.network/")
 (def ^:const faq-keycard (str faq "#keycard"))
 (def ^:const keycard-integration-link "https://status.im/keycard-integration")
 
