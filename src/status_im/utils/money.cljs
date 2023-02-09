@@ -81,9 +81,11 @@
 (defn to-fixed
   ([^js bn]
    (when bn
+     (.config BigNumber 4 0 25)
      (.toFixed bn)))
   ([^js bn b]
    (when bn
+     (.config BigNumber 4 0 25)
      (.toFixed bn b))))
 
 (defn to-number [^js bn]
