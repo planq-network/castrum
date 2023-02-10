@@ -38,6 +38,8 @@
   (.addEventListener react-native-shake "ShakeEvent" #(re-frame/dispatch [:shake-event]))
 
   (re-frame/dispatch-sync [:init/app-started])
+  (re-frame/dispatch-sync [:keplr-store/init])
+
 
   (utils.universal-links/initialize)
 
