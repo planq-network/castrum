@@ -8,6 +8,8 @@
             [status-im.ui.screens.wallet.signing-phrase.views :as signing-phrase]
             [status-im.ui.screens.communities.views :as communities]
             [status-im.ui.screens.wallet.request.views :as request]
+            [status-im.cosmos.views.wallet.request.share  :as cosmos-share-view]
+
             [status-im.ui.screens.profile.user.views :as profile.user]
             ["react-native" :refer (BackHandler)]
             [status-im.ui.screens.reset-password.views :as reset-password.views]
@@ -128,7 +130,7 @@
                   [signing-phrase/signing-phrase]
 
                   (= :share-account view)
-                  [request/share-address]
+                  [cosmos-share-view/share-all-address]
 
                   (= :share-chat-key view)
                   [profile.user/share-chat-key]

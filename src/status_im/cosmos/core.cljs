@@ -8,7 +8,16 @@
             [taoensso.timbre :as log]
             [goog.crypt :as c]
             [oops.core :refer [oget ocall gget oget+ ocall+]]
-            ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]))
+            ["@keplr-wallet/crypto" :as crypto-lib]
+            ["@keplr-wallet/common" :as common-lib]
+            ["@keplr-wallet/types" :as keplr-types]
+            ["@keplr-wallet/stores" :as keplr-store]
+            ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]
+            [status-im.cosmos.stores.keplr-store :as chainstore]
+            [status-im.cosmos.shared.keplr-observable :as observable-query-handler]
+
+            ))
+
 
 (defn string-to-bytes [opts]
   (c/hexToByteArray opts))

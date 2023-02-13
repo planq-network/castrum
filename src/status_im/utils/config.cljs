@@ -2,6 +2,7 @@
   (:require ["react-native-config" :default react-native-config]
             [clojure.string :as string]
             [status-im.ethereum.core :as ethereum]
+            ["@keplr-wallet/cosmos" :refer (Bech32Address)]
             [status-im.ethereum.ens :as ens]))
 
 (def config
@@ -161,6 +162,127 @@
                           :NetworkType    network-type:hybrid
                           :UpstreamConfig {:Enabled true
                                            :URL     "https://eth.bd.evmos.org:8545"}}}])
+
+
+(defn js->edn [obj]
+  (js->clj obj :keywordize-keys true))
+
+
+(defn default-bench32-config []
+  (js->edn  (.defaultBech32Config Bech32Address "cosmos") ))
+
+;TODO Working keplr config from extension
+
+
+;{
+;  "chainId": "planq_7070-2",
+;  "chainName": "Planq",
+;  "rpc": "https://rpc.planq.network",
+;  "rest": "https://rest.planq.network",
+;  "bip44": {
+;    "coinType": 60
+;  },
+;  "bech32Config": {
+;    "bech32PrefixAccAddr": "plq",
+;    "bech32PrefixAccPub": "plqpub",
+;    "bech32PrefixValAddr": "plqvaloper",
+;    "bech32PrefixValPub": "plqvaloperpub",
+;    "bech32PrefixConsAddr": "plqvalcons",
+;    "bech32PrefixConsPub": "plqvalconspub"
+;  },
+;  "currencies": [
+;    {
+;      "coinDenom": "PLANQ",
+;      "coinMinimalDenom": "aplanq",
+;      "coinDecimals": 18,
+;      "coinGeckoId": "planq"
+;    }
+;  ],
+;  "feeCurrencies": [
+;    {
+;      "coinDenom": "PLANQ",
+;      "coinMinimalDenom": "aplanq",
+;      "coinDecimals": 18,
+;      "coinGeckoId": "planq",
+;      "gasPriceStep": {
+;        "low": 25000000000,
+;        "average": 25000000000,
+;        "high": 40000000000
+;      }
+;    }
+;  ],
+;  "stakeCurrency": {
+;    "coinDenom": "PLANQ",
+;    "coinMinimalDenom": "aplanq",
+;    "coinDecimals": 18,
+;    "coinGeckoId": "planq"
+;  },
+;  "features": [
+;    "ibc-transfer",
+;    "ibc-go",
+;    "eth-address-gen",
+;    "eth-key-sign"
+;  ],
+;  "beta": true
+;}
+(defn to-keplr-chain-config [input]
+  {
+   :chainId  (get-in input [:config  :CosmosChainID])
+   :chainName (get-in input [:name])
+   :rpc (get-in input [:config :UpstreamConfig :RpcURL])
+   :rest (get-in input [:config :UpstreamConfig :RestURL])
+
+   :bip44 {:coinType 60}
+   :bech32Config {
+
+                  :bech32PrefixAccAddr "plq"
+                  :bech32PrefixAccPub "plqpub"
+                  :bech32PrefixValAddr "plqvaloper"
+                  :bech32PrefixValPub "plqvaloperpub"
+                  :bech32PrefixConsAddr "plqvalcons"
+                  :bech32PrefixConsPub "plqvalconspub"
+
+                  }
+   :currencies [ {:coinDenom "PLANQ"
+                  :coinMinimalDenom "aplanq"
+                  :coinDecimals 18
+                  :coinGeckoId "planq"
+                  }
+
+                ]
+   :feeCurrencies [ {:coinDenom "PLANQ"
+                     :coinMinimalDenom "aplanq"
+                     :coinDecimals 18
+                     :coinGeckoId "planq"
+                      :gasPriceStep {:low 25000000000
+                                      :average 25000000000
+                                      :high 40000000000
+                                      }
+
+                     }]
+   :stakeCurrency {:coinDenom "PLANQ"
+                   :coinMinimalDenom "aplanq"
+                   :coinDecimals 18
+                   :coinGeckoId "planq"
+                   }
+   :features ["ibc-transfer" "ibc-go" "eth-address-gen" "eth-key-sign"]
+   :walletUrl  (get-in input [:chain-explorer-link])
+   :walletUrlForStaking (get-in input [:chain-explorer-link])
+   ;;
+   :beta true
+   })
+
+
+
+(defn cosmos-config []
+  (->> sidechain-networks
+       (filter #(= "planq_rpc" (:id %)))
+       (map to-keplr-chain-config)
+       (reduce #(conj %1 %2) [])))
+
+
+
+
 
 (def testnet-networks
   [{:id                  "goerli_rpc",

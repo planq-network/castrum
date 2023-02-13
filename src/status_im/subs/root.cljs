@@ -254,3 +254,10 @@
 (reg-root-key-sub :messenger/started? :messenger/started?)
 
 (reg-root-key-sub :information-box-states :information-box-states)
+
+
+;cosmos
+
+(reg-root-key-sub :keplr-store :keplr-store)
+(reg-root-key-sub :address-types/selected :address-types/selected)
+(reg-root-key-sub :address-types/available :address-types/available)

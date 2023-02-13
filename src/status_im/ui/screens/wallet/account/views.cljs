@@ -15,6 +15,7 @@
             [status-im.ui.screens.wallet.accounts.sheets :as sheets]
             [status-im.ui.screens.wallet.accounts.common :as common]
             [status-im.ui.screens.wallet.transactions.views :as history]
+            [status-im.cosmos.views.account.tabs :as cosmos-tabs]
             [status-im.ui.components.tabs :as tabs]
             [status-im.ui.screens.wallet.collectibles.views :as collectibles.views]
             [status-im.ui.screens.wallet.buy-crypto.views :as buy-crypto]
@@ -41,6 +42,7 @@
   (views/letsubs [currency        [:wallet/currency]
                   portfolio-value [:account-portfolio-value address]
                   window-width    [:dimensions/window-width]
+                  all-accounts [:wallet/accounts]
                   prices-loading? [:prices-loading?]]
     [react/view {:style (styles/card window-width color)}
      [react/view {:padding 16 :padding-bottom 12 :flex 1 :justify-content :space-between}
@@ -56,7 +58,21 @@
                  :style           {:width       (/ window-width 3)
                                    :line-height 22
                                    :color       colors/white-transparent-70-persist}}
-       (ethereum/normalized-hex address)]]
+    (ethereum/normalized-hex address) ]
+
+      [quo/text {:number-of-lines 1
+                 :ellipsize-mode  :middle
+                 :monospace       true
+                 :size            :small
+                 :style           {:width       (/ window-width 3)
+                                   :line-height 22
+                                   :color       colors/white-transparent-70-persist}}
+    (get-in all-accounts [ address :bech32-addr])    ]
+
+
+
+
+      ]
      [react/view {:position :absolute :top 12 :right 12}
       [react/touchable-highlight {:on-press #(re-frame/dispatch [:wallet/share-popover address])}
        [icons/icon :main-icons/share {:color                      colors/white-persist
@@ -220,7 +236,12 @@
         [tabs/tab-title state :assets (i18n/label :t/wallet-assets) (= tab :assets)]
         (when ethereum-network?
           [tabs/tab-title state :nft (i18n/label :t/wallet-collectibles) (= tab :nft)])
-        [tabs/tab-title state :history (i18n/label :t/history) (= tab :history)]]
+        [tabs/tab-title state :history (i18n/label :t/history) (= tab :history)]
+        [tabs/tab-title state :governance "Governance" (= tab :governance)]
+        [tabs/tab-title state :staking "Staking" (= tab :staking)]
+
+
+        ]
        [quo/separator {:style {:margin-top -8}}]
        (cond
          (= tab :assets)
@@ -245,7 +266,12 @@
                [react/text {:style {:color colors/gray}}
                 (i18n/label :t/no-collectibles)]]))]
          (= tab :history)
-         [transactions address])])))
+         [transactions address]
+         (= tab :governance)
+            [cosmos-tabs/governance address]
+         (= tab :staking)
+            [cosmos-tabs/staking address]
+         )])))
 
 (defn account-new [selected-account]
   (let [;{:keys [name address] :as account} (<sub [:account-by-address selected-account])

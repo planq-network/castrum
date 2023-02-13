@@ -34,6 +34,8 @@
              :registry                           {}
              :visibility-status-updates          {}
              :stickers/packs-pending             #{}
+             :address-types/selected             "Ethereum"
+             :address-types/available             ["Ethereum"  "Bech32"]
              :keycard                            {:nfc-enabled? false
                                                   :pin          {:original     []
                                                                  :confirmation []
