@@ -1,46 +1,31 @@
 (ns quo2.components.tabs.tabs
   (:require [oops.core :refer [oget]]
-            [react-native.core :as rn]
+            [quo.react-native :as rn]
             [quo2.components.tabs.tab :as tab]
             [reagent.core :as reagent]
-            [utils :as utils]
-            [quo2.foundations.colors :as colors]
-            [quo2.components.notifications.notification-dot :refer [notification-dot]]
-            [react-native.masked-view :as masked-view]
-            [react-native.linear-gradient :as linear-gradient]))
+            [status-im.ui.components.react :as react]
+            [status-im.utils.core :as utils]
+            [status-im.utils.number :as number-utils]))
 
 (def default-tab-size 32)
 
-(defn tabs [{:keys [default-active on-change style]}]
+(defn tabs [{:keys [default-active on-change]}]
   (let [active-tab-id (reagent/atom default-active)]
     (fn [{:keys [data size] :or {size default-tab-size}}]
-      [rn/view (merge {:flex-direction :row} style)
-       (doall
-        (for [{:keys [label id new-info accessibility-label]} data]
-          ^{:key id}
-          [rn/view {:style {:margin-right (if (= size default-tab-size) 12 8)}}
-           (when new-info
-             [rn/view {:position         :absolute
-                       :z-index          1
-                       :right            -2
-                       :top              -2
-                       :width            10
-                       :height           10
-                       :border-radius    5
-                       :justify-content  :center
-                       :align-items      :center
-                       :background-color (colors/theme-colors colors/neutral-5 colors/neutral-95)}
-              [notification-dot]])
-           [tab/tab
-            {:id                  id
-             :size                size
-             :accessibility-label accessibility-label
-             :active              (= id @active-tab-id)
-             :on-press            (fn []
-                                    (reset! active-tab-id id)
-                                    (when on-change
-                                      (on-change id)))}
-            label]]))])))
+      (let [active-id @active-tab-id]
+        [rn/view {:flex-direction :row}
+         (for [{:keys [label id]} data]
+           ^{:key id}
+           [rn/view {:style {:margin-right (if (= size default-tab-size) 12 8)}}
+            [tab/tab
+             {:id       id
+              :size     size
+              :active   (= id active-id)
+              :on-press (fn [^js press-event id]
+                          (reset! active-tab-id id)
+                          (when on-change
+                            (on-change press-event id)))}
+             label]])]))))
 
 (defn- calculate-fade-end-percentage
   [{:keys [offset-x content-width layout-width max-fade-percentage]}]
@@ -50,7 +35,7 @@
     ;; Truncate to avoid unnecessary rendering.
     (if (> fade-percentage 0.99)
       0.99
-      (utils/naive-round fade-percentage 2))))
+      (number-utils/naive-round fade-percentage 2))))
 
 (defn scrollable-tabs
   "Just like the component `tabs`, displays horizontally scrollable tabs with
@@ -88,9 +73,7 @@
                  on-scroll
                  scroll-event-throttle
                  scroll-on-press?
-                 size
-                 blur?
-                 override-theme]
+                 size]
           :or   {fade-end-percentage   fade-end-percentage
                  fade-end?             false
                  scroll-event-throttle 64
@@ -98,17 +81,15 @@
                  size                  default-tab-size}
           :as   props}]
       (let [maybe-mask-wrapper (if fade-end?
-                                 [masked-view/masked-view
-                                  {:mask-element
-                                   (reagent/as-element
-                                    [linear-gradient/linear-gradient
-                                     {:colors         [:black :transparent]
-                                      :locations      [(get @fading :fade-end-percentage) 1]
-                                      :start          {:x 0 :y 0}
-                                      :end            {:x 1 :y 0}
-                                      :pointer-events :none
-                                      :style          {:width  "100%"
-                                                       :height "100%"}}])}]
+                                 [react/masked-view
+                                  {:mask-element (reagent/as-element
+                                                  [react/linear-gradient {:colors         [:black :transparent]
+                                                                          :locations      [(get @fading :fade-end-percentage) 1]
+                                                                          :start          {:x 0 :y 0}
+                                                                          :end            {:x 1 :y 0}
+                                                                          :pointer-events :none
+                                                                          :style          {:width  "100%"
+                                                                                           :height "100%"}}])}]
                                  [:<>])]
         (conj maybe-mask-wrapper
               [rn/flat-list
@@ -146,18 +127,16 @@
                                                             [rn/view {:style {:margin-right  (if (= size default-tab-size) 12 8)
                                                                               :padding-right (when (= index (dec (count data)))
                                                                                                (get-in props [:style :padding-left]))}}
-                                                             [tab/tab {:id             id
-                                                                       :size           size
-                                                                       :override-theme override-theme
-                                                                       :blur?          blur?
-                                                                       :active         (= id @active-tab-id)
-                                                                       :on-press       (fn [id]
-                                                                                         (reset! active-tab-id id)
-                                                                                         (when scroll-on-press?
-                                                                                           (.scrollToIndex @flat-list-ref
-                                                                                                           #js {:animated     true
-                                                                                                                :index        index
-                                                                                                                :viewPosition 0.5}))
-                                                                                         (when on-change
-                                                                                           (on-change id)))}
+                                                             [tab/tab {:id       id
+                                                                       :size     size
+                                                                       :active   (= id @active-tab-id)
+                                                                       :on-press (fn [id]
+                                                                                   (reset! active-tab-id id)
+                                                                                   (when scroll-on-press?
+                                                                                     (.scrollToIndex @flat-list-ref
+                                                                                                     #js {:animated     true
+                                                                                                          :index        index
+                                                                                                          :viewPosition 0.5}))
+                                                                                   (when on-change
+                                                                                     (on-change id)))}
                                                               label]])})])))))

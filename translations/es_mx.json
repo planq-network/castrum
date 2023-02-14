@@ -19,10 +19,10 @@
         "other": "horas"
     },
     "datetime-ago-format": "{{number}} {{time-intervals}} {{ago}}",
-    "camera-access-error": "Para permitir el acceso a la cámara, porfavor, ve a configuración de sistema y asegúrate que la opción 'Status > Cámara' está seleccionada.",
+    "camera-access-error": "Para permitir el acceso a la cámara, porfavor, ve a configuración de sistema y asegúrate que la opción 'Castrum > Cámara' está seleccionada.",
     "remove": "Remover",
     "add-members": "Agregar miembros",
-    "photos-access-error": "Para permitir el acceso a fotos, porfavor, ve a configuración de sistema y asegúrate que la opción 'Status > Fotos' está seleccionada.",
+    "photos-access-error": "Para permitir el acceso a fotos, porfavor, ve a configuración de sistema y asegúrate que la opción 'Castrum > Fotos' está seleccionada.",
     "done": "Listo",
     "delete-chat": "Eliminar chat",
     "new-group-chat": "Nuevo grupo de chat",

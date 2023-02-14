@@ -13,7 +13,7 @@ fixes #...
 ...
 
 <!-- (Optional, remove if no changes to documentation) -->
-Documentation change PR (review please): https://github.com/status-im/status.im/pull/xxx
+Documentation change PR (review please): https://github.com/planq-network/castrum/pull/xxx
 
 ### Review notes
 <!-- (Optional. Specify if something in particular should be looked at, or ignored, during review) -->

@@ -231,7 +231,7 @@
     "gas-price": "ग्याँस मूल्य",
     "gas-used": "Gas digunakan",
     "generating-codes-for-pairing": "Menjana kod pautan untuk berhubung dengan akaun Castrum anda.",
-    "get-status-at": "Dapatkan Castrum di http:\/\/status.im",
+    "get-status-at": "Dapatkan Castrum di http:\/\/planq.network",
     "go-to-settings": "Pergi ke Tetapan",
     "got-it": "पाइयो",
     "group-chat": "Perbualan kumpulan",
@@ -255,7 +255,7 @@
         "माफ गर्नुहोस्, त्यो कोड गलत रहेछ, कृपया पुनः प्रविष्ट गर्नुहोस्"
     ],
     "intro-message1": "स्टेटसमा तपाईंलाई स्वागत छ\nतपाईंको पास्वर्ड सेटअप र सुरुवात गर्नको लागि यो सन्देसमा ट्याप गर्नुहोस् ।",
-    "intro-text": "Status adalah pintu gerbang anda ke web yang terdesentralisasi",
+    "intro-text": "Castrum adalah pintu gerbang anda ke web yang terdesentralisasi",
     "invalid-key-confirm": "Setuju",
     "invalid-number": "Nombor tidak sah",
     "invite-friends": "Jemput rakan",

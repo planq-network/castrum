@@ -72,7 +72,7 @@
 (defn dapp-image [] [components.common/image-contain nil dapp-image-data])
 
 (defn list-header [empty?]
-  [react/view
+  [react/view  {:display :none}
    [react/touchable-highlight {:on-press #(re-frame/dispatch [:browser.ui/open-url "https://dap.ps"])}
     [react/view (styles/dapp-store-container)
      [dapp-image nil dapp-image-data]

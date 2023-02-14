@@ -10,7 +10,7 @@ assignees: ''
 # Bug Report
 
 
-## Problem 
+## Problem
 [comment]: # (A problem description)
 
 
@@ -22,14 +22,13 @@ assignees: ''
 
 ### Reproduction
 
-1) Open Status
-2) 
+1) Open Castrum
+2)
 
 ### Additional Information
 
-- Status version: nightly 
+- Status version: nightly
 - Operating System: Android, iOS
 
 
 [comment]: # (Please, add logs/notes if necessary)
-

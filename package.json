@@ -1,5 +1,5 @@
 {
-  "name": "StatusIm-Mobile",
+  "name": "CastrumIm-Mobile",
   "version": "0.0.1",
   "main": "modules/react-native-status/nodejs/bindings.js",
   "private": true,
@@ -107,7 +107,7 @@
   "binary": {
     "module_name": "status_nodejs_addon",
     "module_path": "./lib/binding/",
-    "host": "https://github.com/status-im/status-mobile/releases/download/",
+    "host": "https://github.com/planq-network/castrum/releases/download/",
     "remote_path": "{version}"
   }
 }
