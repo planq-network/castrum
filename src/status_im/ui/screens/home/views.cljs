@@ -60,24 +60,21 @@
   [react/view {:padding-horizontal 16
                :padding-vertical   10}
    [search-input/search-input
-    {:search-active?   search-active?
-     :placeholder      (i18n/label :t/search)
-     :border-radius    10
-     :search-filter    search-filter
-     :before           true
-     :on-cancel        #(re-frame/dispatch [:search/home-filter-changed nil])
-     :on-blur          (fn []
-                         (when chats-empty
-                           (re-frame/dispatch [:search/home-filter-changed nil]))
-                         (re-frame/dispatch [::new-chat/clear-new-identity]))
-     :on-focus         (fn [search-filter]
-                         (when-not search-filter
-                           (re-frame/dispatch [:search/home-filter-changed ""])
-                           (re-frame/dispatch [::new-chat/clear-new-identity])))
-     :on-change        (fn [text]
-                         (re-frame/dispatch [:search/home-filter-changed text])
-                         (re-frame/dispatch [:set-in [:contacts/new-identity :state] :searching])
-                         (debounce/debounce-and-dispatch [:new-chat/set-new-identity text] 300))}]])
+    {:search-active? search-active?
+     :search-filter  search-filter
+     :on-cancel      #(re-frame/dispatch [:search/home-filter-changed nil])
+     :on-blur        (fn []
+                       (when chats-empty
+                         (re-frame/dispatch [:search/home-filter-changed nil]))
+                       (re-frame/dispatch [::new-chat/clear-new-identity]))
+     :on-focus       (fn [search-filter]
+                       (when-not search-filter
+                         (re-frame/dispatch [:search/home-filter-changed ""])
+                         (re-frame/dispatch [::new-chat/clear-new-identity])))
+     :on-change      (fn [text]
+                       (re-frame/dispatch [:search/home-filter-changed text])
+                       (re-frame/dispatch [:set-in [:contacts/new-identity :state] :searching])
+                       (debounce/debounce-and-dispatch [:new-chat/set-new-identity text] 300))}]])
 
 (defn search-input-wrapper-old [search-filter chats-empty]
   [react/view {:padding-horizontal 16
@@ -260,12 +257,7 @@
                           :on-press #(do
                                        (re-frame/dispatch [:mark-all-activity-center-notifications-as-read])
                                        (if config/new-activity-center-enabled?
-                                         (re-frame/dispatch [:show-popover {:view                        :activity-center
-                                                                            :style                       {:margin 0}
-                                                                            :disable-touchable-overlay?  true
-                                                                            :blur-view?                  true
-                                                                            :blur-view-props             {:blur-amount 20
-                                                                                                          :blur-type   :dark}}])
+                                         (re-frame/dispatch [:navigate-to :activity-center])
                                          (re-frame/dispatch [:navigate-to :notifications-center])))}
       [icons/icon :main-icons/notification2 {:color (quo2.colors/theme-colors quo2.colors/neutral-100 quo2.colors/white)}]]
      (when (pos? notif-count)

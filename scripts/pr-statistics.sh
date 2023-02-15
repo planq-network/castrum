@@ -6,7 +6,7 @@
 
 # PARAMETERS ----------------------------
 # Github repo to scan
-GITHUB_REPO="status-im/status-mobile"
+GITHUB_REPO="planq-network/castrum"
 
 # Computational mode
 # available values :

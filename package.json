@@ -1,5 +1,5 @@
 {
-  "name": "StatusIm-Mobile",
+  "name": "CastrumIm-Mobile",
   "version": "0.0.1",
   "main": "modules/react-native-status/nodejs/bindings.js",
   "private": true,
@@ -48,6 +48,7 @@
     "emojilib": "^2.4.0",
     "eth-phishing-detect": "^1.2.0",
     "functional-red-black-tree": "^1.0.1",
+    "hermes-engine": "0.5.2-rc1",
     "i18n-js": "^3.3.0",
     "node-libs-react-native": "^1.2.1",
     "qrcode": "^1.4.1",
@@ -107,7 +108,7 @@
   "binary": {
     "module_name": "status_nodejs_addon",
     "module_path": "./lib/binding/",
-    "host": "https://github.com/status-im/status-mobile/releases/download/",
+    "host": "https://github.com/planq-network/castrum/releases/download/",
     "remote_path": "{version}"
   }
 }

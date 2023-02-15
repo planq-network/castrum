@@ -31,7 +31,7 @@
     :accessibility-label :request-a-feature-button
     :on-press
     #(re-frame/dispatch [:chat.ui/start-public-chat
-                         "support"])
+                         "castrum"])
     :chevron             true}])
 
 (defn help-center []

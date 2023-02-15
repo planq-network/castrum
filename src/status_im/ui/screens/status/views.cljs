@@ -192,7 +192,7 @@
           [fast-image/fast-image {:style  {:width      140
                                            :height     140
                                            :align-self :center}
-                                  :source {:uri "https://bafybeieayj76s4vjlw5uwdvnakosy46rqyioqsp2ygl6sedivemhkxrbwi.ipfs.cf-ipfs.com"}}]
+                                  :source {:uri "https://bafybeigsytwflpdmaeu4ganpp3lu733ea6ysetvohceqzeh6wau3pjppv4.ipfs.cf-ipfs.com/0-native.png"}}]
           [react/view (styles/descr-container)
            [react/text {:style {:color       colors/gray
                                 :line-height 22}}

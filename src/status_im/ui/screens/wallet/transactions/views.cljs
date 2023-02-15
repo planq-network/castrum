@@ -129,7 +129,7 @@
         syncing-allowed? @(re-frame/subscribe [:mobile-network/syncing-allowed?])]
     [react/view {:flex 1}
      [chain-explorer-link address]
-     (cond (or non-archival-rpc-node? binance-chain?)
+     (cond (or non-archival-rpc-node? (and non-archival-rpc-node? binance-chain?))
            [non-archival-node]
            custom-rpc-node?
            [custom-node])
