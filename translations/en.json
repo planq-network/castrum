@@ -1541,6 +1541,7 @@
     "timeline": "Timeline",
     "main-account": "Main account",
     "ethereum-address": "Ethereum address",
+    "bech32-address": "Bech32 address",
     "default-assets": "Default ERC20 and ERC721",
     "increase-gas": "Increase Gas",
     "cancelling": "Cancelling",
