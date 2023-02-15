@@ -45,7 +45,7 @@
     (let [addr (string/replace address "0x" "")
           bech32-prefix (get-bech32-prefix db)
           bech32-addr (bech32-address addr)]
-    (to-bech32 bech32-addr bech32-prefix))
+      (to-bech32 bech32-addr bech32-prefix))
     (let [bech32-prefix (get-bech32-prefix db)
           bech32-addr (from-bech32 {:bech32Address address :prefix bech32-prefix})]
            (bech32-to-hex(bech32-addr))
