@@ -14,18 +14,16 @@
    [status-im.ui.components.react :as react])
   (:require-macros [status-im.utils.views :as views :refer [defview letsubs]]))
 
-(defn hide-sheet-and-select [event]
-  (re-frame/dispatch [:bottom-sheet/hide])
-  (re-frame/dispatch [:address-types/set event])
-  (prn event))
+;(defn hide-sheet-and-select [event]
+;  (re-frame/dispatch [:bottom-sheet/hide])
+;  (re-frame/dispatch [:address-types/set event])
+;  )
 
-(comment
-
-  (rf/sub [:address-types/selected]))
 
 (defview select-address-type-sheet []
   (views/letsubs [selected-type [:address-types/selected]
                   available-types [:address-types/available]]
+
     [:<>
      [quo/header {:title "Addresses" :border-bottom false}]
      (for [current-type available-types]
@@ -34,8 +32,9 @@
         {:title    (str  current-type)
          :accessibility-label (str current-type)
          :accessory           :radio
-         :on-press            #(hide-sheet-and-select current-type)
-         :selected            (= current-type selected-type)}])]))
+         :on-press            #(do (re-frame/dispatch [:bottom-sheet/hide])
+                                   (re-frame/dispatch [:address-types/set current-type]))
+         :active            (= current-type selected-type)}])]))
 
 ;A dummy container so that layout will not get affected, when the bottom sheet is shown
 (defn copyable-container-view
@@ -67,23 +66,23 @@
                   showing-bottom-sheet? [:bottom-sheet/show?]]
 
     (let [cue-atom     (reagent/atom false)
-          copy-fn      #(re-frame/dispatch [:bottom-sheet/show-sheet   {:content select-address-type-sheet}])
+          show-select-address-type      #(re-frame/dispatch [:bottom-sheet/show-sheet   {:content select-address-type-sheet}])
           label       (if (= selected-type "Ethereum") :t/ethereum-address :t/bech32-address)
           copied-text (if (= selected-type "Ethereum") (eip55/address->checksum address) (get-in all-accounts [address :bech32-addr]))]
 
       [:<>
        [react/touchable-highlight
         {:active-opacity (if @cue-atom 1 0.85)
-         :on-press       copy-fn
-         :on-long-press  copy-fn}
+         :on-press       show-select-address-type
+         :on-long-press  show-select-address-type}
         [react/view {}
          [quo/list-item
           {:size                   :small
            :title                   "Address Type"
            :accessibility-label     :backup-enabled
            :container-margin-bottom 8
-           :on-press     copy-fn
-           :on-long-press  copy-fn
+           :on-press     show-select-address-type
+           :on-long-press  show-select-address-type
            :accessory :text
            :accessory-text    selected-type
            :chevron             true}]]]

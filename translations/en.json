@@ -1541,7 +1541,6 @@
     "timeline": "Timeline",
     "main-account": "Main account",
     "ethereum-address": "Ethereum address",
-    "bech32-address": "Bech32 address",
     "default-assets": "Default ERC20 and ERC721",
     "increase-gas": "Increase Gas",
     "cancelling": "Cancelling",
@@ -1849,5 +1848,10 @@
     "group-details": "Group details",
     "edit-name-and-image": "Edit name and image",
     "change-group-privacy": "Change group privacy",
-    "manage-members": "Manage members"
+    "manage-members": "Manage members",
+    "bech32-address": "Bech32 address",
+    "governance": "Governance",
+    "staking": "Staking",
+    "validator-status": "Validator Status"
+
 }

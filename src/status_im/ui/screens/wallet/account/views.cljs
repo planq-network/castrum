@@ -1,29 +1,32 @@
 (ns status-im.ui.screens.wallet.account.views
-  (:require [re-frame.core :as re-frame]
-            [reagent.core :as reagent]
-            [status-im.ethereum.core :as ethereum]
-            [status-im.i18n.i18n :as i18n]
-            [status-im.ui.components.animation :as animation]
-            [quo.design-system.colors :as colors]
-            [status-im.ui.components.icons.icons :as icons]
-            [quo.core :as quo]
-            [quo.design-system.spacing :as spacing]
-            [status-im.ui.components.react :as react]
-            [status-im.ui.components.topbar :as topbar]
-            [status-im.utils.config :as config]
-            [status-im.ui.screens.wallet.account.styles :as styles]
-            [status-im.ui.screens.wallet.accounts.sheets :as sheets]
-            [status-im.ui.screens.wallet.accounts.common :as common]
-            [status-im.ui.screens.wallet.transactions.views :as history]
-            [status-im.cosmos.views.account.tabs :as cosmos-tabs]
-            [status-im.ui.components.tabs :as tabs]
-            [status-im.ui.screens.wallet.collectibles.views :as collectibles.views]
-            [status-im.ui.screens.wallet.buy-crypto.views :as buy-crypto]
-            [quo2.foundations.colors :as quo2.colors]
-            [status-im.utils.handlers :refer [<sub]]
-            [quo2.components.markdown.text :as quo2.text]
-            [quo2.components.buttons.button :as quo2.button]
-            [quo2.components.tabs.tabs :as quo2.tabs])
+  (:require
+    [quo.react-native :as rn]
+    [re-frame.core :as re-frame]
+    [reagent.core :as reagent]
+    [status-im.ethereum.core :as ethereum]
+    [status-im.i18n.i18n :as i18n]
+    [status-im.ui.components.animation :as animation]
+    [quo.design-system.colors :as colors]
+    [status-im.ui.components.icons.icons :as icons]
+    [quo.core :as quo]
+    [quo.design-system.spacing :as spacing]
+    [status-im.ui.components.react :as react]
+    [status-im.ui.components.topbar :as topbar]
+    [status-im.utils.config :as config]
+    [status-im.ui.screens.wallet.account.styles :as styles]
+    [status-im.ui.screens.wallet.accounts.sheets :as sheets]
+    [status-im.ui.screens.wallet.accounts.common :as common]
+    [status-im.ui.screens.wallet.transactions.views :as history]
+    [status-im.cosmos.views.account.governance :as governance-page]
+    [status-im.cosmos.views.account.validators :as validators-page]
+    [status-im.ui.components.tabs :as tabs]
+    [status-im.ui.screens.wallet.collectibles.views :as collectibles.views]
+    [status-im.ui.screens.wallet.buy-crypto.views :as buy-crypto]
+    [quo2.foundations.colors :as quo2.colors]
+    [status-im.utils.handlers :refer [<sub]]
+    [quo2.components.markdown.text :as quo2.text]
+    [quo2.components.buttons.button :as quo2.button]
+    [quo2.components.tabs.tabs :as quo2.tabs])
   (:require-macros [status-im.utils.views :as views]))
 
 (def state (reagent/atom {:tab :assets}))
@@ -224,6 +227,8 @@
                          :title (i18n/label :t/swap)
                          :on-press #(re-frame/dispatch [:open-modal :token-swap])}]])
 
+
+
 (views/defview assets-and-collections [address]
   (views/letsubs [{:keys [tokens]} [:wallet/visible-assets-with-values address]
                   currency [:wallet/currency]
@@ -232,16 +237,14 @@
                   ethereum-network? [:ethereum-network?]]
     (let [{:keys [tab]} @state]
       [react/view {:flex 1}
-       [react/view {:flex-direction :row :margin-bottom 8 :padding-horizontal 4}
+       [rn/scroll-view {:horizontal true  :shows-horizontal-scroll-indicator false :flex-direction :row :margin-bottom 8 :padding-horizontal 4}
         [tabs/tab-title state :assets (i18n/label :t/wallet-assets) (= tab :assets)]
         (when ethereum-network?
           [tabs/tab-title state :nft (i18n/label :t/wallet-collectibles) (= tab :nft)])
         [tabs/tab-title state :history (i18n/label :t/history) (= tab :history)]
-        [tabs/tab-title state :governance "Governance" (= tab :governance)]
-        [tabs/tab-title state :staking "Staking" (= tab :staking)]
+        [tabs/tab-title state :governance (i18n/label :t/governance) (= tab :governance)]
+        [tabs/tab-title state :staking (i18n/label :t/staking) (= tab :staking)]]
 
-
-        ]
        [quo/separator {:style {:margin-top -8}}]
        (cond
          (= tab :assets)
@@ -266,12 +269,11 @@
                [react/text {:style {:color colors/gray}}
                 (i18n/label :t/no-collectibles)]]))]
          (= tab :history)
-         [transactions address]
+            [transactions address]
          (= tab :governance)
-            [cosmos-tabs/governance address]
+            [governance-page/governance address]
          (= tab :staking)
-            [cosmos-tabs/staking address]
-         )])))
+            [validators-page/staking address])])))
 
 (defn account-new [selected-account]
   (let [;{:keys [name address] :as account} (<sub [:account-by-address selected-account])
