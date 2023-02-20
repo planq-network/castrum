@@ -1,6 +1,8 @@
-(ns status-im.cosmos.views.account.tabs
+(ns status-im.cosmos.views.account.governance
   (:require-macros [status-im.utils.views :as views :refer [defview letsubs]])
   (:require [quo.core :as quo]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
             [status-im.ui.components.react :as react]))
 
 (views/defview governance [address]
@@ -16,8 +18,3 @@
          :subtitle           (str (get-in content [:description]) "\n" status)
          :subtitle-max-lines 5}])]))
 
-(views/defview staking [address]
-  (views/letsubs [data [:wallet.transactions.history/screen address]]
-
-    [react/view
-     [react/text "Staking"]]))
