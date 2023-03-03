@@ -14,16 +14,13 @@
             ["@keplr-wallet/stores" :as keplr-store]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]
             [status-im.cosmos.stores.keplr-store :as chainstore]
-            [status-im.cosmos.shared.keplr-observable :as observable-query-handler]
-
-            ))
-
+            [status-im.cosmos.shared.keplr-observable :as observable-query-handler]))
 
 (defn string-to-bytes [opts]
   (c/hexToByteArray opts))
 
 (defn bech32-address [opts]
-  (new Bech32Address (clj->js(string-to-bytes opts))))
+  (new Bech32Address (clj->js (string-to-bytes opts))))
 
 (defn to-bech32 [object opts]
   (ocall+ object "toBech32" opts))
@@ -38,15 +35,14 @@
   (let [networks (get db :networks/networks)
         current-network-id (get db :networks/current-network)
         current-network (get networks current-network-id)]
-      (get-in current-network [:config :Bech32Prefix])))
+    (get-in current-network [:config :Bech32Prefix])))
 
 (defn convert-address [address db]
   (if (string/starts-with? address "0x")
     (let [addr (string/replace address "0x" "")
           bech32-prefix (get-bech32-prefix db)
           bech32-addr (bech32-address addr)]
-    (to-bech32 bech32-addr bech32-prefix))
+      (to-bech32 bech32-addr bech32-prefix))
     (let [bech32-prefix (get-bech32-prefix db)
           bech32-addr (from-bech32 {:bech32Address address :prefix bech32-prefix})]
-           (bech32-to-hex(bech32-addr))
-    )))
+      (bech32-to-hex (bech32-addr)))))

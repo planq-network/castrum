@@ -1848,5 +1848,10 @@
     "group-details": "Group details",
     "edit-name-and-image": "Edit name and image",
     "change-group-privacy": "Change group privacy",
-    "manage-members": "Manage members"
+    "manage-members": "Manage members",
+    "bech32-address": "Bech32 address",
+    "governance": "Governance",
+    "staking": "Staking",
+    "validator-status": "Validator Status"
+
 }
