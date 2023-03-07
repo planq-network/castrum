@@ -1852,6 +1852,13 @@
     "bech32-address": "Bech32 address",
     "governance": "Governance",
     "staking": "Staking",
+    "stake": "Stake",
+    "vote": "Vote",
+    "voting-starts": "Voting Start",
+    "turnout": "Turnout",
+    "voting-ends": "Voting End",
+    "proposal-detail": "Proposal",
+    "validator-detail": "Validator details",
     "validator-status": "Validator Status"
 
 }

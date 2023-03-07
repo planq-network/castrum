@@ -1,4 +1,4 @@
-(ns status-im.cosmos.stores.async-kv-store
+(ns status-im.cosmos.utils.keplr-storage
   (:require-macros [cljs.core :refer [assert]])
   (:require
    ["@react-native-async-storage/async-storage" :default async-storage]
@@ -39,7 +39,7 @@
                 (cb (js/undefined))
                 (log/error "set-item-to-storage [async-storage]" error)))))
 
-(defn build-async-kv-store [prefix]
+(defn build-async-kv-instance [prefix]
   #js{:get    (fn [key]
                 (js/Promise.
                  (fn [resolve _]
@@ -51,7 +51,7 @@
       :prefix #(prefix)})
 
 (comment
-  (def testable-async-kv-store (build-async-kv-store "testable-async-kv-store"))
+  (def testable-async-kv-store (build-async-kv-instance "testable-async-kv-store"))
   (-> (.set testable-async-kv-store "app" "gpt2")
       (.then #(.get testable-async-kv-store "app"))
       (.then #(assert (= % "gpt2") (str "not gpt2, instead got" %)))

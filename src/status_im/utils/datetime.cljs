@@ -28,6 +28,10 @@
             {:name :t/datetime-minute-short :limit 3600 :in-second 60}
             {:name :t/datetime-hour-short :limit 86400 :in-second 3600}
             {:name :t/datetime-day-short :limit nil :in-second 86400}])
+(def long-units [{:name :t/datetime-second :limit 60 :in-second 1}
+            {:name :t/datetime-minute :limit 3600 :in-second 60}
+            {:name :t/datetime-hour :limit 86400 :in-second 3600}
+            {:name :t/datetime-day :limit nil :in-second 86400}])
 
 (def time-zone-offset (hours (- (/ (.getTimezoneOffset ^js (js/Date.)) 60))))
 
@@ -196,6 +200,62 @@
     (if (<= (.getTime ^js time) (.getTime ^js now))
       (t/in-seconds (t/interval time now))
       0)))
+
+
+(defn seconds-left [time]
+  (prn time)
+  (let [now (t/now)]
+    (if (<= (.getTime ^js time) (.getTime ^js now))
+      0
+      (t/in-seconds (t/interval now time)))))
+
+(defn date-to-ms [date]
+  (-> date
+      (js/Date.parse)
+      ))
+
+(defn parse-date-to-ms [date-as-string]
+  (-> date-as-string
+      (js/Date.parse)))
+
+(defn is-over-or-left [time]
+  (prn time)
+  (let [now (t/now)]
+    (if (<= (.getTime ^js time) (.getTime ^js now))
+      :ago
+      :left)))
+
+(defn time-as-duration [date-time-string]
+  (let [time (-> date-time-string
+                 (date-to-ms) 
+                  (js/Date.))
+        category (is-over-or-left time)
+        seconds  (if (= category :ago)
+                   (seconds-ago time)
+                   (seconds-left time))
+        unit (first (drop-while #(and (>= seconds (:limit %))
+                                      (:limit %))
+                                long-units))
+        diff  (-> (/ seconds (:in-second unit))
+                  Math/floor
+                  int)
+        label-name (label-pluralize diff (:name unit))
+        ago-label  (if (= category :ago)
+                     :t/datetime-ago
+                   :t/left)]
+    (label :t/datetime-ago-format {:ago (label ago-label)
+                                   :number diff
+                                   :time-intervals label-name})))
+
+(comment
+
+    (->> "2023-03-01T16:51:17.849865426Z"
+       (time-as-duration))   ; x days ago
+
+
+  (->> "2023-03-07T16:51:17.849865426Z"
+       (time-as-duration))  ; x days left
+  )
 
 (defn time-ago [time]
   (let [diff (seconds-ago time)

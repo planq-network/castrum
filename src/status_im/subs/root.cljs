@@ -259,5 +259,6 @@
 ;cosmos
 
 (reg-root-key-sub :keplr-store :keplr-store)
+(reg-root-key-sub :validator-thumbnail-store :validator-thumbnail-store)
 (reg-root-key-sub :address-types/selected :address-types/selected)
 (reg-root-key-sub :address-types/available :address-types/available)

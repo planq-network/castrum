@@ -17,8 +17,8 @@
     [status-im.ui.screens.wallet.accounts.sheets :as sheets]
     [status-im.ui.screens.wallet.accounts.common :as common]
     [status-im.ui.screens.wallet.transactions.views :as history]
-    [status-im.cosmos.views.account.governance :as governance-page]
-    [status-im.cosmos.views.account.validators :as validators-page]
+    [status-im.cosmos.views.account.governance.proposal-list :as governance-proposals]
+    [status-im.cosmos.views.account.staking.validators-list :as staking-validators]
     [status-im.ui.components.tabs :as tabs]
     [status-im.ui.screens.wallet.collectibles.views :as collectibles.views]
     [status-im.ui.screens.wallet.buy-crypto.views :as buy-crypto]
@@ -271,9 +271,9 @@
          (= tab :history)
             [transactions address]
          (= tab :governance)
-            [governance-page/governance address]
+            [governance-proposals/list-proposals address]
          (= tab :staking)
-            [validators-page/staking address])])))
+            [staking-validators/list-validators address])])))
 
 (defn account-new [selected-account]
   (let [;{:keys [name address] :as account} (<sub [:account-by-address selected-account])
