@@ -127,6 +127,17 @@ Ensure you have 3 terminals running the following
 - `make run-metro`
 - `make run-ios` / `make run-android`
 
+
+If you would like to watch app state in browser run the following command in a seperate terminal:
+
+```shell
+
+make run-re-frisk
+
+```
+Now you can view the app state in your browser at `http://localhost:4567` , which can be useful for debugging.
+
+
 [See the STARTING GUIDE for details](STARTING_GUIDE.md#development)
 
 Next go back to the REPL input and enter the following commands:

@@ -7,8 +7,8 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
-            [status-im.cosmos.views.account.governance.proposal-detail :as proposal-detail]
-            [status-im.cosmos.views.account.staking.validator-detail :as validator-detail]
+            [status-im.cosmos.account.governance.proposals.detail.proposal-detail-view :as proposal-detail]
+            [status-im.cosmos.account.staking.validator-detail :as validator-detail]
             [goog.crypt :as c]
             [oops.core :refer [oget ocall gget oget+ ocall+]]
             ["@keplr-wallet/crypto" :as crypto-lib]
@@ -16,14 +16,20 @@
             ["@keplr-wallet/types" :as keplr-types]
             ["@keplr-wallet/stores" :as keplr-store]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]
+            ["@keplr-wallet/unit" :refer (CoinPretty, Dec, DecUtils, Int, IntPretty)]
 
             ;to register events ,effects and subs
-            status-im.cosmos.stores.validators
-            status-im.cosmos.stores.proposals
-            status-im.cosmos.stores.validator-thumbnail-store
-            status-im.cosmos.stores.address-type-store
-            status-im.cosmos.stores.keplr-effects
-            status-im.cosmos.stores.keplr-store))
+            status-im.cosmos.common.stores.error-store
+            status-im.cosmos.keplrapi.keplr-store
+            status-im.cosmos.keplrapi.keplr-effects
+            status-im.cosmos.request.stores.address-type-store
+            status-im.cosmos.account.governance.proposals.stores.proposal-store
+            status-im.cosmos.account.governance.proposals.detail.stores.proposal-detail-store
+            status-im.cosmos.account.governance.proposals.stores.pool
+            status-im.cosmos.account.governance.proposals.detail.stores.vote
+            status-im.cosmos.account.governance.proposals.detail.stores.tally
+            status-im.cosmos.account.staking.stores.validators
+            status-im.cosmos.account.staking.stores.validator-thumbnail-store))
 
 (defn string-to-bytes [opts]
   (c/hexToByteArray opts))

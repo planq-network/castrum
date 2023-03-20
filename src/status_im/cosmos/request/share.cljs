@@ -1,19 +1,16 @@
-(ns status-im.cosmos.views.wallet.request.share
+(ns status-im.cosmos.request.share
   (:require-macros [status-im.utils.views :as views :refer [defview letsubs]])
   (:require
-    [quo.core :as quo]
-    [quo.design-system.colors :as colors]
-    [re-frame.core :as re-frame]
-    [reagent.core :as reagent]
-    [status-im.ethereum.eip55 :as eip55]
-    [status-im.ethereum.eip681 :as eip681]
-    [status-im.i18n.i18n :as i18n]
-    [status-im.ui.components.copyable-text :as copyable-text]
-    [status-im.ui.components.qr-code-viewer.views :as qr-code-viewer]
-    [status-im.ui.components.react :as react]))
-
-
-
+   [quo.core :as quo]
+   [quo.design-system.colors :as colors]
+   [re-frame.core :as re-frame]
+   [reagent.core :as reagent]
+   [status-im.ethereum.eip55 :as eip55]
+   [status-im.ethereum.eip681 :as eip681]
+   [status-im.i18n.i18n :as i18n]
+   [status-im.ui.components.copyable-text :as copyable-text]
+   [status-im.ui.components.qr-code-viewer.views :as qr-code-viewer]
+   [status-im.ui.components.react :as react]))
 
 (defview select-address-type-sheet []
   (views/letsubs [selected-type [:address-types/selected]

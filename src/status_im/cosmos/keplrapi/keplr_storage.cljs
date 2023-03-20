@@ -1,4 +1,4 @@
-(ns status-im.cosmos.utils.keplr-storage
+(ns status-im.cosmos.keplrapi.keplr-storage
   (:require-macros [cljs.core :refer [assert]])
   (:require
    ["@react-native-async-storage/async-storage" :default async-storage]

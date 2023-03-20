@@ -1859,6 +1859,10 @@
     "voting-ends": "Voting End",
     "proposal-detail": "Proposal",
     "validator-detail": "Validator details",
+    "no-with-veto": "No with veto",
+    "abstain": "Abstain",
+    "vote-not-started": "Vote Not Started",
+    "vote-ended": "Vote Ended",
     "validator-status": "Validator Status"
 
 }
