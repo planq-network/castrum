@@ -185,6 +185,13 @@
 (def ^:const docs-link "https://docs.planq.network/developers/overview.html")
 (def ^:const principles-link "https://planq.network/community")
 
+(def ^:const activity-center-notification-type-one-to-one-chat 1)
+(def ^:const activity-center-notification-type-private-group-chat 2)
+(def ^:const activity-center-notification-type-mention 3)
+(def ^:const activity-center-notification-type-reply 4)
+(def ^:const activity-center-notification-type-contact-request 5)
+(def ^:const activity-center-notification-type-contact-request-retracted 6)
+
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)
 (def ^:const visibility-status-dnd 2)
