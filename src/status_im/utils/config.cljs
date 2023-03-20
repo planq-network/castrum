@@ -269,7 +269,7 @@
    :walletUrl  (get-in input [:chain-explorer-link])
    :walletUrlForStaking (get-in input [:chain-explorer-link])
    ;;
-   :beta true
+   :beta false
    })
 
 

@@ -192,6 +192,14 @@
 (def ^:const activity-center-notification-type-contact-request 5)
 (def ^:const activity-center-notification-type-contact-request-retracted 6)
 
+;dummy things to get rid of warnings??
+(def ^:const activity-center-notification-type-admin 7)
+(def ^:const activity-center-notification-type-no-type 8)
+(def ^:const activity-center-notification-type-system 9)
+(def ^:const activity-center-notification-type-membership 10)
+(def ^:const activity-center-notification-type-tx 11)
+(def ^:const activity-center-notification-type-identity-verification 12)
+
 (def ^:const visibility-status-unknown 0)
 (def ^:const visibility-status-automatic 1)
 (def ^:const visibility-status-dnd 2)

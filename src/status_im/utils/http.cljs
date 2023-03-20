@@ -97,7 +97,7 @@
                  (.then (fn [response-body]
                           (let [ok?  (.-ok response)
                                 ok?' (if valid-response?
-                                       (and ok? (valid-response? response))
+                                       (and ok? (valid-response? response-body))
                                        ok?)]
                             [response-body ok?']))))))
        (.then (fn [[response ok?]]

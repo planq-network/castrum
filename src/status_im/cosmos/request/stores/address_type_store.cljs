@@ -1,4 +1,4 @@
-(ns status-im.cosmos.stores.address-type-store
+(ns status-im.cosmos.request.stores.address-type-store
   (:require
    [status-im.utils.fx :as fx]))
 

@@ -121,6 +121,7 @@
             [status-im.ui.screens.wallet.send.views :as wallet.send]
             [status-im.ui2.screens.quo2-preview.main :as quo2.preview]
             [status-im.utils.config :as config]
+             [status-im.cosmos.core :as cosmos]
             [status-im.ui.screens.wallet.manage-connections.views :as manage-all-connections]
             [status-im.navigation2.screens :as navigation2.screens]))
 
@@ -900,6 +901,7 @@
             :options   {:topBar {:visible false}}
             :component bug-report/bug-report}]
 
+          cosmos/screens
           navigation2.screens/screens
           (when config/quo-preview-enabled?
             quo.preview/screens)
