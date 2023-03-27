@@ -67,7 +67,7 @@
     "react-native-reanimated": "2.3.3",
     "react-native-redash": "^16.0.11",
     "react-native-safe-area-context": "^2.0.0",
-    "react-native-shake": "^3.3.1",
+    "react-native-shake": "^5.3.0",
     "react-native-share": "^7.0.1",
     "react-native-status-keycard": "git+https://github.com/status-im/react-native-status-keycard.git#refs/tags/v2.5.38",
     "react-native-svg": "^9.8.4",
