@@ -33,14 +33,5 @@
          (.catch (fn [err]
                    (dispatch-event on-failure err)
                    (js/console.error err)))))))
-(re-frame/reg-fx
- :keplr-observable/fetchqueryold
- (fn [{:keys [query on-failure on-success]}]
-   (-> (.fetchResponse query (js/AbortController.))
-       (.then (fn [response]
-                (js/console.log "got response")
-                (dispatch-event on-success response)))
-       (.catch (fn [err]
-                 (dispatch-event on-failure err)
-                 (js/console.error err))))))
+
 
