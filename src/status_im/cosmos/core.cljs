@@ -11,9 +11,11 @@
             [status-im.cosmos.account.staking.validator-detail :as validator-detail]
             [goog.crypt :as c]
             [oops.core :refer [oget ocall gget oget+ ocall+]]
+
             ["@keplr-wallet/crypto" :as crypto-lib]
             ["@keplr-wallet/common" :as common-lib]
             ["@keplr-wallet/types" :as keplr-types]
+            ["@keplr-wallet/stores" :as keplr-store]
             ["@keplr-wallet/stores" :as keplr-store]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]
             ["@keplr-wallet/unit" :refer (CoinPretty, Dec, DecUtils, Int, IntPretty)]
@@ -22,6 +24,7 @@
             status-im.cosmos.common.stores.error-store
             status-im.cosmos.keplrapi.keplr-store
             status-im.cosmos.keplrapi.keplr-effects
+            status-im.cosmos.keplrapi.keplr-events
             status-im.cosmos.request.stores.address-type-store
             status-im.cosmos.account.governance.proposals.stores.proposal-store
             status-im.cosmos.account.governance.proposals.detail.stores.proposal-detail-store

@@ -6,9 +6,21 @@
    [re-frame.db :as re-frame.db]
    [status-im.cosmos.keplrapi.keplr-storage :refer [build-async-kv-instance]]
    [status-im.utils.config :refer [cosmos-config]]
+   [status-im.cosmos.common.assertions :as assertions]
    [status-im.utils.fx :as fx]
    ["eventemitter3" :as EventEmitter]
-   ["@keplr-wallet/stores" :refer (ChainStore AccountStore CosmosQueries QueriesStore CosmwasmQueries CosmosAccount CosmwasmAccount SecretAccount)]))
+   ["@keplr-wallet/stores" :refer (ChainStore AccountStore CosmosQueries QueriesStore CosmwasmQueries CosmosAccount CosmwasmAccount SecretAccount)]
+   ["@keplr-wallet/provider" :as KeplrProvider :refer (Keplr)]
+   ["@keplr-wallet/router" :refer (Message)]
+
+   ))
+
+
+
+
+
+(defn build-message [^js type ^js data]
+  (Message. type data))
 
 (defn build-query-store [chainStore]
   (QueriesStore.
@@ -42,7 +54,21 @@
     {:send {:native {:gas 100000}}
      :withdraw-rewards {:gas 200000}}))
 
+
 ;TODO account-store is invalid , Need to findout a better way to get the account store
+(defn keplr-event-emitter []
+  #js{:sendMessage (fn [^js port msg]
+                     (js/Promise. (fn [resolve reject]
+                                    (try
+                                      ;to validate message or throw error
+                                      (ocall msg "validateBasic")
+                                      (re-frame/dispatch-sync [:keplr-store/handle-keplr-event {:msg msg :resolve resolve :reject reject} ])
+                                      (catch js/Error e
+                                        (prn "thrown" e)
+                                        ;return promise reject
+                                        (reject e)
+                                        )))))})
+
 (defn build-account-store [chainStore queryStore]
   (AccountStore.
    (event-listeners)
@@ -50,27 +76,50 @@
    (fn [^js chain-id]
      #js{:suggest-chain false
          :auto-init true
-         :get-keplr (fn []
+         :getKeplr (fn []
                           ;have not seen get-keplr is invoked
                       (prn "get-keplr")
                       (js/console.log "get-keplr response")
-                          ;(-> (new RNMessageRequesterInternal)
-                          ;         (Keplr. "" "core"))
-)})
+                                   (Keplr. "" "core" (keplr-event-emitter)))})
    (.use CosmosAccount #js{:queries-store queryStore
                            :msg-opts-creator msg-opts-creator})
    (.use CosmwasmAccount #js {:queries-store queryStore})
    (.use SecretAccount #js {:queries-store queryStore})))
 
-(defn init-with-chain-info [chain-infos]
+; an interface which has a sendMessage
+(defn init-account-store [account-store chain-id]
+
+  (let [promised   (-> account-store
+                       (ocall "getAccount" chain-id)
+                       (oget "cosmos")
+                       (oget "base")
+                       (ocall "init"))]
+    (-> promised
+        (.then (fn [response]
+                 (js/console.log "init-account-store success" response )
+                 ))
+        (.catch (fn [err]
+                  (js/console.error "init-account-store error" err))))
+
+    ))
+(defn build-and-init-account-store [ chainStore queryStore selected-chain-id]
+
+  (let [account-store (build-account-store  chainStore queryStore)]
+    (do
+      (init-account-store account-store selected-chain-id)
+      account-store)))
+
+(defn init-with-chain-info [ chain-infos]
   (let [chainStore (ChainStore. (clj-bean/->js chain-infos))
         queryStore (build-query-store chainStore)
-        accountStore (build-account-store chainStore queryStore)]
+        selected-chain-id (-> chain-infos first :chainId)
+        accountStore (build-and-init-account-store  chainStore queryStore selected-chain-id)
+        ]
     {:chain-store                  chainStore
      :query-store                  queryStore
      :accountStore                 accountStore
      :chain-infos                  chain-infos
-     :selected-chain-id            (-> chain-infos first :chainId)
+     :selected-chain-id            selected-chain-id
      :selected-validator-status    "Bonded"
      :available-validator-statuses ["Bonded" "Unbonded" "Unbonding" "Unspecified"]
      :governance-proposals         []}))
@@ -86,6 +135,44 @@
                                           (prn "onBroadcasted" txHash))})))
 (comment
 
+  (re-frame/dispatch [:keplr-store/init])
+
+
+
+
+  (let [account-store (get-in  @re-frame.db/app-db [:keplr-store :accountStore])
+        chain-id (get-in  @re-frame.db/app-db [:keplr-store :selected-chain-id])]
+    (-> account-store
+        (ocall "getAccount" chain-id)
+        (oget "cosmos")
+        (oget "base")
+        (ocall "init")
+
+        ))
+
+  (let [account-store (get-in  @re-frame.db/app-db [:keplr-store :accountStore])
+        chain-id (get-in  @re-frame.db/app-db [:keplr-store :selected-chain-id])
+
+        account-base (-> account-store
+                         (ocall "getAccount" chain-id)
+                         (oget "cosmos")
+                         (oget "base"))]
+
+
+    (prn (-> account-base      (oget "_walletStatus") ))
+    (prn (-> account-base      (oget "_bech32Address") ))
+    (prn (-> account-base      (oget "_rejectionReason") ))
+
+
+
+    )
+
+
+
+
+
+
+  ;throws Account Store is invalid
   (let [validator-address (:operator_address (first  (get-in  @re-frame.db/app-db [:keplr-store :validators :data])))
         amount "0.0008"
         memo "sending things to the validator"
@@ -93,24 +180,31 @@
                            :amount "0.0008"}]
                  :gas 100000}]
 
-;throws Account Store is invalid
+
 
     (-> (send-delegate-message @re-frame.db/app-db  amount validator-address memo fee)
         (.then (fn [response]
                  (js/console.log response)))
         (.catch (fn [err]
-                  (js/console.error err))))))
+                  (js/console.error err)))))
+
+
+  )
 
 (fx/defn init-keplr-store
   {:events [:keplr-store/init]}
   [{:keys [db]} _]
-  {:db         (assoc db :keplr-store (init-with-chain-info (cosmos-config)))
+  {:db         (assoc db :keplr-store (init-with-chain-info  (cosmos-config)))
    :dispatch-n [[:keplr-store/fetchgovernanceproposals] [:keplr-store/fetchvalidators]]})
+
+
+
+;
 
 (fx/defn update-chain-store-with-chain-infos
   {:events [:keplr-store/update-chain-infos]}
   [{:keys [db]} update-cosmos-config]
-  {:db (assoc db :keplr-store (init-with-chain-info update-cosmos-config))})
+  {:db (assoc db :keplr-store (init-with-chain-info  update-cosmos-config))})
 
 (fx/defn set-selected-chain-id
   {:events [:keplr-store/set-selected-chain-id]}
@@ -129,6 +223,15 @@
  :<- [:keplr-store]
  (fn [keplr-store]
    (:chain-infos keplr-store)))
+
+
+(fx/defn init-keplr-store-for-test
+         {:events [:keplr-store/init-test]}
+         [{:keys [db]} _]
+         {:db         (assoc db :keplr-store (init-with-chain-info  (cosmos-config)))
+          })
+
+
 
 (comment
 
