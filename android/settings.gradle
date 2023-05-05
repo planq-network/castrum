@@ -1,4 +1,6 @@
 pluginManagement {
+include ':react-native-scrypt'
+project(':react-native-scrypt').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-scrypt/android')
 include ':react-native-share'
 project(':react-native-share').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-share/android')
   repositories {

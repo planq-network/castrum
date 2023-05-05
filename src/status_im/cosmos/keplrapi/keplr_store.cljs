@@ -1,12 +1,15 @@
 (ns status-im.cosmos.keplrapi.keplr-store
   (:require
    [cljs-bean.core :as clj-bean]
-   [oops.core :refer [gget ocall ocall+ oget oget+]]
+   [status-im.ethereum.core :as ethereum]
+   [oops.core :refer [gget ocall ocall+ oget oget+ oset!]]
    [re-frame.core :as re-frame]
    [re-frame.db :as re-frame.db]
    [status-im.cosmos.keplrapi.keplr-storage :refer [build-async-kv-instance]]
+   [status-im.cosmos.keplrapi.keplr-background :as keplr-background]
    [status-im.utils.config :refer [cosmos-config]]
    [status-im.cosmos.common.assertions :as assertions]
+   [status-im.native-module.core :as status]
    [status-im.utils.fx :as fx]
    ["eventemitter3" :as EventEmitter]
    ["@keplr-wallet/stores" :refer (ChainStore AccountStore CosmosQueries QueriesStore CosmwasmQueries CosmosAccount CosmwasmAccount SecretAccount)]
@@ -109,8 +112,15 @@
       (init-account-store account-store selected-chain-id)
       account-store)))
 
+(defn build-chain-store [chain-infos]
+
+  (ChainStore. (clj-bean/->js chain-infos)
+               (keplr-background/build-message-requester-internal)
+               (build-async-kv-instance "store_chains")
+               )
+  )
 (defn init-with-chain-info [ chain-infos]
-  (let [chainStore (ChainStore. (clj-bean/->js chain-infos))
+  (let [chainStore (build-chain-store  chain-infos)
         queryStore (build-query-store chainStore)
         selected-chain-id (-> chain-infos first :chainId)
         accountStore (build-and-init-account-store  chainStore queryStore selected-chain-id)
@@ -120,6 +130,7 @@
      :accountStore                 accountStore
      :chain-infos                  chain-infos
      :selected-chain-id            selected-chain-id
+     :background-router (keplr-background/build-background-router)
      :selected-validator-status    "Bonded"
      :available-validator-statuses ["Bonded" "Unbonded" "Unbonding" "Unspecified"]
      :governance-proposals         []}))
@@ -137,8 +148,22 @@
 
   (re-frame/dispatch [:keplr-store/init])
 
+  ;TODO Ensure to load the account using below
+  ;Then update  (-> account-base      (oget "_bech32Address") ))
+  ;and see whether if we could make the store to be functional
 
+  (let [wallet-root-address (get-in @re-frame.db/app-db [:multiaccount :wallet-root-address])
+        hashed-password (ethereum/sha3 "abc123password")]
+    (status/multiaccount-load-account
+      wallet-root-address
+      hashed-password
+      (fn [value]
 
+        (prn "received" value)
+        ))
+    )
+
+  ;
 
   (let [account-store (get-in  @re-frame.db/app-db [:keplr-store :accountStore])
         chain-id (get-in  @re-frame.db/app-db [:keplr-store :selected-chain-id])]
@@ -146,27 +171,54 @@
         (ocall "getAccount" chain-id)
         (oget "cosmos")
         (oget "base")
-        (ocall "init")
+        (oget "_walletStatus")
+        ;(js-keys)
+        ; (ocall "init")
 
         ))
 
-  (let [account-store (get-in  @re-frame.db/app-db [:keplr-store :accountStore])
-        chain-id (get-in  @re-frame.db/app-db [:keplr-store :selected-chain-id])
+  (let [account-store (get-in @re-frame.db/app-db [:keplr-store :accountStore])
+        chain-id (get-in @re-frame.db/app-db [:keplr-store :selected-chain-id])
 
         account-base (-> account-store
                          (ocall "getAccount" chain-id)
                          (oget "cosmos")
                          (oget "base"))]
 
+    ;(oset! account-base "_walletStatus" "connected")
+
+    ;("_walletVersion" "_walletStatus" "_rejectionReason" "_name" "_bech32Address" "_isNanoLedger" "_txTypeInProgress" "_pubKey")
+
+    (prn account-base)
+    (prn (js-keys account-base))
+    ;filter starts with _
+    (prn (filter #(.startsWith % "_") (js-keys account-base)))
+
+   ;
+   ;(prn  (map (fn [k]
+   ;        (let [v (oget account-base k)]
+   ;          (prn k v)
+   ;          (str k " ->" v)
+   ;          )) (filter #(.startsWith % "_") (js-keys account-base))))
+    ;)) [ "_walletVersion" "_walletStatus" "_rejectionReason" "_name" "_bech32Address" "_isNanoLedger" "_txTypeInProgress" "_pubKey"])
+    ;(-> (filter #(.startsWith % "_")  (js-keys account-base) )
+    ;    (map (fn [k]
+    ;           (let [v (oget account-base k)]
+    ;             (prn k v)
+    ;             ; (str k " ->" v)
+    ;             ))))
 
     (prn (-> account-base      (oget "_walletStatus") ))
     (prn (-> account-base      (oget "_bech32Address") ))
     (prn (-> account-base      (oget "_rejectionReason") ))
 
-
+    ;#js ["eventListener" "chainGetter" "chainId" "opts" "hasInited" "sendTokenFns" "makeSendTokenTxFns" "handleInit" "_walletVersion" "_walletStatus" "_rejectionReason" "_name" "_bech32Address" "_isNanoLedger" "_txTypeInProgress" "_pubKey" "cosmos" "cosmwasm" "secret"]
 
     )
+  (re-frame/dispatch [:keplr-store/init])
 
+
+; set the bech32 Address
 
 
 
@@ -249,11 +301,12 @@
 
   ;select chain by id
   (re-frame/dispatch [:keplr-store/set-selected-chain-id "chain-1"])
-  (assert (= "chain-1" (get-in @re-frame.db/app-db [:keplr-store :selected-chain-id])) "selected chain id should be chain-1") (let [selected-chain-id (re-frame/subscribe [:keplr-store/selected-chain-id])
-                                                                                                                                    device-chain-id (re-frame/subscribe [:chain-id])
-                                                                                                                                    current-network (re-frame/subscribe [:current-network])
-                                                                                                                                    all-chains (re-frame/subscribe [:keplr-store/chain-infos])]
-                                                                                                                                (prn "selected chain-id " @selected-chain-id)
-                                                                                                                                (prn "device-chain-id " @device-chain-id)
-                                                                                                                                (prn "current-network " @current-network)
-                                                                                                                                (prn "all-chains "  @all-chains)))
+  (assert (= "chain-1" (get-in @re-frame.db/app-db [:keplr-store :selected-chain-id])) "selected chain id should be chain-1")
+  (let [selected-chain-id (re-frame/subscribe [:keplr-store/selected-chain-id])
+                    device-chain-id (re-frame/subscribe [:chain-id])
+                    current-network (re-frame/subscribe [:current-network])
+                    all-chains (re-frame/subscribe [:keplr-store/chain-infos])]
+                (prn "selected chain-id " @selected-chain-id)
+                (prn "device-chain-id " @device-chain-id)
+                (prn "current-network " @current-network)
+                (prn "all-chains "  @all-chains)))

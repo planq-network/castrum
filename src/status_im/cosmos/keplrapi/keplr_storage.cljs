@@ -3,17 +3,12 @@
   (:require
    ["@react-native-async-storage/async-storage" :default async-storage]
    ["@keplr-wallet/common" :refer (KVStore)]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   [status-im.cosmos.utils.fetchers :refer (string->json stringify-json)]
 
-(defn string->json [data]
-  (if (nil? data)
-    nil
-    (js/JSON.parse data)))
+   ))
 
-(defn stringify-json [data]
-  (if (nil? data)
-    nil
-    (js/JSON.stringify data)))
+
 
 (defn get-item-from-storage [cb key-to-be-fetched]
   (-> ^js async-storage
