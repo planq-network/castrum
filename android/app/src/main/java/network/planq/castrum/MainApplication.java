@@ -9,6 +9,7 @@ import com.facebook.react.PackageList;
 
 import com.aakashns.reactnativedialogs.ReactNativeDialogsPackage;
 import com.facebook.react.ReactApplication;
+import com.crypho.scrypt.RNScryptPackage;
 import cl.json.RNSharePackage;
 import com.facebook.react.ReactNativeHost;
 import com.reactnativenavigation.NavigationApplication;

@@ -1,7 +1,10 @@
-(ns status-im.cosmos.utils.fetchers (:require
+(ns status-im.cosmos.utils.fetchers
+  (:require
   [cljs.core.async :as async]
   [cljs.core.async.interop :as interop]
+  [status-im.cosmos.common.assertions :as assertions]
   ["expo-random" :as expo-random]
+  ["typedarray" :as typedarray]
  ))
 
 (defn find-first [pred coll]
@@ -9,16 +12,13 @@
 
 
 
-(defn- byte-array->uint8-array [byte-array]
-  (js/Uint8Array. (.buffer byte-array)
-                  (.byteOffset byte-array)
-                  (.byteLength byte-array)))
-;
-;(defn get-random-bytes-async
-;  [^js/Uint8Array array]
-;  (async/go
-;    (let [random (async/<! (interop/js->cljs (expo-random/getRandomBytesAsync (.-byteLength array))))]
-;      (let [bytes (byte-array->uint8-array array)]
-;        (dotimes [i (count random)]
-;          (aset bytes i (aget random i)))
-;        array))))
+
+(defn string->json [data]
+  (if (nil? data)
+    nil
+    (js/JSON.parse data)))
+
+(defn stringify-json [data]
+  (if (nil? data)
+    nil
+    (js/JSON.stringify data)))

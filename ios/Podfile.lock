@@ -4,6 +4,8 @@ PODS:
     - React
   - CryptoSwift (1.5.1)
   - DoubleConversion (1.1.6)
+  - EXRandom (11.2.0):
+    - React-Core
   - FBLazyVector (0.63.5)
   - FBReactNativeSpec (0.63.5):
     - Folly (= 2020.01.13.00)
@@ -379,6 +381,8 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNScrypt (1.2.1):
+    - React
   - RNShare (7.0.1):
     - React-Core
   - RNSVG (9.13.6):
@@ -404,6 +408,7 @@ PODS:
 DEPENDENCIES:
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXRandom (from `../node_modules/expo-random/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/Libraries/FBReactNativeSpec`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
@@ -466,6 +471,7 @@ DEPENDENCIES:
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
+  - RNScrypt (from `../node_modules/react-native-scrypt`)
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - secp256k1 (from `https://github.com/status-im/secp256k1.swift.git`)
@@ -491,6 +497,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXRandom:
+    :path: "../node_modules/expo-random/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -611,6 +619,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
+  RNScrypt:
+    :path: "../node_modules/react-native-scrypt"
   RNShare:
     :path: "../node_modules/react-native-share"
   RNSVG:
@@ -637,10 +647,11 @@ SPEC CHECKSUMS:
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
   DoubleConversion: cde416483dac037923206447da6e1454df403714
+  EXRandom: ecb71f5d01991f29bb0277f8a2c35d168f85d637
   FBLazyVector: 352a8ca9bbc8e2f097d680747a8c97ecef12d469
   FBReactNativeSpec: 7dfb84f624136a45727c813ed21d130cd3e61beb
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
-  glog: 6934faae5afbec23475648c8aeb6047ce973af65
+  glog: 997518ea2aa2d8cd5df9797b641b758d52ecf2bc
   HMSegmentedControl: 34c1f54d822d8308e7b24f5d901ec674dfa31352
   Keycard: ac6df4d91525c3c82635ac24d4ddd9a80aca5fc8
   libwebp: 60305b2e989864154bd9be3d772730f08fc6a59c
@@ -699,6 +710,7 @@ SPEC CHECKSUMS:
   RNPermissions: ad71dd4f767ec254f2cd57592fbee02afee75467
   RNReactNativeHapticFeedback: 2566b468cc8d0e7bb2f84b23adc0f4614594d071
   RNReanimated: 69eda0e8790a2ee00de2fff03e89361e9bac749a
+  RNScrypt: 95fdef077b482e9fdf8a761120cb69d129ef4016
   RNShare: 2dc2fcac3f7321cfd6b60a23ed4bf4d549f86f5f
   RNSVG: 8ba35cbeb385a52fd960fd28db9d7d18b4c2974f
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
@@ -710,6 +722,6 @@ SPEC CHECKSUMS:
   TouchID: ba4c656d849cceabc2e4eef722dea5e55959ecf4
   Yoga: 0276e9f20976c8568e107cfc1163a8629051adc0
 
-PODFILE CHECKSUM: a1de9468266e7f0b5273acea713782ab759690f1
+PODFILE CHECKSUM: 3b83d68dc092f6a26cc87aac13f78d4d18e91cf3
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.0

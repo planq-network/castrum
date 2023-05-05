@@ -11,12 +11,14 @@
             [status-im.cosmos.account.staking.validator-detail :as validator-detail]
             [goog.crypt :as c]
             [oops.core :refer [oget ocall gget oget+ ocall+]]
-
+            ["react-native-scrypt"]
+            ["buffer/" :as app-buffer :refer (Buffer )]
             ["@keplr-wallet/crypto" :as crypto-lib]
             ["@keplr-wallet/common" :as common-lib]
             ["@keplr-wallet/types" :as keplr-types]
             ["@keplr-wallet/stores" :as keplr-store]
             ["@keplr-wallet/stores" :as keplr-store]
+            ["@keplr-wallet/background" :as keplr-background]
             ["@keplr-wallet/cosmos" :default cosmos :refer (Bech32Address)]
             ["@keplr-wallet/unit" :refer (CoinPretty, Dec, DecUtils, Int, IntPretty)]
 
